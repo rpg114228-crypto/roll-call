@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一中隊點名助手</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color: #333; padding-bottom: 20px; }
+
+/* === Header === */
+.header { background: #2c3e50; color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 1.2em; }
+.header-btns { display: flex; gap: 6px; }
+.hdr-btn {
+  background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px; padding: 4px 10px; font-size: 0.78em; cursor: pointer; font-family: inherit;
+}
+.hdr-btn.has-error { background: #e74c3c; border-color: #c0392b; }
+
+/* === Controls === */
+.controls { background: white; padding: 8px 16px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #ddd; }
+.controls label { font-size: 0.88em; color: #666; }
+.controls input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.92em; }
+
+/* === 時段分頁 === */
+.slot-tabs { display: flex; overflow-x: auto; background: white; border-bottom: 2px solid #ddd; -webkit-overflow-scrolling: touch; }
+.slot-tabs::-webkit-scrollbar { display: none; }
+.slot-tab {
+  flex: 0 0 auto; padding: 9px 14px; text-align: center; cursor: pointer;
+  font-size: 0.88em; color: #888; border-bottom: 3px solid transparent;
+  transition: all 0.2s; white-space: nowrap; position: relative;
+}
+.slot-tab.active { color: #2c3e50; border-bottom-color: #2c3e50; font-weight: bold; }
+.slot-tab .slot-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #e74c3c;
+  position: absolute; top: 6px; right: 6px; display: none;
+}
+.slot-tab .slot-dot.show { display: block; }
+
+/* === 模式切換 === */
+.mode-tabs { display: flex; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; }
+.mode-tab { flex: 1; padding: 8px; text-align: center; cursor: pointer; font-size: 0.88em; color: #888; }
+.mode-tab.active { color: #2c3e50; font-weight: bold; background: white; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* === 搜尋 === */
+.search-bar { display: flex; gap: 8px; padding: 8px 16px; background: white; border-bottom: 1px solid #eee; }
+.search-bar input {
+  flex: 1; padding: 7px 12px; border: 1px solid #ccc; border-radius: 20px;
+  font-size: 0.9em; font-family: inherit; outline: none;
+}
+.search-bar input:focus { border-color: #2c3e50; }
+.search-clear { background: #ddd; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 0.9em; }
+
+/* === 凡例 === */
+.legend { background: white; padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #eee; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.78em; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* === 名冊 === */
+.squads { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.squad-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.squad-header { background: #34495e; color: white; padding: 9px 14px; font-size: 0.92em; font-weight: bold; }
+.class-group { border-bottom: 1px solid #f0f0f0; }
+.class-header {
+  padding: 6px 14px; background: #f0f3f6; font-size: 0.82em; color: #444; font-weight: 600;
+  cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  transition: background 0.15s;
+}
+.class-header:hover { background: #e4e9f0; }
+.class-header::after { content: '全班▾'; font-size: 0.75em; color: #999; }
+.members { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; }
+
+.member-btn {
+  padding: 5px 10px; border: 1.5px solid #ddd; border-radius: 20px;
+  cursor: pointer; font-size: 0.86em; background: white;
+  transition: all 0.15s; user-select: none; font-family: inherit;
+}
+.member-btn:hover { border-color: #aaa; }
+.member-btn.dimmed { opacity: 0.2; }
+.member-btn.highlighted { box-shadow: 0 0 0 3px #f39c12; }
+.member-btn.departed { opacity: 0.35; cursor: not-allowed; background: #bdc3c7 !important; color: #666 !important; border-color: #aaa !important; text-decoration: line-through; }
+
+.member-btn.duty-公假  { background: #3498db; color: white; border-color: #2980b9; }
+.member-btn.duty-補休  { background: #27ae60; color: white; border-color: #219a52; }
+.member-btn.duty-站哨  { background: #f39c12; color: white; border-color: #e08e0b; }
+.member-btn.duty-下夜  { background: #e67e22; color: white; border-color: #d35400; }
+.member-btn.duty-外派  { background: #e74c3c; color: white; border-color: #c0392b; }
+.member-btn.duty-正課  { background: #7d3c98; color: white; border-color: #6c3483; }
+.member-btn.duty-龍隊  { background: #1abc9c; color: white; border-color: #17a589; }
+.member-btn.duty-社團  { background: #2471a3; color: white; border-color: #1a5276; }
+.member-btn.duty-喪假  { background: #2c2c2c; color: white; border-color: #1a1a1a; }
+.member-btn.duty-病假  { background: #a93226; color: white; border-color: #922b21; }
+.member-btn.duty-班消  { background: #e91e63; color: white; border-color: #c2185b; }
+.member-btn.duty-BMI   { background: #00bcd4; color: white; border-color: #0097a7; }
+.member-btn.duty-消委  { background: #ff5722; color: white; border-color: #e64a19; }
+.member-btn.duty-餐勤  { background: #795548; color: white; border-color: #5d4037; }
+.member-btn.duty-修委  { background: #f57f17; color: white; border-color: #e65100; }
+.member-btn.duty-校旗隊 { background: #880e4f; color: white; border-color: #6a0136; }
+.member-btn.duty-事假  { background: #33691e; color: white; border-color: #255216; }
+.member-btn.duty-美工  { background: #f06292; color: white; border-color: #e91e63; }
+.member-btn.duty-研習  { background: #5c6bc0; color: white; border-color: #3949ab; }
+.member-btn.duty-校隊  { background: #00897b; color: white; border-color: #00695c; }
+.member-btn.duty-罰勤  { background: #4e342e; color: white; border-color: #3e2723; }
+.member-btn.duty-正常假 { background: #546e7a; color: white; border-color: #37474f; }
+.member-btn.duty-服檢  { background: #1565c0; color: white; border-color: #0d47a1; }
+.member-btn.duty-安檢  { background: #bf360c; color: white; border-color: #870000; }
+.member-btn.duty-寢休  { background: #4527a0; color: white; border-color: #311b92; }
+.member-btn.duty-收委  { background: #558b2f; color: white; border-color: #33691e; }
+.member-btn.duty-榮團會  { background: #ad1457; color: white; border-color: #880e4f; }
+.member-btn.duty-自行帶回 { background: #78909c; color: white; border-color: #546e7a; }
+.member-btn.duty-差勤  { background: #ff6f00; color: white; border-color: #e65100; }
+.member-btn.duty-燒委  { background: #d84315; color: white; border-color: #bf360c; }
+.member-btn.duty-巡水電 { background: #0277bd; color: white; border-color: #01579b; }
+
+/* === 差勤選單（底部 sheet） === */
+.duty-menu {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: white; border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+  z-index: 1000; display: none; max-height: 72vh; overflow-y: auto;
+}
+.duty-menu.show { display: block; }
+.duty-menu-header {
+  position: sticky; top: 0; background: white; z-index: 1;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px 10px; border-bottom: 1px solid #eee;
+}
+.duty-menu-label { font-size: 0.92em; font-weight: bold; color: #333; }
+.duty-menu-close {
+  background: #eee; border: none; border-radius: 50%;
+  width: 28px; height: 28px; cursor: pointer; font-size: 1em; line-height: 28px; text-align: center;
+}
+.duty-options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px 12px 20px; }
+.duty-option {
+  padding: 10px 4px; cursor: pointer; border-radius: 10px; font-size: 0.88em;
+  text-align: center; border: 1.5px solid #eee; transition: all 0.15s;
+}
+.duty-option:hover { filter: brightness(0.93); }
+.duty-option.opt-在勤  { color: #555; }
+.duty-option.opt-公假  { background: #3498db22; color: #2980b9; border-color: #3498db66; font-weight: bold; }
+.duty-option.opt-補休  { background: #27ae6022; color: #219a52; border-color: #27ae6066; font-weight: bold; }
+.duty-option.opt-站哨  { background: #f39c1222; color: #e08e0b; border-color: #f39c1266; font-weight: bold; }
+.duty-option.opt-下夜  { background: #e67e2222; color: #d35400; border-color: #e67e2266; font-weight: bold; }
+.duty-option.opt-外派  { background: #e74c3c22; color: #c0392b; border-color: #e74c3c66; font-weight: bold; }
+.duty-option.opt-正課  { background: #7d3c9822; color: #6c3483; border-color: #7d3c9866; font-weight: bold; }
+.duty-option.opt-龍隊  { background: #1abc9c22; color: #17a589; border-color: #1abc9c66; font-weight: bold; }
+.duty-option.opt-社團  { background: #2471a322; color: #1a5276; border-color: #2471a366; font-weight: bold; }
+.duty-option.opt-喪假  { background: #2c2c2c22; color: #2c2c2c; border-color: #2c2c2c66; font-weight: bold; }
+.duty-option.opt-病假  { background: #a9322622; color: #922b21; border-color: #a9322666; font-weight: bold; }
+.duty-option.opt-班消  { background: #e91e6322; color: #c2185b; border-color: #e91e6366; font-weight: bold; }
+.duty-option.opt-BMI   { background: #00bcd422; color: #0097a7; border-color: #00bcd466; font-weight: bold; }
+.duty-option.opt-消委  { background: #ff572222; color: #e64a19; border-color: #ff572266; font-weight: bold; }
+.duty-option.opt-餐勤  { background: #79554822; color: #5d4037; border-color: #79554866; font-weight: bold; }
+.duty-option.opt-修委  { background: #f57f1722; color: #e65100; border-color: #f57f1766; font-weight: bold; }
+.duty-option.opt-校旗隊 { background: #880e4f22; color: #6a0136; border-color: #880e4f66; font-weight: bold; }
+.duty-option.opt-事假  { background: #33691e22; color: #255216; border-color: #33691e66; font-weight: bold; }
+.duty-option.opt-美工  { background: #f0629222; color: #e91e63; border-color: #f0629266; font-weight: bold; }
+.duty-option.opt-研習  { background: #5c6bc022; color: #3949ab; border-color: #5c6bc066; font-weight: bold; }
+.duty-option.opt-校隊  { background: #00897b22; color: #00695c; border-color: #00897b66; font-weight: bold; }
+.duty-option.opt-罰勤  { background: #4e342e22; color: #4e342e; border-color: #4e342e66; font-weight: bold; }
+.duty-option.opt-正常假 { background: #546e7a22; color: #37474f; border-color: #546e7a66; font-weight: bold; }
+.duty-option.opt-服檢  { background: #1565c022; color: #0d47a1; border-color: #1565c066; font-weight: bold; }
+.duty-option.opt-安檢  { background: #bf360c22; color: #870000; border-color: #bf360c66; font-weight: bold; }
+.duty-option.opt-寢休  { background: #4527a022; color: #311b92; border-color: #4527a066; font-weight: bold; }
+.duty-option.opt-收委  { background: #558b2f22; color: #33691e; border-color: #558b2f66; font-weight: bold; }
+.duty-option.opt-榮團會  { background: #ad145722; color: #880e4f; border-color: #ad145766; font-weight: bold; }
+.duty-option.opt-自行帶回 { background: #78909c22; color: #546e7a; border-color: #78909c66; font-weight: bold; }
+.duty-option.opt-差勤  { background: #ff6f0022; color: #e65100; border-color: #ff6f0066; font-weight: bold; }
+.duty-option.opt-燒委  { background: #d8431522; color: #bf360c; border-color: #d8431566; font-weight: bold; }
+.duty-option.opt-巡水電 { background: #0277bd22; color: #01579b; border-color: #0277bd66; font-weight: bold; }
+
+/* === 文字輸入 === */
+.text-section { padding: 12px 16px; }
+.text-section h3 { font-size: 0.9em; color: #555; margin-bottom: 8px; }
+.text-section textarea { width: 100%; height: 130px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.9em; font-family: inherit; resize: vertical; }
+.parse-btn { margin-top: 8px; padding: 9px; background: #34495e; color: white; border: none; border-radius: 8px; font-size: 0.9em; font-family: inherit; cursor: pointer; width: 100%; }
+.parse-btn:hover { background: #2c3e50; }
+.parse-result { margin-top: 10px; font-size: 0.88em; color: #555; }
+.parse-result .parse-item { background: #f0f8ff; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; }
+.parse-result .parse-item span { font-weight: bold; }
+.parse-result .unknown { background: #fff3cd; color: #856404; }
+
+/* === 統計表 === */
+.stats-section { margin: 0 12px 8px; }
+.stats-toggle {
+  width: 100%; padding: 8px 14px; background: white; border: 1px solid #ddd;
+  border-radius: 8px; text-align: left; font-size: 0.88em; font-family: inherit;
+  color: #555; cursor: pointer; display: flex; justify-content: space-between;
+}
+.stats-toggle:hover { background: #f5f5f5; }
+.stats-table { display: none; margin-top: 4px; background: white; border-radius: 8px; border: 1px solid #eee; overflow: hidden; }
+.stats-table.show { display: block; }
+.stats-row { display: grid; grid-template-columns: 1fr auto auto auto; padding: 7px 14px; border-bottom: 1px solid #f5f5f5; font-size: 0.85em; align-items: center; }
+.stats-row:last-child { border-bottom: none; }
+.stats-row.header { background: #f8f9fa; font-weight: bold; color: #777; font-size: 0.8em; }
+.stats-row .s-absent { color: #e74c3c; font-weight: bold; }
+.stats-row .s-present { color: #27ae60; font-weight: bold; }
+
+/* === 底部 === */
+.bottom-bar { padding: 10px 16px; }
+.summary-bar { background: #ecf0f1; padding: 8px 14px; font-size: 0.88em; color: #555; border-radius: 8px; margin-bottom: 8px; }
+.action-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.reset-btn { flex: 1; padding: 9px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-size: 0.88em; font-family: inherit; cursor: pointer; }
+.reset-btn:hover { background: #c0392b; }
+.generate-btn { flex: 2; padding: 9px; background: #2c3e50; color: white; border: none; border-radius: 8px; font-size: 0.9em; font-family: inherit; cursor: pointer; font-weight: bold; }
+.generate-btn:hover { background: #34495e; }
+.output-box { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 14px; font-size: 0.92em; line-height: 1.9; white-space: pre-wrap; font-family: 'Microsoft JhengHei', sans-serif; display: none; }
+.copy-btn { margin-top: 8px; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 0.92em; font-family: inherit; cursor: pointer; width: 100%; display: none; }
+.copy-btn:hover { background: #219a52; }
+.prefill-btn {
+  width: 100%; padding: 9px; margin-bottom: 8px; font-family: inherit; font-size: 0.9em;
+  background: #00897b; color: white; border: none; border-radius: 8px; cursor: pointer;
+}
+.prefill-btn:hover { background: #00695c; }
+.prefill-btn:disabled { background: #b0bec5; cursor: default; }
+
+/* === 確認 Modal === */
+.confirm-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; display: none; align-items: center; justify-content: center; }
+.confirm-backdrop.show { display: flex; }
+.confirm-box { background: white; border-radius: 14px; padding: 24px 20px; max-width: 280px; width: 90%; text-align: center; }
+.confirm-box p { font-size: 1em; color: #333; margin-bottom: 20px; line-height: 1.5; }
+.confirm-box p strong { color: #e74c3c; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-ok { flex: 1; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-size: 0.95em; font-family: inherit; cursor: pointer; }
+.confirm-cancel { flex: 1; padding: 10px; background: #ecf0f1; color: #555; border: none; border-radius: 8px; font-size: 0.95em; font-family: inherit; cursor: pointer; }
+
+/* === 歷史面板 === */
+.history-panel { position: fixed; bottom: 0; left: 0; right: 0; max-height: 55vh; background: white; z-index: 2000; display: none; flex-direction: column; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+.history-panel.show { display: flex; }
+.panel-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: #2c3e50; color: white; }
+.panel-toolbar span { font-weight: bold; font-size: 0.9em; }
+.panel-toolbar button { background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 0.82em; margin-left: 6px; }
+.history-entries { overflow-y: auto; flex: 1; }
+.history-entry { border-bottom: 1px solid #f0f0f0; padding: 10px 16px; }
+.history-entry .h-meta { font-size: 0.78em; color: #999; margin-bottom: 4px; }
+.history-entry .h-text { font-size: 0.82em; white-space: pre-wrap; color: #333; max-height: 80px; overflow: hidden; }
+.history-entry .h-copy { margin-top: 6px; padding: 4px 12px; background: #27ae60; color: white; border: none; border-radius: 6px; font-size: 0.8em; font-family: inherit; cursor: pointer; }
+.history-empty { padding: 20px; text-align: center; color: #aaa; font-size: 0.9em; }
+
+/* === 錯誤記錄面板 === */
+.log-panel { position: fixed; bottom: 0; left: 0; right: 0; max-height: 50vh; background: #1e1e1e; color: #d4d4d4; z-index: 2000; display: none; flex-direction: column; font-size: 0.82em; font-family: monospace; }
+.log-panel.show { display: flex; }
+.log-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background: #2d2d2d; border-bottom: 1px solid #444; }
+.log-toolbar span { color: #ccc; font-weight: bold; }
+.log-toolbar button { background: #444; color: #ccc; border: none; border-radius: 4px; padding: 3px 10px; cursor: pointer; font-family: monospace; font-size: 0.9em; margin-left: 6px; }
+.log-toolbar button:hover { background: #555; }
+.log-entries { overflow-y: auto; padding: 8px 12px; flex: 1; }
+.log-entry { padding: 3px 0; border-bottom: 1px solid #2a2a2a; line-height: 1.5; }
+.log-entry .log-time { color: #888; margin-right: 8px; }
+.log-entry.type-error .log-msg { color: #f48771; }
+.log-entry.type-warn  .log-msg { color: #dcdcaa; }
+.log-entry.type-info  .log-msg { color: #9cdcfe; }
+.log-empty { color: #666; padding: 8px 0; }
+
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999; display: none; }
+.overlay.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>一中隊點名助手</h1>
+  <div class="header-btns">
+    <button class="hdr-btn" onclick="toggleHistory()">歷史</button>
+    <button class="hdr-btn" id="logBtn" onclick="toggleLog()">記錄</button>
+  </div>
+</div>
+
+<div class="controls">
+  <label>日期</label>
+  <input type="date" id="dateInput">
+</div>
+
+<!-- 時段分頁 -->
+<div class="slot-tabs" id="slotTabs"></div>
+
+<!-- 模式切換 -->
+<div class="mode-tabs">
+  <div class="mode-tab active" onclick="switchMode('check')">勾選模式</div>
+  <div class="mode-tab" onclick="switchMode('text')">文字輸入模式</div>
+</div>
+
+<!-- 勾選模式 -->
+<div class="tab-content active" id="tab-check">
+  <div class="search-bar">
+    <input type="search" id="searchInput" placeholder="搜尋人名…" oninput="doSearch(this.value)">
+    <button class="search-clear" onclick="clearSearch()">✕</button>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0;border:1px solid #ccc"></div>在勤</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>公假</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#33691e"></div>事假</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a93226"></div>病假</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2c2c2c"></div>喪假</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#27ae60"></div>補休</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>站哨</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e67e22"></div>下夜</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#795548"></div>餐勤</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e91e63"></div>班消</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>外派</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7d3c98"></div>正課</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1abc9c"></div>龍隊</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5c6bc0"></div>研習</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff5722"></div>消委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f57f17"></div>修委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2471a3"></div>社團</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#880e4f"></div>校旗隊</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f06292"></div>美工</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00bcd4"></div>BMI</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00897b"></div>校隊</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4e342e"></div>罰勤</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#546e7a"></div>正常假</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1565c0"></div>服檢</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#bf360c"></div>安檢</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4527a0"></div>寢休</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#558b2f"></div>收委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ad1457"></div>榮團會</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#78909c"></div>自行帶回</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff6f00"></div>差勤</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d84315"></div>燒委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0277bd"></div>巡水電</div>
+    <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
+  </div>
+  <div class="squads" id="squadsContainer"></div>
+  <div class="squads" id="vacationContainer" style="display:none"></div>
+</div>
+
+<!-- 文字輸入模式 -->
+<div class="tab-content" id="tab-text">
+  <div class="text-section">
+    <h3>貼上班長／區隊長回報（支援括號、冒號、空格格式）：</h3>
+    <textarea id="textInput" placeholder="例如：
+公假：謝文杰、江驊庭
+1員班消（許惠琳）
+3員BMI 温梧淮 徐敏宗 花洺葟"></textarea>
+    <button class="parse-btn" onclick="parseText()">解析並套用到名冊</button>
+    <div class="parse-result" id="parseResult"></div>
+  </div>
+</div>
+
+<!-- 統計表 -->
+<div class="stats-section">
+  <button class="stats-toggle" onclick="toggleStats()">
+    <span id="statsLabel">各組統計</span><span id="statsArrow">▾</span>
+  </button>
+  <div class="stats-table" id="statsTable"></div>
+</div>
+
+<!-- 底部 -->
+<div class="bottom-bar">
+  <div class="summary-bar" id="summaryBar">差事：0 員 ／ 實到：97 員</div>
+  <button class="prefill-btn" id="prefillBtn" onclick="applyFixedDuties()">預填公差</button>
+  <div class="action-row">
+    <button class="reset-btn" onclick="askReset()">清除</button>
+    <button class="generate-btn" onclick="generateReport()">標準回報</button>
+    <button class="generate-btn" style="background:#1a5276" onclick="generateDetailReport()">含班別回報</button>
+  </div>
+  <div class="output-box" id="outputBox"></div>
+  <button class="copy-btn" id="copyBtn" onclick="copyReport()">複製回報內容</button>
+</div>
+
+<!-- 確認清除 Modal -->
+<div class="confirm-backdrop" id="confirmBackdrop">
+  <div class="confirm-box">
+    <p>確定清除<strong>「<span id="confirmSlotName"></span>」</strong>的所有差勤？</p>
+    <div class="confirm-actions">
+      <button class="confirm-ok" onclick="doReset()">確認清除</button>
+      <button class="confirm-cancel" onclick="closeConfirm()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 歷史面板 -->
+<div class="history-panel" id="historyPanel">
+  <div class="panel-toolbar">
+    <span>回報歷史</span>
+    <div>
+      <button onclick="clearHistory()">清除歷史</button>
+      <button onclick="toggleHistory()">關閉</button>
+    </div>
+  </div>
+  <div class="history-entries" id="historyEntries"></div>
+</div>
+
+<!-- 錯誤記錄面板 -->
+<div class="log-panel" id="logPanel">
+  <div class="log-toolbar">
+    <span>錯誤記錄</span>
+    <div>
+      <button onclick="clearLog()">清除</button>
+      <button onclick="toggleLog()">關閉</button>
+    </div>
+  </div>
+  <div class="log-entries" id="logEntries"></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+<div class="duty-menu" id="dutyMenu">
+  <div class="duty-menu-header">
+    <span class="duty-menu-label" id="dutyMenuLabel">選擇差勤</span>
+    <button class="duty-menu-close" onclick="closeMenu()">✕</button>
+  </div>
+  <div class="duty-options-grid">
+    <div class="duty-option opt-在勤"   onclick="setDuty('在勤')" style="grid-column:span 3;background:#f8f9fa;color:#555">在勤（清除）</div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 假別 ──</div>
+    <div class="duty-option opt-公假"   onclick="setDuty('公假')">公假</div>
+    <div class="duty-option opt-事假"   onclick="setDuty('事假')">事假</div>
+    <div class="duty-option opt-病假"   onclick="setDuty('病假')">病假</div>
+    <div class="duty-option opt-喪假"   onclick="setDuty('喪假')">喪假</div>
+    <div class="duty-option opt-補休"   onclick="setDuty('補休')">補休</div>
+    <div style="grid-column:span 1"></div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 勤務 ──</div>
+    <div class="duty-option opt-站哨"   onclick="setDuty('站哨')">站哨</div>
+    <div class="duty-option opt-下夜"   onclick="setDuty('下夜')">下夜</div>
+    <div class="duty-option opt-餐勤"   onclick="setDuty('餐勤')">餐勤</div>
+    <div class="duty-option opt-班消"   onclick="setDuty('班消')">班消</div>
+    <div class="duty-option opt-外派"   onclick="setDuty('外派')">外派</div>
+    <div class="duty-option opt-差勤"   onclick="setDuty('差勤')">差勤</div>
+    <div class="duty-option opt-燒委"   onclick="setDuty('燒委')">燒委</div>
+    <div class="duty-option opt-巡水電" onclick="setDuty('巡水電')">巡水電</div>
+    <div style="grid-column:span 1"></div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 訓練課程 ──</div>
+    <div class="duty-option opt-正課"   onclick="setDuty('正課')">正課</div>
+    <div class="duty-option opt-龍隊"   onclick="setDuty('龍隊')">龍隊</div>
+    <div class="duty-option opt-研習"   onclick="setDuty('研習')">研習</div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 委員活動 ──</div>
+    <div class="duty-option opt-消委"   onclick="setDuty('消委')">消委</div>
+    <div class="duty-option opt-修委"   onclick="setDuty('修委')">修委</div>
+    <div class="duty-option opt-社團"   onclick="setDuty('社團')">社團</div>
+    <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
+    <div class="duty-option opt-美工"   onclick="setDuty('美工')">美工</div>
+    <div class="duty-option opt-BMI"    onclick="setDuty('BMI')">BMI</div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 其他 ──</div>
+    <div class="duty-option opt-校隊"   onclick="setDuty('校隊')">校隊</div>
+    <div class="duty-option opt-罰勤"   onclick="setDuty('罰勤')">罰勤</div>
+    <div class="duty-option opt-正常假" onclick="setDuty('正常假')">正常假</div>
+    <div class="duty-option opt-服檢"   onclick="setDuty('服檢')">服檢</div>
+    <div class="duty-option opt-安檢"   onclick="setDuty('安檢')">安檢</div>
+    <div class="duty-option opt-寢休"   onclick="setDuty('寢休')">寢休</div>
+    <div class="duty-option opt-收委"   onclick="setDuty('收委')">收委</div>
+    <div class="duty-option opt-榮團會"  onclick="setDuty('榮團會')">榮團會</div>
+    <div class="duty-option opt-自行帶回" onclick="setDuty('自行帶回')">自行帶回</div>
+  </div>
+</div>
+
+<script>
+/* ===== 資料 ===== */
+const ROSTER = [
+  { squad: '中隊部', classes: [
+    { name: '中隊部幹部', members: ['林琬雯','花洺葟','潘琦','蔡琇淳','許怡婷','鍾迪軒','陳昱熙','林瑞堂','郭庭佑'] }
+  ]},
+  { squad: '一區隊（曾維德）', classes: [
+    { name: '區隊長', members: ['曾維德'] },
+    { name: '建制1班（程振彥）', members: ['程振彥','謝文杰','江驊庭'] },
+    { name: '建制2班（黃唯蓁）', members: ['黃唯蓁','詹世譁','嚴天鴻'] },
+    { name: '建制3班（温梧淮）', members: ['温梧淮','許一晨','徐敏宗'] },
+    { name: '建制4班（邱珮淇）', members: ['邱珮淇','潘謙平','洪昱榮','陳采瑜'] },
+    { name: '建制5班（曹瑞瑜）', members: ['曹瑞瑜','黎力嘉','廖予嫣'] },
+    { name: '建制6班（陳勝利）', members: ['陳勝利','李宗諭','施宇倫','陳昀暄'] },
+  ]},
+  { squad: '二區隊（陳明秀）', classes: [
+    { name: '區隊長', members: ['陳明秀'] },
+    { name: '建制7班（楊仲凱）',  members: ['楊仲凱','陽雲皓','蘇柔云'] },
+    { name: '建制8班（黃昭融）',  members: ['黃昭融','蘇俊嘉','李臆立'] },
+    { name: '建制9班（潘得銘）',  members: ['潘得銘','許傑程','賴昱嘉'] },
+    { name: '建制10班（梁天馨）', members: ['梁天馨','蔡峻輔','陳玉萍'] },
+    { name: '建制11班（吳宗祐）', members: ['吳宗祐','蔣豐懋','歐智賢','葉峻瑜'] },
+    { name: '建制12班（許惠琳）', members: ['許惠琳','蔣立人','黃聖雅','黃亭儀'] },
+  ]},
+  { squad: '三區隊（邱硯杰）', classes: [
+    { name: '區隊長', members: ['邱硯杰'] },
+    { name: '建制13班（林柏宇）', members: ['林柏宇','陳昀澤','黃逸軒'] },
+    { name: '建制14班（許瑜容）', members: ['許瑜容','吳倫威','郭韋志','彭毓婷'] },
+    { name: '建制15班（陳裕詳）', members: ['陳裕詳','孫奕翔','林昆憲'] },
+    { name: '建制16班（廖佩琦）', members: ['廖佩琦','康証皓','林勛偉','王子杰','尤柏仁','顏家科','徐斈僎','林易論','劉育修','姚家興','劉淑婷','陳慕明','張淑慧','張佳容','王晨芯','徐雅億','蕭梓嫣'] },
+    { name: '建制17班（洪翊耀）', members: ['洪翊耀','何威德','邱湧庭','洪塘訓','蔡曜鴻','簡品則','何景藝','李旭峰','楊于賢','李定澂','陳哲浩','李姿縈','孫意惠','吳宣葶','黃怡文','盛子齡','陳靖棻','巫昀柔'] },
+  ]}
+];
+
+const GROUPS = {
+  '雷達組':       ['蔣豐懋','賴昱嘉','吳宗祐','葉峻瑜','歐智賢'],
+  '通訊組':       ['詹世譁','許一晨','潘得銘','花洺葟','黃昭融','温梧淮','嚴天鴻','潘謙平','陳明秀','許惠琳','徐敏宗','黃唯蓁'],
+  '航電組':       ['陳昱熙','陳裕詳','林瑞堂','謝文杰','程振彥','江驊庭','孫奕翔','林昆憲'],
+  '氣象組':       ['邱珮淇','陳昀暄','李臆立','陳昀澤','陳勝利','林柏宇','黃逸軒'],
+  '人事組':       ['邱硯杰','許怡婷','黃聖雅','彭毓婷','曾維德','吳倫威','楊仲凱','黃亭儀','許瑜容','郭韋志','蘇柔云'],
+  '資管組':       ['蔡峻輔','郭庭佑','陳玉萍','林琬雯','鍾迪軒','梁天馨','洪昱榮','蔣立人','李宗諭','陽雲皓'],
+  '後管組':       ['施宇倫','蘇俊嘉','許傑程','廖予嫣','潘琦','蔡琇淳','曹瑞瑜','黎力嘉','陳采瑜'],
+  '專軍測量組':   ['姚家興','林易論'],
+  '專軍攔管組':   ['巫昀柔','劉育修','廖佩琦','楊于賢','李定澂','蔡曜鴻','劉淑婷','何威德'],
+  '專軍通資電組': ['孫意惠','盛子齡','張佳容','吳宣葶','王子杰','徐雅億','張淑慧','黃怡文','簡品則','洪翊耀','陳慕明','尤柏仁','顏家科','王晨芯','李旭峰','林勛偉','康証皓'],
+  '專軍氣象組':   ['邱湧庭','洪塘訓','李姿縈','蕭梓嫣','徐斈僎','陳哲浩','何景藝','陳靖棻'],
+};
+
+const DUTY_TYPES = [
+  '在勤',
+  // 假別
+  '公假','事假','病假','喪假','補休','正常假',
+  // 勤務
+  '站哨','下夜','餐勤','班消','外派','罰勤','差勤','燒委','巡水電',
+  // 訓練課程
+  '正課','龍隊','研習',
+  // 委員活動
+  '消委','修委','社團','校旗隊','美工','BMI',
+  // 其他
+  '校隊','服檢','安檢','寢休','收委','榮團會','自行帶回',
+];
+
+const SLOTS = ['早點名','0740','1200','1330','1700','1850','晚點名','軍訓課','研習1700','研習1800'];
+
+// 固定公差出任時段（可依實際名單修正）
+const FIXED_DUTIES = {
+  '0740': {
+    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+  },
+  '1200': {
+    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
+  },
+  '1330': {
+    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+  },
+  '1850': {
+    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
+  },
+  '晚點名': {
+    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
+  },
+};
+const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','1850':'1850 點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
+const VACATION_SLOTS = new Set(['研習1700','研習1800']);
+const VACATION_SLOT = '研習1700'; // 向下相容
+
+// 放假點名額外人員（大隊部＋外派）
+const VACATION_EXTRAS = [
+  { squad: '實習大隊部（9人）', classes: [
+    { name: '大隊部', members: ['趙百睿','陳文正','蔡宜玹','王彥','黃士朋','黃喬偉','戴佾訓','楊人龍','蘇鈺茗'] }
+  ]},
+  { squad: '外派人員（15人）', classes: [
+    { name: '外派', members: ['梁浩瑋','陳詠琪','羅欽瑋','彭于宸','韋秉言','湯淞棋','林慧貞','陳冠緯','黃馨','蔡雨容','葉政庭','陳芯媛','李臆全','藍沉芹','李沛萱'] }
+  ]}
+];
+const VACATION_TOTAL = 121;
+const NORMAL_TOTAL = 97;
+
+function isVacationSlot(slot) { return VACATION_SLOTS.has(slot || currentSlot); }
+
+// 研習1700 已出發人員（有任何差勤的人）
+function get1700Departed() {
+  return new Set(Object.keys(slotStates['研習1700'] || {}).filter(n => slotStates['研習1700'][n] !== '在勤'));
+}
+
+function getTotal() {
+  if (!isVacationSlot()) return NORMAL_TOTAL;
+  if (currentSlot === '研習1800') return VACATION_TOTAL - get1700Departed().size;
+  return VACATION_TOTAL;
+}
+
+// 建姓名對照表
+const nameToClass = {}, nameToGroup = {}, allNames = new Set();
+ROSTER.forEach(s => s.classes.forEach(cls => {
+  const simple = cls.name.replace(/（.*）/, '').trim();
+  cls.members.forEach(m => { nameToClass[m] = simple; allNames.add(m); });
+}));
+VACATION_EXTRAS.forEach(s => s.classes.forEach(cls => {
+  cls.members.forEach(m => { nameToClass[m] = cls.name; allNames.add(m); });
+}));
+Object.entries(GROUPS).forEach(([g, ms]) => ms.forEach(m => nameToGroup[m] = g));
+
+/* ===== Error Log ===== */
+const MAX_LOG = 100;
+let errorLog = [];
+try { errorLog = JSON.parse(localStorage.getItem('rollcall_log') || '[]'); } catch(e) {}
+
+function logEvent(type, msg) {
+  const now = new Date();
+  const time = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  errorLog.unshift({ time, type, msg });
+  if (errorLog.length > MAX_LOG) errorLog = errorLog.slice(0, MAX_LOG);
+  try { localStorage.setItem('rollcall_log', JSON.stringify(errorLog)); } catch(e) {}
+  renderLog();
+  if (type === 'error') document.getElementById('logBtn').classList.add('has-error');
+}
+function renderLog() {
+  const el = document.getElementById('logEntries');
+  if (!el) return;
+  el.innerHTML = errorLog.length === 0
+    ? '<div class="log-empty">無記錄</div>'
+    : errorLog.map(e => `<div class="log-entry type-${e.type}"><span class="log-time">${e.time}</span><span class="log-msg">[${e.type.toUpperCase()}] ${e.msg}</span></div>`).join('');
+}
+function toggleLog() { const p = document.getElementById('logPanel'); p.classList.toggle('show'); if (p.classList.contains('show')) renderLog(); }
+function clearLog() { errorLog = []; localStorage.removeItem('rollcall_log'); document.getElementById('logBtn').classList.remove('has-error'); renderLog(); }
+
+window.onerror = (msg, src, line) => { logEvent('error', `JS例外：${msg}（第${line}行）`); return false; };
+window.addEventListener('unhandledrejection', e => logEvent('error', `Promise錯誤：${e.reason}`));
+
+/* ===== 多時段狀態 ===== */
+let currentSlot = '早點名';
+let slotStates = {};
+SLOTS.forEach(s => slotStates[s] = {});
+const dutyMap = {};  // 目前時段的差勤，key=姓名 value=差勤
+
+let currentMember = null;   // 單人選單
+let currentClassMembers = null; // 全班選單
+
+/* ===== 時段分頁 ===== */
+function buildSlotTabs() {
+  const container = document.getElementById('slotTabs');
+  SLOTS.forEach(slot => {
+    const tab = document.createElement('div');
+    tab.className = 'slot-tab' + (slot === currentSlot ? ' active' : '');
+    tab.dataset.slot = slot;
+    tab.innerHTML = `${slot}<span class="slot-dot" id="dot-${slot}"></span>`;
+    tab.onclick = () => switchSlot(slot);
+    container.appendChild(tab);
+  });
+}
+
+function switchSlot(slot) {
+  if (slot === currentSlot) return;
+  // 儲存目前時段
+  slotStates[currentSlot] = Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'));
+  // 切換
+  currentSlot = slot;
+  // 更新 tab UI
+  document.querySelectorAll('.slot-tab').forEach(t => t.classList.toggle('active', t.dataset.slot === slot));
+  // 載入新時段
+  loadSlotIntoDutyMap();
+  updateSummary();
+  updateStats();
+  updatePrefillBtn();
+  document.getElementById('outputBox').style.display = 'none';
+  document.getElementById('copyBtn').style.display = 'none';
+  saveState();
+}
+
+function loadSlotIntoDutyMap() {
+  const vacation = isVacationSlot(currentSlot);
+  document.getElementById('vacationContainer').style.display = vacation ? 'block' : 'none';
+
+  // 重置所有人
+  Object.keys(dutyMap).forEach(n => dutyMap[n] = '在勤');
+  document.querySelectorAll('.member-btn').forEach(b => b.className = 'member-btn');
+
+  // 載入該時段資料
+  const state = slotStates[currentSlot] || {};
+  Object.entries(state).forEach(([name, duty]) => {
+    if (dutyMap.hasOwnProperty(name) && duty !== '在勤') {
+      dutyMap[name] = duty;
+      const btn = document.getElementById('btn-' + name);
+      if (btn) btn.className = `member-btn duty-${duty}`;
+    }
+  });
+
+  // 研習1800：把1700已出發的人標示為 departed（灰掉、不可點）
+  if (currentSlot === '研習1800') {
+    get1700Departed().forEach(name => {
+      const btn = document.getElementById('btn-' + name);
+      if (btn) btn.className = 'member-btn departed';
+    });
+  }
+
+  updateSlotDots();
+}
+
+function updateSlotDots() {
+  SLOTS.forEach(slot => {
+    const data = slot === currentSlot
+      ? Object.values(dutyMap).some(d => d !== '在勤')
+      : Object.keys(slotStates[slot] || {}).length > 0;
+    const dot = document.getElementById('dot-' + slot);
+    if (dot) dot.classList.toggle('show', data);
+  });
+}
+
+/* ===== 名冊 UI ===== */
+function buildSquadCards(roster, container) {
+  roster.forEach(squad => {
+    const card = document.createElement('div');
+    card.className = 'squad-card';
+    card.innerHTML = `<div class="squad-header">${squad.squad}</div>`;
+    squad.classes.forEach(cls => {
+      const group = document.createElement('div');
+      group.className = 'class-group';
+      const hdr = document.createElement('div');
+      hdr.className = 'class-header';
+      hdr.textContent = cls.name;
+      hdr.onclick = e => openClassMenu(e, cls.members, cls.name);
+      group.appendChild(hdr);
+      const membersDiv = document.createElement('div');
+      membersDiv.className = 'members';
+      cls.members.forEach(name => {
+        dutyMap[name] = '在勤';
+        const btn = document.createElement('button');
+        btn.className = 'member-btn';
+        btn.id = 'btn-' + name;
+        btn.textContent = name;
+        btn.dataset.name = name;
+        btn.onclick = e => { if (!btn.classList.contains('departed')) openMenu(e, name); };
+        membersDiv.appendChild(btn);
+      });
+      group.appendChild(membersDiv);
+      card.appendChild(group);
+    });
+    container.appendChild(card);
+  });
+}
+
+function buildRoster() {
+  buildSquadCards(ROSTER, document.getElementById('squadsContainer'));
+  buildSquadCards(VACATION_EXTRAS, document.getElementById('vacationContainer'));
+}
+
+/* ===== 差勤選單 ===== */
+function openMenu(e, name) {
+  e.stopPropagation();
+  currentMember = name;
+  currentClassMembers = null;
+  document.getElementById('dutyMenuLabel').textContent = name;
+  showDutyMenu();
+}
+
+function openClassMenu(e, members, className) {
+  e.stopPropagation();
+  currentMember = null;
+  currentClassMembers = members;
+  document.getElementById('dutyMenuLabel').textContent = className + '（全班）';
+  showDutyMenu();
+}
+
+function showDutyMenu() {
+  document.getElementById('dutyMenu').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeMenu() {
+  document.getElementById('dutyMenu').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+  currentMember = null;
+  currentClassMembers = null;
+}
+
+function setDuty(duty) {
+  const departed = currentSlot === '研習1800' ? get1700Departed() : new Set();
+  if (currentMember) {
+    if (!departed.has(currentMember)) applyDuty(currentMember, duty);
+  } else if (currentClassMembers) {
+    currentClassMembers.forEach(name => { if (!departed.has(name)) applyDuty(name, duty); });
+  }
+  closeMenu();
+  updateSummary();
+  updateSlotDots();
+  updateStats();
+  saveState();
+}
+
+function applyDuty(name, duty) {
+  dutyMap[name] = duty;
+  const btn = document.getElementById('btn-' + name);
+  if (btn) btn.className = 'member-btn' + (duty !== '在勤' ? ' duty-' + duty : '');
+}
+
+/* ===== 搜尋 ===== */
+function doSearch(q) {
+  q = q.trim();
+  document.querySelectorAll('.member-btn').forEach(btn => {
+    if (btn.classList.contains('departed')) return; // 不干擾 departed 樣式
+    if (!q) {
+      btn.classList.remove('dimmed', 'highlighted');
+    } else if (btn.textContent.includes(q)) {
+      btn.classList.remove('dimmed');
+      btn.classList.add('highlighted');
+    } else {
+      btn.classList.add('dimmed');
+      btn.classList.remove('highlighted');
+    }
+  });
+  if (q) {
+    const first = document.querySelector('.member-btn.highlighted');
+    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  doSearch('');
+}
+
+/* ===== 模式切換 ===== */
+function switchMode(mode) {
+  document.querySelectorAll('.mode-tab').forEach((t, i) => t.classList.toggle('active', ['check','text'][i] === mode));
+  document.querySelectorAll('.tab-content').forEach((t, i) => t.classList.toggle('active', ['check','text'][i] === mode));
+}
+
+/* ===== 統計表 ===== */
+let statsOpen = false;
+function toggleStats() {
+  statsOpen = !statsOpen;
+  document.getElementById('statsTable').classList.toggle('show', statsOpen);
+  document.getElementById('statsArrow').textContent = statsOpen ? '▴' : '▾';
+  if (statsOpen) updateStats();
+}
+
+function updateStats() {
+  if (!statsOpen) return;
+  const table = document.getElementById('statsTable');
+  let html = `<div class="stats-row header"><span>組別</span><span>應到</span><span>差事</span><span>實到</span></div>`;
+  Object.entries(GROUPS).forEach(([grp, members]) => {
+    const total = members.length;
+    const absent = members.filter(m => dutyMap[m] && dutyMap[m] !== '在勤').length;
+    const present = total - absent;
+    html += `<div class="stats-row"><span>${grp}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${present}</span></div>`;
+  });
+  // 放假模式補充大隊部／外派
+  if (isVacationSlot(currentSlot)) {
+    VACATION_EXTRAS.forEach(squad => squad.classes.forEach(cls => {
+      const total = cls.members.length;
+      const absent = cls.members.filter(m => dutyMap[m] && dutyMap[m] !== '在勤').length;
+      html += `<div class="stats-row"><span>${cls.name}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${total - absent}</span></div>`;
+    }));
+  }
+  // 全中隊合計
+  const total = getTotal();
+  const totalAbsent = Object.values(dutyMap).filter(d => d !== '在勤').length;
+  html += `<div class="stats-row" style="font-weight:bold;background:#f8f9fa"><span>全中隊</span><span>${total}</span><span class="${totalAbsent > 0 ? 's-absent' : ''}">${totalAbsent}</span><span class="s-present">${total - totalAbsent}</span></div>`;
+  table.innerHTML = html;
+  document.getElementById('statsLabel').textContent = `各組統計（差事 ${totalAbsent} 員）`;
+}
+
+/* ===== 清除確認 ===== */
+function askReset() {
+  document.getElementById('confirmSlotName').textContent = currentSlot;
+  document.getElementById('confirmBackdrop').classList.add('show');
+}
+function closeConfirm() { document.getElementById('confirmBackdrop').classList.remove('show'); }
+function doReset() {
+  closeConfirm();
+  slotStates[currentSlot] = {};
+  loadSlotIntoDutyMap(); // 重置並重新套用 departed 樣式
+  document.getElementById('outputBox').style.display = 'none';
+  document.getElementById('copyBtn').style.display = 'none';
+  document.getElementById('parseResult').innerHTML = '';
+  document.getElementById('textInput').value = '';
+  updateSummary();
+  updateSlotDots();
+  updateStats();
+  saveState();
+}
+
+/* ===== 儲存狀態 ===== */
+function saveState() {
+  try {
+    slotStates[currentSlot] = Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'));
+    const state = { date: dateInput.value, currentSlot, slotStates };
+    localStorage.setItem('rollcall_state', JSON.stringify(state));
+  } catch(e) { logEvent('error', `儲存狀態失敗：${e.message}`); }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('rollcall_state');
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state.date) dateInput.value = state.date;
+    if (state.slotStates) {
+      SLOTS.forEach(s => { slotStates[s] = state.slotStates[s] || {}; });
+    }
+    if (state.currentSlot && SLOTS.includes(state.currentSlot)) {
+      currentSlot = state.currentSlot;
+      document.querySelectorAll('.slot-tab').forEach(t => t.classList.toggle('active', t.dataset.slot === currentSlot));
+    }
+    loadSlotIntoDutyMap();
+  } catch(e) { logEvent('error', `載入狀態失敗：${e.message}`); }
+}
+
+/* ===== 組別別名對照（縮寫 → GROUPS 鍵名） ===== */
+const GROUP_ALIASES = [
+  ['專軍通資電','專軍通資電組'],['專軍攔管','專軍攔管組'],['專軍測量','專軍測量組'],['專軍氣象','專軍氣象組'],
+  ['航電','航電組'],['雷達','雷達組'],['通訊','通訊組'],['氣象','氣象組'],
+  ['人事','人事組'],['資管','資管組'],['後管','後管組'],
+];
+
+function detectGroupFromLine(line) {
+  // 優先完整比對（最長優先），再用別名
+  const sorted = Object.keys(GROUPS).sort((a,b) => b.length - a.length);
+  for (const g of sorted) { if (line.includes(g)) return g; }
+  for (const [alias, g] of GROUP_ALIASES) { if (line.includes(alias)) return g; }
+  return null;
+}
+
+/* ===== 貪婪姓名匹配 ===== */
+function greedyExtractNames(str) {
+  const results = [];
+  let i = 0;
+  while (i < str.length) {
+    let found = false;
+    for (let len = 4; len >= 2; len--) {
+      if (i + len <= str.length) {
+        const candidate = str.substring(i, i + len);
+        if (allNames.has(candidate)) {
+          results.push(candidate);
+          i += len;
+          found = true;
+          break;
+        }
+      }
+    }
+    if (!found) i++;
+  }
+  return results;
+}
+
+/* ===== 文字解析 ===== */
+function parseText() {
+  const text = document.getElementById('textInput').value;
+  if (!text.trim()) return;
+
+  Object.keys(dutyMap).forEach(name => applyDuty(name, '在勤'));
+
+  const resultDiv = document.getElementById('parseResult');
+  resultDiv.innerHTML = '';
+
+  let currentContext = null; // 當前組別上下文（跨行追蹤）
+
+  const dutyKeywords = {
+    '公假':'公假','補休':'補休','站哨':'站哨','下夜':'下夜','外派':'外派',
+    '正課人員':'正課','正課':'正課',
+    '龍隊人員':'龍隊','龍隊':'龍隊',
+    '社團練習':'社團','社團':'社團',
+    '研習假人員':'研習','研習假':'研習','研習':'研習',
+    '喪假':'喪假','病假':'病假','事假':'事假',
+    '正常假':'正常假',
+    '班消':'班消','bmi':'BMI','消委':'消委','餐勤':'餐勤','修委':'修委',
+    '校旗隊':'校旗隊','美工':'美工',
+    '校隊':'校隊','球隊':'校隊',
+    '罰勤':'罰勤',
+    '大隊服儀檢查':'服檢','大隊服檢':'服檢','服儀檢查':'服檢','服檢':'服檢',
+    '收假安檢':'安檢','安檢':'安檢',
+    '寢休':'寢休',
+    '收委班長':'收委','收委':'收委',
+    '收尾班長':'收委','收尾':'收委',
+    '榮團會公差':'榮團會','榮團會':'榮團會',
+    '自行帶回':'自行帶回',
+    '差勤':'差勤',
+    '燒委':'燒委',
+    '巡水電':'巡水電',
+    '氣象館上課':'正課','上課':'正課',
+  };
+
+  text.split(/[\n；;]/).forEach(line => {
+    line = line.trim();
+    if (!line) return;
+
+    // 每行先更新組別上下文
+    const detected = detectGroupFromLine(line);
+    if (detected) currentContext = detected;
+
+    let matchedDuty = null, matchedKw = null;
+    const ll = line.toLowerCase();
+    for (const [kw, duty] of Object.entries(dutyKeywords)) {
+      if (ll.includes(kw.toLowerCase())) { matchedDuty = duty; matchedKw = kw; break; }
+    }
+    if (!matchedDuty) return;
+
+    // 從關鍵字位置往後貪婪匹配姓名，不受格式限制
+    const kwIdx = ll.indexOf(matchedKw.toLowerCase());
+    const afterKw = line.substring(kwIdx + matchedKw.length);
+    const matched = greedyExtractNames(afterKw);
+
+    // 若沒找到個人姓名，先看同行組別，再用跨行上下文
+    let groupApplied = false;
+    if (matched.length === 0) {
+      const inlineGroup = detectGroupFromLine(line);
+      const groupToUse = inlineGroup || currentContext;
+      if (groupToUse && GROUPS[groupToUse]) {
+        GROUPS[groupToUse].forEach(n => matched.push(n));
+        groupApplied = true;
+        const item = document.createElement('div');
+        item.className = 'parse-item';
+        item.innerHTML = `<span>${matchedDuty}</span>（${groupToUse}，整組）：${GROUPS[groupToUse].join('、')}（${GROUPS[groupToUse].length} 員）`;
+        resultDiv.appendChild(item);
+      }
+    }
+
+    matched.forEach(n => applyDuty(n, matchedDuty));
+
+    if (matched.length > 0 && !groupApplied) {
+      const item = document.createElement('div');
+      item.className = 'parse-item';
+      item.innerHTML = `<span>${matchedDuty}</span>：${matched.join('、')}（${matched.length} 員）`;
+      resultDiv.appendChild(item);
+    }
+
+    // 找未知姓名：純中文片段但不在名冊內
+    const unknown = [];
+    afterKw.split(/[、，,\s\/(（)）：:＋+\d員\-—]+/).map(s => s.trim())
+      .filter(s => s.length >= 2 && /^[一-鿿]+$/.test(s))
+      .forEach(seg => {
+        if (greedyExtractNames(seg).length === 0) {
+          unknown.push(seg);
+          logEvent('warn', `解析：找不到「${seg}」（差勤：${matchedDuty}）`);
+        }
+      });
+    if (unknown.length > 0) {
+      const item = document.createElement('div');
+      item.className = 'parse-item unknown';
+      item.innerHTML = `⚠ 找不到：${unknown.join('、')}`;
+      resultDiv.appendChild(item);
+    }
+  });
+
+  if (resultDiv.innerHTML === '') {
+    resultDiv.innerHTML = '<div class="parse-item">未識別到任何差勤資料，請確認格式</div>';
+    logEvent('warn', `解析失敗：「${text.trim().substring(0,15)}...」`);
+  }
+
+  updateSummary();
+  updateSlotDots();
+  updateStats();
+  saveState();
+}
+
+/* ===== 產生回報 ===== */
+function getReportData() {
+  const dateVal = dateInput.value;
+  const d = new Date(dateVal + 'T00:00:00');
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  const rollLabel = SLOT_LABELS[currentSlot] || currentSlot;
+  const departed = currentSlot === '研習1800' ? get1700Departed() : new Set();
+  const total = getTotal();
+  const groups = {};
+  DUTY_TYPES.slice(1).forEach(t => groups[t] = []);
+  // departed 的人不列入 1800 的差勤計算
+  Object.entries(dutyMap).forEach(([name, duty]) => {
+    if (duty !== '在勤' && !departed.has(name)) groups[duty].push(name);
+  });
+  const totalAbsent = Object.values(groups).reduce((s, a) => s + a.length, 0);
+  return { month, day, rollLabel, total, groups, totalAbsent, present: total - totalAbsent, departed };
+}
+
+function generateReport() {
+  const { month, day, rollLabel, total, groups, totalAbsent, present, departed } = getReportData();
+  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, ''];
+  if (departed.size > 0) lines.push(`（1700 已出發 ${departed.size} 員，不列入本次點名）`);
+  lines.push(`應到 ${total} 員`, '除');
+  let hasAbsent = false;
+  DUTY_TYPES.slice(1).forEach(duty => {
+    if (!groups[duty].length) return;
+    hasAbsent = true;
+    lines.push(`${groups[duty].length} 員 ${duty}`);
+    lines.push(`（${groups[duty].join('、')}）`);
+  });
+  if (!hasAbsent) lines.push('0 員差事');
+  lines.push(`合計差事：${totalAbsent} 員`);
+  lines.push(`實到：${present} 員`);
+  lines.push('請區隊長核示，謝謝區隊長。');
+  showReport(lines.join('\n'));
+}
+
+function generateDetailReport() {
+  const { month, day, rollLabel, total, groups, totalAbsent, present, departed } = getReportData();
+  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, ''];
+  if (departed.size > 0) lines.push(`（1700 已出發 ${departed.size} 員，不列入本次點名）`);
+  lines.push(`應到 ${total} 員`, '除');
+  let hasAbsent = false;
+  DUTY_TYPES.slice(1).forEach(duty => {
+    if (!groups[duty].length) return;
+    hasAbsent = true;
+    lines.push(`${groups[duty].length} 員 ${duty}`);
+    const byClass = {};
+    groups[duty].forEach(name => {
+      const label = nameToGroup[name] ? `${nameToClass[name] || '中隊部'}／${nameToGroup[name]}` : (nameToClass[name] || '中隊部');
+      if (!byClass[label]) byClass[label] = [];
+      byClass[label].push(name);
+    });
+    Object.entries(byClass).forEach(([label, ms]) => lines.push(`  ${label}：${ms.join('、')}`));
+  });
+  if (!hasAbsent) lines.push('0 員差事');
+  lines.push(`合計差事：${totalAbsent} 員`);
+  lines.push(`實到：${present} 員`);
+  lines.push('請區隊長核示，謝謝區隊長。');
+  showReport(lines.join('\n'));
+}
+
+function showReport(text) {
+  const box = document.getElementById('outputBox');
+  const btn = document.getElementById('copyBtn');
+  box.textContent = text;
+  box.style.display = 'block';
+  btn.style.display = 'block';
+  box.scrollIntoView({ behavior: 'smooth' });
+  saveHistory(text);
+}
+
+function copyReport() {
+  const text = document.getElementById('outputBox').textContent;
+  const btn = document.getElementById('copyBtn');
+  const done = () => { btn.textContent = '✓ 已複製！'; setTimeout(() => btn.textContent = '複製回報內容', 1800); };
+  navigator.clipboard.writeText(text).then(done).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    done();
+  });
+}
+
+/* ===== 歷史回報 ===== */
+const MAX_HISTORY = 30;
+let historyList = [];
+try { historyList = JSON.parse(localStorage.getItem('rollcall_history') || '[]'); } catch(e) {}
+
+function saveHistory(text) {
+  const now = new Date();
+  const time = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  historyList.unshift({ time, slot: currentSlot, text });
+  if (historyList.length > MAX_HISTORY) historyList = historyList.slice(0, MAX_HISTORY);
+  try { localStorage.setItem('rollcall_history', JSON.stringify(historyList)); } catch(e) { logEvent('error', `歷史儲存失敗：${e.message}`); }
+}
+
+function renderHistory() {
+  const el = document.getElementById('historyEntries');
+  if (historyList.length === 0) { el.innerHTML = '<div class="history-empty">尚無歷史回報</div>'; return; }
+  el.innerHTML = historyList.map((h, i) => `
+    <div class="history-entry">
+      <div class="h-meta">${h.time}・${h.slot}</div>
+      <div class="h-text">${h.text}</div>
+      <button class="h-copy" onclick="copyHistoryEntry(${i})">複製</button>
+    </div>`).join('');
+}
+
+function copyHistoryEntry(i) {
+  const text = historyList[i].text;
+  const btn = event.target;
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = '✓ 已複製'; setTimeout(() => btn.textContent = '複製', 1500); }).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '✓ 已複製'; setTimeout(() => btn.textContent = '複製', 1500);
+  });
+}
+
+function toggleHistory() {
+  const p = document.getElementById('historyPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) renderHistory();
+}
+
+function clearHistory() {
+  historyList = [];
+  localStorage.removeItem('rollcall_history');
+  renderHistory();
+}
+
+/* ===== 預填公差 ===== */
+function applyFixedDuties() {
+  const duties = FIXED_DUTIES[currentSlot];
+  const btn = document.getElementById('prefillBtn');
+
+  if (!duties) {
+    btn.textContent = '此時段無固定公差';
+    setTimeout(() => updatePrefillBtn(), 1800);
+    return;
+  }
+
+  const departed = get1700Departed();
+  let count = 0;
+  Object.entries(duties).forEach(([duty, members]) => {
+    members.forEach(name => {
+      // 只填入目前在勤的人，不覆蓋已有差勤
+      if (dutyMap.hasOwnProperty(name) && dutyMap[name] === '在勤' && !departed.has(name)) {
+        applyDuty(name, duty);
+        count++;
+      }
+    });
+  });
+
+  updateSummary();
+  updateSlotDots();
+  updateStats();
+  saveState();
+
+  btn.textContent = count > 0 ? `已預填 ${count} 員` : '已全數填入（無新增）';
+  setTimeout(() => updatePrefillBtn(), 2000);
+}
+
+function updatePrefillBtn() {
+  const btn = document.getElementById('prefillBtn');
+  if (!btn) return;
+  const duties = FIXED_DUTIES[currentSlot];
+  if (!duties) {
+    btn.textContent = '此時段無固定公差';
+    btn.disabled = true;
+  } else {
+    const labels = Object.keys(duties).join('、');
+    btn.textContent = `預填公差（${labels}）`;
+    btn.disabled = false;
+  }
+}
+
+/* ===== 摘要 ===== */
+function updateSummary() {
+  const total = getTotal();
+  const absent = Object.values(dutyMap).filter(d => d !== '在勤').length;
+  document.getElementById('summaryBar').textContent = `${currentSlot}  ─  應到 ${total} 員  差事：${absent} 員 ／ 實到：${total - absent} 員`;
+}
+
+/* ===== 初始化 ===== */
+const dateInput = document.getElementById('dateInput');
+const today = new Date();
+dateInput.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+dateInput.addEventListener('change', saveState);
+
+buildSlotTabs();
+buildRoster();
+loadState();
+updateSummary();
+updateStats();
+updatePrefillBtn();
+</script>
+</body>
+</html>
