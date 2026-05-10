@@ -6,32 +6,72 @@
 <title>一中隊點名助手</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color: #333; }
+body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color: #333; padding-bottom: 20px; }
 
-.header { background: #2c3e50; color: white; padding: 14px 16px; text-align: center; }
-.header h1 { font-size: 1.3em; }
+/* === Header === */
+.header { background: #2c3e50; color: white; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 1.2em; }
+.header-btns { display: flex; gap: 6px; }
+.hdr-btn {
+  background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px; padding: 4px 10px; font-size: 0.78em; cursor: pointer; font-family: inherit;
+}
+.hdr-btn.has-error { background: #e74c3c; border-color: #c0392b; }
 
-.controls { background: white; padding: 10px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid #ddd; }
+/* === Controls === */
+.controls { background: white; padding: 8px 16px; display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #ddd; }
 .controls label { font-size: 0.88em; color: #666; }
-.controls input, .controls select { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.92em; }
+.controls input { padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.92em; }
 
-.tabs { display: flex; background: white; border-bottom: 2px solid #ddd; }
-.tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-size: 0.92em; color: #888; border-bottom: 3px solid transparent; transition: all 0.2s; }
-.tab.active { color: #2c3e50; border-bottom-color: #2c3e50; font-weight: bold; }
+/* === 時段分頁 === */
+.slot-tabs { display: flex; overflow-x: auto; background: white; border-bottom: 2px solid #ddd; -webkit-overflow-scrolling: touch; }
+.slot-tabs::-webkit-scrollbar { display: none; }
+.slot-tab {
+  flex: 0 0 auto; padding: 9px 14px; text-align: center; cursor: pointer;
+  font-size: 0.88em; color: #888; border-bottom: 3px solid transparent;
+  transition: all 0.2s; white-space: nowrap; position: relative;
+}
+.slot-tab.active { color: #2c3e50; border-bottom-color: #2c3e50; font-weight: bold; }
+.slot-tab .slot-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #e74c3c;
+  position: absolute; top: 6px; right: 6px; display: none;
+}
+.slot-tab .slot-dot.show { display: block; }
+
+/* === 模式切換 === */
+.mode-tabs { display: flex; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; }
+.mode-tab { flex: 1; padding: 8px; text-align: center; cursor: pointer; font-size: 0.88em; color: #888; }
+.mode-tab.active { color: #2c3e50; font-weight: bold; background: white; }
 
 .tab-content { display: none; }
 .tab-content.active { display: block; }
 
-/* === 勾選模式 === */
-.legend { background: white; padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #eee; align-items: center; }
-.legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.8em; }
-.legend-dot { width: 11px; height: 11px; border-radius: 3px; }
+/* === 搜尋 === */
+.search-bar { display: flex; gap: 8px; padding: 8px 16px; background: white; border-bottom: 1px solid #eee; }
+.search-bar input {
+  flex: 1; padding: 7px 12px; border: 1px solid #ccc; border-radius: 20px;
+  font-size: 0.9em; font-family: inherit; outline: none;
+}
+.search-bar input:focus { border-color: #2c3e50; }
+.search-clear { background: #ddd; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 0.9em; }
 
+/* === 凡例 === */
+.legend { background: white; padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid #eee; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.78em; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* === 名冊 === */
 .squads { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
 .squad-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-.squad-header { background: #34495e; color: white; padding: 9px 14px; font-size: 0.95em; font-weight: bold; }
+.squad-header { background: #34495e; color: white; padding: 9px 14px; font-size: 0.92em; font-weight: bold; }
 .class-group { border-bottom: 1px solid #f0f0f0; }
-.class-header { padding: 6px 14px; background: #f8f9fa; font-size: 0.82em; color: #555; font-weight: 600; }
+.class-header {
+  padding: 6px 14px; background: #f0f3f6; font-size: 0.82em; color: #444; font-weight: 600;
+  cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  transition: background 0.15s;
+}
+.class-header:hover { background: #e4e9f0; }
+.class-header::after { content: '全班▾'; font-size: 0.75em; color: #999; }
 .members { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; }
 
 .member-btn {
@@ -40,6 +80,9 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
   transition: all 0.15s; user-select: none; font-family: inherit;
 }
 .member-btn:hover { border-color: #aaa; }
+.member-btn.dimmed { opacity: 0.2; }
+.member-btn.highlighted { box-shadow: 0 0 0 3px #f39c12; }
+
 .member-btn.duty-公假  { background: #3498db; color: white; border-color: #2980b9; }
 .member-btn.duty-補休  { background: #27ae60; color: white; border-color: #219a52; }
 .member-btn.duty-站哨  { background: #f39c12; color: white; border-color: #e08e0b; }
@@ -56,107 +99,107 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-餐勤  { background: #795548; color: white; border-color: #5d4037; }
 .member-btn.duty-修委  { background: #f57f17; color: white; border-color: #e65100; }
 .member-btn.duty-校旗隊 { background: #880e4f; color: white; border-color: #6a0136; }
-.member-btn.duty-事假   { background: #33691e; color: white; border-color: #255216; }
-.member-btn.duty-美工   { background: #f06292; color: white; border-color: #e91e63; }
+.member-btn.duty-事假  { background: #33691e; color: white; border-color: #255216; }
+.member-btn.duty-美工  { background: #f06292; color: white; border-color: #e91e63; }
 
+/* === 差勤選單 === */
 .duty-menu {
   position: fixed; background: white; border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2); padding: 6px;
-  z-index: 1000; display: none; min-width: 110px;
+  z-index: 1000; display: none; min-width: 110px; max-height: 80vh; overflow-y: auto;
 }
 .duty-menu.show { display: block; }
-.duty-option { padding: 8px 14px; cursor: pointer; border-radius: 6px; font-size: 0.9em; text-align: center; }
+.duty-menu-label { padding: 4px 14px 2px; font-size: 0.75em; color: #aaa; }
+.duty-option { padding: 7px 14px; cursor: pointer; border-radius: 6px; font-size: 0.9em; text-align: center; }
 .duty-option:hover { background: #f0f0f0; }
-.duty-option.opt-在勤 { color: #555; }
-.duty-option.opt-公假 { color: #2980b9; font-weight: bold; }
-.duty-option.opt-補休 { color: #219a52; font-weight: bold; }
-.duty-option.opt-站哨 { color: #e08e0b; font-weight: bold; }
-.duty-option.opt-下夜 { color: #d35400; font-weight: bold; }
-.duty-option.opt-外派 { color: #c0392b; font-weight: bold; }
-.duty-option.opt-正課 { color: #6c3483; font-weight: bold; }
-.duty-option.opt-龍隊 { color: #17a589; font-weight: bold; }
-.duty-option.opt-社團 { color: #1a5276; font-weight: bold; }
-.duty-option.opt-喪假 { color: #2c2c2c; font-weight: bold; }
-.duty-option.opt-病假 { color: #922b21; font-weight: bold; }
-.duty-option.opt-班消 { color: #c2185b; font-weight: bold; }
-.duty-option.opt-BMI  { color: #0097a7; font-weight: bold; }
-.duty-option.opt-消委 { color: #e64a19; font-weight: bold; }
-.duty-option.opt-餐勤 { color: #5d4037; font-weight: bold; }
+.duty-option.opt-在勤  { color: #555; }
+.duty-option.opt-公假  { color: #2980b9; font-weight: bold; }
+.duty-option.opt-補休  { color: #219a52; font-weight: bold; }
+.duty-option.opt-站哨  { color: #e08e0b; font-weight: bold; }
+.duty-option.opt-下夜  { color: #d35400; font-weight: bold; }
+.duty-option.opt-外派  { color: #c0392b; font-weight: bold; }
+.duty-option.opt-正課  { color: #6c3483; font-weight: bold; }
+.duty-option.opt-龍隊  { color: #17a589; font-weight: bold; }
+.duty-option.opt-社團  { color: #1a5276; font-weight: bold; }
+.duty-option.opt-喪假  { color: #2c2c2c; font-weight: bold; }
+.duty-option.opt-病假  { color: #922b21; font-weight: bold; }
+.duty-option.opt-班消  { color: #c2185b; font-weight: bold; }
+.duty-option.opt-BMI   { color: #0097a7; font-weight: bold; }
+.duty-option.opt-消委  { color: #e64a19; font-weight: bold; }
+.duty-option.opt-餐勤  { color: #5d4037; font-weight: bold; }
 .duty-option.opt-修委  { color: #e65100; font-weight: bold; }
 .duty-option.opt-校旗隊 { color: #6a0136; font-weight: bold; }
-.duty-option.opt-事假   { color: #255216; font-weight: bold; }
-.duty-option.opt-美工   { color: #e91e63; font-weight: bold; }
+.duty-option.opt-事假  { color: #255216; font-weight: bold; }
+.duty-option.opt-美工  { color: #e91e63; font-weight: bold; }
 
-.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999; display: none; }
-.overlay.show { display: block; }
-
-/* === 文字輸入模式 === */
+/* === 文字輸入 === */
 .text-section { padding: 12px 16px; }
-.text-section h3 { font-size: 0.92em; color: #555; margin-bottom: 8px; }
-.text-section textarea {
-  width: 100%; height: 130px; padding: 10px; border: 1px solid #ccc;
-  border-radius: 8px; font-size: 0.9em; font-family: inherit; resize: vertical;
-}
-.parse-btn {
-  margin-top: 8px; padding: 9px; background: #34495e; color: white;
-  border: none; border-radius: 8px; font-size: 0.9em; font-family: inherit;
-  cursor: pointer; width: 100%;
-}
+.text-section h3 { font-size: 0.9em; color: #555; margin-bottom: 8px; }
+.text-section textarea { width: 100%; height: 130px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 0.9em; font-family: inherit; resize: vertical; }
+.parse-btn { margin-top: 8px; padding: 9px; background: #34495e; color: white; border: none; border-radius: 8px; font-size: 0.9em; font-family: inherit; cursor: pointer; width: 100%; }
 .parse-btn:hover { background: #2c3e50; }
 .parse-result { margin-top: 10px; font-size: 0.88em; color: #555; }
 .parse-result .parse-item { background: #f0f8ff; border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; }
 .parse-result .parse-item span { font-weight: bold; }
 .parse-result .unknown { background: #fff3cd; color: #856404; }
-.parse-result .missing { background: #fdecea; color: #c0392b; border: 1px solid #f5b7b1; font-weight: bold; }
 
-/* === 共用底部 === */
+/* === 統計表 === */
+.stats-section { margin: 0 12px 8px; }
+.stats-toggle {
+  width: 100%; padding: 8px 14px; background: white; border: 1px solid #ddd;
+  border-radius: 8px; text-align: left; font-size: 0.88em; font-family: inherit;
+  color: #555; cursor: pointer; display: flex; justify-content: space-between;
+}
+.stats-toggle:hover { background: #f5f5f5; }
+.stats-table { display: none; margin-top: 4px; background: white; border-radius: 8px; border: 1px solid #eee; overflow: hidden; }
+.stats-table.show { display: block; }
+.stats-row { display: grid; grid-template-columns: 1fr auto auto auto; padding: 7px 14px; border-bottom: 1px solid #f5f5f5; font-size: 0.85em; align-items: center; }
+.stats-row:last-child { border-bottom: none; }
+.stats-row.header { background: #f8f9fa; font-weight: bold; color: #777; font-size: 0.8em; }
+.stats-row .s-absent { color: #e74c3c; font-weight: bold; }
+.stats-row .s-present { color: #27ae60; font-weight: bold; }
+
+/* === 底部 === */
 .bottom-bar { padding: 10px 16px; }
 .summary-bar { background: #ecf0f1; padding: 8px 14px; font-size: 0.88em; color: #555; border-radius: 8px; margin-bottom: 8px; }
 .action-row { display: flex; gap: 8px; margin-bottom: 8px; }
-.reset-btn {
-  flex: 1; padding: 9px; background: #e74c3c; color: white;
-  border: none; border-radius: 8px; font-size: 0.88em; font-family: inherit; cursor: pointer;
-}
+.reset-btn { flex: 1; padding: 9px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-size: 0.88em; font-family: inherit; cursor: pointer; }
 .reset-btn:hover { background: #c0392b; }
-.generate-btn {
-  flex: 2; padding: 9px; background: #2c3e50; color: white;
-  border: none; border-radius: 8px; font-size: 0.95em; font-family: inherit; cursor: pointer; font-weight: bold;
-}
+.generate-btn { flex: 2; padding: 9px; background: #2c3e50; color: white; border: none; border-radius: 8px; font-size: 0.9em; font-family: inherit; cursor: pointer; font-weight: bold; }
 .generate-btn:hover { background: #34495e; }
-.output-box {
-  background: white; border: 1px solid #ddd; border-radius: 10px;
-  padding: 14px; font-size: 0.92em; line-height: 1.9; white-space: pre-wrap;
-  font-family: 'Microsoft JhengHei', sans-serif; display: none;
-}
-.copy-btn {
-  margin-top: 8px; padding: 10px; background: #27ae60; color: white;
-  border: none; border-radius: 8px; font-size: 0.92em; font-family: inherit;
-  cursor: pointer; width: 100%; display: none;
-}
+.output-box { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 14px; font-size: 0.92em; line-height: 1.9; white-space: pre-wrap; font-family: 'Microsoft JhengHei', sans-serif; display: none; }
+.copy-btn { margin-top: 8px; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 0.92em; font-family: inherit; cursor: pointer; width: 100%; display: none; }
 .copy-btn:hover { background: #219a52; }
 
-/* === 錯誤記錄 === */
-.log-btn {
-  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 6px; padding: 4px 10px; font-size: 0.78em; cursor: pointer; font-family: inherit;
-}
-.log-btn.has-error { background: #e74c3c; border-color: #c0392b; }
-.log-panel {
-  position: fixed; bottom: 0; left: 0; right: 0; max-height: 50vh;
-  background: #1e1e1e; color: #d4d4d4; z-index: 2000;
-  display: none; flex-direction: column; font-size: 0.82em; font-family: monospace;
-}
+/* === 確認 Modal === */
+.confirm-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; display: none; align-items: center; justify-content: center; }
+.confirm-backdrop.show { display: flex; }
+.confirm-box { background: white; border-radius: 14px; padding: 24px 20px; max-width: 280px; width: 90%; text-align: center; }
+.confirm-box p { font-size: 1em; color: #333; margin-bottom: 20px; line-height: 1.5; }
+.confirm-box p strong { color: #e74c3c; }
+.confirm-actions { display: flex; gap: 10px; }
+.confirm-ok { flex: 1; padding: 10px; background: #e74c3c; color: white; border: none; border-radius: 8px; font-size: 0.95em; font-family: inherit; cursor: pointer; }
+.confirm-cancel { flex: 1; padding: 10px; background: #ecf0f1; color: #555; border: none; border-radius: 8px; font-size: 0.95em; font-family: inherit; cursor: pointer; }
+
+/* === 歷史面板 === */
+.history-panel { position: fixed; bottom: 0; left: 0; right: 0; max-height: 55vh; background: white; z-index: 2000; display: none; flex-direction: column; box-shadow: 0 -4px 20px rgba(0,0,0,0.15); }
+.history-panel.show { display: flex; }
+.panel-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: #2c3e50; color: white; }
+.panel-toolbar span { font-weight: bold; font-size: 0.9em; }
+.panel-toolbar button { background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-family: inherit; font-size: 0.82em; margin-left: 6px; }
+.history-entries { overflow-y: auto; flex: 1; }
+.history-entry { border-bottom: 1px solid #f0f0f0; padding: 10px 16px; }
+.history-entry .h-meta { font-size: 0.78em; color: #999; margin-bottom: 4px; }
+.history-entry .h-text { font-size: 0.82em; white-space: pre-wrap; color: #333; max-height: 80px; overflow: hidden; }
+.history-entry .h-copy { margin-top: 6px; padding: 4px 12px; background: #27ae60; color: white; border: none; border-radius: 6px; font-size: 0.8em; font-family: inherit; cursor: pointer; }
+.history-empty { padding: 20px; text-align: center; color: #aaa; font-size: 0.9em; }
+
+/* === 錯誤記錄面板 === */
+.log-panel { position: fixed; bottom: 0; left: 0; right: 0; max-height: 50vh; background: #1e1e1e; color: #d4d4d4; z-index: 2000; display: none; flex-direction: column; font-size: 0.82em; font-family: monospace; }
 .log-panel.show { display: flex; }
-.log-toolbar {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 6px 12px; background: #2d2d2d; border-bottom: 1px solid #444;
-}
+.log-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; background: #2d2d2d; border-bottom: 1px solid #444; }
 .log-toolbar span { color: #ccc; font-weight: bold; }
-.log-toolbar button {
-  background: #444; color: #ccc; border: none; border-radius: 4px;
-  padding: 3px 10px; cursor: pointer; font-family: monospace; font-size: 0.9em; margin-left: 6px;
-}
+.log-toolbar button { background: #444; color: #ccc; border: none; border-radius: 4px; padding: 3px 10px; cursor: pointer; font-family: monospace; font-size: 0.9em; margin-left: 6px; }
 .log-toolbar button:hover { background: #555; }
 .log-entries { overflow-y: auto; padding: 8px 12px; flex: 1; }
 .log-entry { padding: 3px 0; border-bottom: 1px solid #2a2a2a; line-height: 1.5; }
@@ -165,37 +208,41 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .log-entry.type-warn  .log-msg { color: #dcdcaa; }
 .log-entry.type-info  .log-msg { color: #9cdcfe; }
 .log-empty { color: #666; padding: 8px 0; }
+
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999; display: none; }
+.overlay.show { display: block; }
 </style>
 </head>
 <body>
 
-<div class="header" style="position:relative">
+<div class="header">
   <h1>一中隊點名助手</h1>
-  <button class="log-btn" id="logBtn" onclick="toggleLog()">記錄</button>
+  <div class="header-btns">
+    <button class="hdr-btn" onclick="toggleHistory()">歷史</button>
+    <button class="hdr-btn" id="logBtn" onclick="toggleLog()">記錄</button>
+  </div>
 </div>
 
 <div class="controls">
   <label>日期</label>
   <input type="date" id="dateInput">
-  <label>點名事項</label>
-  <select id="rollType">
-    <option>早點名</option>
-    <option>0740 點名</option>
-    <option>1200 點名</option>
-    <option>1330 點名</option>
-    <option>1700 點名</option>
-    <option>晚點名</option>
-    <option>軍訓課</option>
-  </select>
 </div>
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('check')">勾選模式</div>
-  <div class="tab" onclick="switchTab('text')">文字輸入模式</div>
+<!-- 時段分頁 -->
+<div class="slot-tabs" id="slotTabs"></div>
+
+<!-- 模式切換 -->
+<div class="mode-tabs">
+  <div class="mode-tab active" onclick="switchMode('check')">勾選模式</div>
+  <div class="mode-tab" onclick="switchMode('text')">文字輸入模式</div>
 </div>
 
 <!-- 勾選模式 -->
 <div class="tab-content active" id="tab-check">
+  <div class="search-bar">
+    <input type="search" id="searchInput" placeholder="搜尋人名…" oninput="doSearch(this.value)">
+    <button class="search-clear" onclick="clearSearch()">✕</button>
+  </div>
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0;border:1px solid #ccc"></div>在勤</div>
     <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>公假</div>
@@ -216,7 +263,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="legend-item"><div class="legend-dot" style="background:#880e4f"></div>校旗隊</div>
     <div class="legend-item"><div class="legend-dot" style="background:#33691e"></div>事假</div>
     <div class="legend-item"><div class="legend-dot" style="background:#f06292"></div>美工</div>
-    <span style="font-size:0.75em;color:#aaa;margin-left:auto">點人名選差勤</span>
+    <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
 </div>
@@ -224,26 +271,57 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 <!-- 文字輸入模式 -->
 <div class="tab-content" id="tab-text">
   <div class="text-section">
-    <h3>貼上班長/區隊長的文字回報（每種差勤一段）：</h3>
+    <h3>貼上班長／區隊長回報（支援括號、冒號、空格格式）：</h3>
     <textarea id="textInput" placeholder="例如：
 公假：謝文杰、江驊庭
-站哨：潘得銘、許傑程
-補休：黃唯蓁"></textarea>
+1員班消（許惠琳）
+3員BMI 温梧淮 徐敏宗 花洺葟"></textarea>
     <button class="parse-btn" onclick="parseText()">解析並套用到名冊</button>
     <div class="parse-result" id="parseResult"></div>
   </div>
 </div>
 
-<!-- 共用底部 -->
+<!-- 統計表 -->
+<div class="stats-section">
+  <button class="stats-toggle" onclick="toggleStats()">
+    <span id="statsLabel">各組統計</span><span id="statsArrow">▾</span>
+  </button>
+  <div class="stats-table" id="statsTable"></div>
+</div>
+
+<!-- 底部 -->
 <div class="bottom-bar">
   <div class="summary-bar" id="summaryBar">差事：0 員 ／ 實到：97 員</div>
   <div class="action-row">
-    <button class="reset-btn" onclick="resetAll()">清除全部</button>
+    <button class="reset-btn" onclick="askReset()">清除</button>
     <button class="generate-btn" onclick="generateReport()">標準回報</button>
-    <button class="generate-btn" style="background:#1a5276;flex:2" onclick="generateDetailReport()">含班別回報</button>
+    <button class="generate-btn" style="background:#1a5276" onclick="generateDetailReport()">含班別回報</button>
   </div>
   <div class="output-box" id="outputBox"></div>
   <button class="copy-btn" id="copyBtn" onclick="copyReport()">複製回報內容</button>
+</div>
+
+<!-- 確認清除 Modal -->
+<div class="confirm-backdrop" id="confirmBackdrop">
+  <div class="confirm-box">
+    <p>確定清除<strong>「<span id="confirmSlotName"></span>」</strong>的所有差勤？</p>
+    <div class="confirm-actions">
+      <button class="confirm-ok" onclick="doReset()">確認清除</button>
+      <button class="confirm-cancel" onclick="closeConfirm()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 歷史面板 -->
+<div class="history-panel" id="historyPanel">
+  <div class="panel-toolbar">
+    <span>回報歷史</span>
+    <div>
+      <button onclick="clearHistory()">清除歷史</button>
+      <button onclick="toggleHistory()">關閉</button>
+    </div>
+  </div>
+  <div class="history-entries" id="historyEntries"></div>
 </div>
 
 <!-- 錯誤記錄面板 -->
@@ -260,21 +338,22 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 <div class="duty-menu" id="dutyMenu">
-  <div class="duty-option opt-在勤" onclick="setDuty('在勤')">在勤</div>
-  <div class="duty-option opt-公假" onclick="setDuty('公假')">公假</div>
-  <div class="duty-option opt-補休" onclick="setDuty('補休')">補休</div>
-  <div class="duty-option opt-站哨" onclick="setDuty('站哨')">站哨</div>
-  <div class="duty-option opt-下夜" onclick="setDuty('下夜')">下夜</div>
-  <div class="duty-option opt-外派" onclick="setDuty('外派')">外派</div>
-  <div class="duty-option opt-正課" onclick="setDuty('正課')">正課</div>
-  <div class="duty-option opt-龍隊" onclick="setDuty('龍隊')">龍隊</div>
-  <div class="duty-option opt-社團" onclick="setDuty('社團')">社團</div>
-  <div class="duty-option opt-喪假" onclick="setDuty('喪假')">喪假</div>
-  <div class="duty-option opt-病假" onclick="setDuty('病假')">病假</div>
-  <div class="duty-option opt-班消" onclick="setDuty('班消')">班消</div>
-  <div class="duty-option opt-BMI"  onclick="setDuty('BMI')">BMI</div>
-  <div class="duty-option opt-消委" onclick="setDuty('消委')">消委</div>
-  <div class="duty-option opt-餐勤" onclick="setDuty('餐勤')">餐勤</div>
+  <div class="duty-menu-label" id="dutyMenuLabel">選擇差勤</div>
+  <div class="duty-option opt-在勤"  onclick="setDuty('在勤')">在勤</div>
+  <div class="duty-option opt-公假"  onclick="setDuty('公假')">公假</div>
+  <div class="duty-option opt-補休"  onclick="setDuty('補休')">補休</div>
+  <div class="duty-option opt-站哨"  onclick="setDuty('站哨')">站哨</div>
+  <div class="duty-option opt-下夜"  onclick="setDuty('下夜')">下夜</div>
+  <div class="duty-option opt-外派"  onclick="setDuty('外派')">外派</div>
+  <div class="duty-option opt-正課"  onclick="setDuty('正課')">正課</div>
+  <div class="duty-option opt-龍隊"  onclick="setDuty('龍隊')">龍隊</div>
+  <div class="duty-option opt-社團"  onclick="setDuty('社團')">社團</div>
+  <div class="duty-option opt-喪假"  onclick="setDuty('喪假')">喪假</div>
+  <div class="duty-option opt-病假"  onclick="setDuty('病假')">病假</div>
+  <div class="duty-option opt-班消"  onclick="setDuty('班消')">班消</div>
+  <div class="duty-option opt-BMI"   onclick="setDuty('BMI')">BMI</div>
+  <div class="duty-option opt-消委"  onclick="setDuty('消委')">消委</div>
+  <div class="duty-option opt-餐勤"  onclick="setDuty('餐勤')">餐勤</div>
   <div class="duty-option opt-修委"  onclick="setDuty('修委')">修委</div>
   <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
   <div class="duty-option opt-事假"  onclick="setDuty('事假')">事假</div>
@@ -282,100 +361,39 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 </div>
 
 <script>
+/* ===== 資料 ===== */
 const ROSTER = [
-  {
-    squad: '中隊部',
-    classes: [
-      { name: '中隊部幹部', members: ['林琬雯','花洺葟','潘琦','蔡琇淳','許怡婷','鍾迪軒','陳昱熙','林瑞堂','郭庭佑'] }
-    ]
-  },
-  {
-    squad: '一區隊（曾維德）',
-    classes: [
-      { name: '區隊長', members: ['曾維德'] },
-      { name: '建制1班（程振彥）', members: ['程振彥','謝文杰','江驊庭'] },
-      { name: '建制2班（黃唯蓁）', members: ['黃唯蓁','詹世譁','嚴天鴻'] },
-      { name: '建制3班（温梧淮）', members: ['温梧淮','許一晨','徐敏宗'] },
-      { name: '建制4班（邱珮淇）', members: ['邱珮淇','潘謙平','洪昱榮','陳采瑜'] },
-      { name: '建制5班（曹瑞瑜）', members: ['曹瑞瑜','黎力嘉','廖予嫣'] },
-      { name: '建制6班（陳勝利）', members: ['陳勝利','李宗諭','施宇倫','陳昀暄'] },
-    ]
-  },
-  {
-    squad: '二區隊（陳明秀）',
-    classes: [
-      { name: '區隊長', members: ['陳明秀'] },
-      { name: '建制7班（楊仲凱）', members: ['楊仲凱','陽雲皓','蘇柔云'] },
-      { name: '建制8班（黃昭融）', members: ['黃昭融','蘇俊嘉','李臆立'] },
-      { name: '建制9班（潘得銘）', members: ['潘得銘','許傑程','賴昱嘉'] },
-      { name: '建制10班（梁天馨）', members: ['梁天馨','蔡峻輔','陳玉萍'] },
-      { name: '建制11班（吳宗祐）', members: ['吳宗祐','蔣豐懋','歐智賢','葉峻瑜'] },
-      { name: '建制12班（許惠琳）', members: ['許惠琳','蔣立人','黃聖雅','黃亭儀'] },
-    ]
-  },
-  {
-    squad: '三區隊（邱硯杰）',
-    classes: [
-      { name: '區隊長', members: ['邱硯杰'] },
-      { name: '建制13班（林柏宇）', members: ['林柏宇','陳昀澤','黃逸軒'] },
-      { name: '建制14班（許瑜容）', members: ['許瑜容','吳倫威','郭韋志','彭毓婷'] },
-      { name: '建制15班（陳裕詳）', members: ['陳裕詳','孫奕翔','林昆憲'] },
-      { name: '建制16班（廖佩琦）', members: ['廖佩琦','康証皓','林勛偉','王子杰','尤柏仁','顏家科','徐斈僎','林易論','劉育修','姚家興','劉淑婷','陳慕明','張淑慧','張佳容','王晨芯','徐雅億','蕭梓嫣'] },
-      { name: '建制17班（洪翊耀）', members: ['洪翊耀','何威德','邱湧庭','洪塘訓','蔡曜鴻','簡品則','何景藝','李旭峰','楊于賢','李定澂','陳哲浩','李姿縈','孫意惠','吳宣葶','黃怡文','盛子齡','陳靖棻','巫昀柔'] },
-    ]
-  }
+  { squad: '中隊部', classes: [
+    { name: '中隊部幹部', members: ['林琬雯','花洺葟','潘琦','蔡琇淳','許怡婷','鍾迪軒','陳昱熙','林瑞堂','郭庭佑'] }
+  ]},
+  { squad: '一區隊（曾維德）', classes: [
+    { name: '區隊長', members: ['曾維德'] },
+    { name: '建制1班（程振彥）', members: ['程振彥','謝文杰','江驊庭'] },
+    { name: '建制2班（黃唯蓁）', members: ['黃唯蓁','詹世譁','嚴天鴻'] },
+    { name: '建制3班（温梧淮）', members: ['温梧淮','許一晨','徐敏宗'] },
+    { name: '建制4班（邱珮淇）', members: ['邱珮淇','潘謙平','洪昱榮','陳采瑜'] },
+    { name: '建制5班（曹瑞瑜）', members: ['曹瑞瑜','黎力嘉','廖予嫣'] },
+    { name: '建制6班（陳勝利）', members: ['陳勝利','李宗諭','施宇倫','陳昀暄'] },
+  ]},
+  { squad: '二區隊（陳明秀）', classes: [
+    { name: '區隊長', members: ['陳明秀'] },
+    { name: '建制7班（楊仲凱）',  members: ['楊仲凱','陽雲皓','蘇柔云'] },
+    { name: '建制8班（黃昭融）',  members: ['黃昭融','蘇俊嘉','李臆立'] },
+    { name: '建制9班（潘得銘）',  members: ['潘得銘','許傑程','賴昱嘉'] },
+    { name: '建制10班（梁天馨）', members: ['梁天馨','蔡峻輔','陳玉萍'] },
+    { name: '建制11班（吳宗祐）', members: ['吳宗祐','蔣豐懋','歐智賢','葉峻瑜'] },
+    { name: '建制12班（許惠琳）', members: ['許惠琳','蔣立人','黃聖雅','黃亭儀'] },
+  ]},
+  { squad: '三區隊（邱硯杰）', classes: [
+    { name: '區隊長', members: ['邱硯杰'] },
+    { name: '建制13班（林柏宇）', members: ['林柏宇','陳昀澤','黃逸軒'] },
+    { name: '建制14班（許瑜容）', members: ['許瑜容','吳倫威','郭韋志','彭毓婷'] },
+    { name: '建制15班（陳裕詳）', members: ['陳裕詳','孫奕翔','林昆憲'] },
+    { name: '建制16班（廖佩琦）', members: ['廖佩琦','康証皓','林勛偉','王子杰','尤柏仁','顏家科','徐斈僎','林易論','劉育修','姚家興','劉淑婷','陳慕明','張淑慧','張佳容','王晨芯','徐雅億','蕭梓嫣'] },
+    { name: '建制17班（洪翊耀）', members: ['洪翊耀','何威德','邱湧庭','洪塘訓','蔡曜鴻','簡品則','何景藝','李旭峰','楊于賢','李定澂','陳哲浩','李姿縈','孫意惠','吳宣葶','黃怡文','盛子齡','陳靖棻','巫昀柔'] },
+  ]}
 ];
 
-const DUTY_TYPES = ['在勤','公假','補休','站哨','下夜','外派','正課','龍隊','社團','喪假','病假','班消','BMI','消委','餐勤','修委','校旗隊','事假','美工'];
-
-// ===== Error Log =====
-const MAX_LOG = 100;
-let errorLog = [];
-try { errorLog = JSON.parse(localStorage.getItem('rollcall_log') || '[]'); } catch(e) {}
-
-function logEvent(type, msg) {
-  const now = new Date();
-  const time = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-  errorLog.unshift({ time, type, msg });
-  if (errorLog.length > MAX_LOG) errorLog = errorLog.slice(0, MAX_LOG);
-  try { localStorage.setItem('rollcall_log', JSON.stringify(errorLog)); } catch(e) {}
-  renderLog();
-  if (type === 'error') document.getElementById('logBtn').classList.add('has-error');
-}
-
-function renderLog() {
-  const el = document.getElementById('logEntries');
-  if (!el) return;
-  if (errorLog.length === 0) { el.innerHTML = '<div class="log-empty">無記錄</div>'; return; }
-  el.innerHTML = errorLog.map(e =>
-    `<div class="log-entry type-${e.type}"><span class="log-time">${e.time}</span><span class="log-msg">[${e.type.toUpperCase()}] ${e.msg}</span></div>`
-  ).join('');
-}
-
-function toggleLog() {
-  const panel = document.getElementById('logPanel');
-  panel.classList.toggle('show');
-  if (panel.classList.contains('show')) renderLog();
-}
-
-function clearLog() {
-  errorLog = [];
-  localStorage.removeItem('rollcall_log');
-  document.getElementById('logBtn').classList.remove('has-error');
-  renderLog();
-}
-
-window.onerror = function(msg, src, line, col, err) {
-  logEvent('error', `JS例外：${msg}（第${line}行）`);
-  return false;
-};
-window.addEventListener('unhandledrejection', e => {
-  logEvent('error', `Promise錯誤：${e.reason}`);
-});
-const dutyMap = {};
-let currentMember = null;
-
-// 組別對照
 const GROUPS = {
   '雷達組':       ['蔣豐懋','賴昱嘉','吳宗祐','葉峻瑜','歐智賢'],
   '通訊組':       ['詹世譁','許一晨','潘得銘','花洺葟','黃昭融','温梧淮','嚴天鴻','潘謙平','陳明秀','許惠琳','徐敏宗','黃唯蓁'],
@@ -390,34 +408,112 @@ const GROUPS = {
   '專軍氣象組':   ['邱湧庭','洪塘訓','李姿縈','蕭梓嫣','徐斈僎','陳哲浩','何景藝','陳靖棻'],
 };
 
-// 建立姓名 → 建制班 / 組別 對照
-const nameToClass = {};
+const DUTY_TYPES = ['在勤','公假','補休','站哨','下夜','外派','正課','龍隊','社團','喪假','病假','班消','BMI','消委','餐勤','修委','校旗隊','事假','美工'];
+
+const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課'];
+const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名' };
+
+// 建姓名對照表
+const nameToClass = {}, nameToGroup = {}, allNames = new Set();
 ROSTER.forEach(s => s.classes.forEach(cls => {
   const simple = cls.name.replace(/（.*）/, '').trim();
-  cls.members.forEach(m => nameToClass[m] = simple);
+  cls.members.forEach(m => { nameToClass[m] = simple; allNames.add(m); });
 }));
-const nameToGroup = {};
-Object.entries(GROUPS).forEach(([g, members]) => members.forEach(m => nameToGroup[m] = g));
+Object.entries(GROUPS).forEach(([g, ms]) => ms.forEach(m => nameToGroup[m] = g));
 
-// 所有姓名集合（用於解析）
-const allNames = new Set();
-ROSTER.forEach(s => s.classes.forEach(c => c.members.forEach(m => allNames.add(m))));
+/* ===== Error Log ===== */
+const MAX_LOG = 100;
+let errorLog = [];
+try { errorLog = JSON.parse(localStorage.getItem('rollcall_log') || '[]'); } catch(e) {}
 
-// 初始化日期
-const dateInput = document.getElementById('dateInput');
-const today = new Date();
-const yyyy = today.getFullYear();
-const mm = String(today.getMonth()+1).padStart(2,'0');
-const dd = String(today.getDate()).padStart(2,'0');
-dateInput.value = `${yyyy}-${mm}-${dd}`;
+function logEvent(type, msg) {
+  const now = new Date();
+  const time = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  errorLog.unshift({ time, type, msg });
+  if (errorLog.length > MAX_LOG) errorLog = errorLog.slice(0, MAX_LOG);
+  try { localStorage.setItem('rollcall_log', JSON.stringify(errorLog)); } catch(e) {}
+  renderLog();
+  if (type === 'error') document.getElementById('logBtn').classList.add('has-error');
+}
+function renderLog() {
+  const el = document.getElementById('logEntries');
+  if (!el) return;
+  el.innerHTML = errorLog.length === 0
+    ? '<div class="log-empty">無記錄</div>'
+    : errorLog.map(e => `<div class="log-entry type-${e.type}"><span class="log-time">${e.time}</span><span class="log-msg">[${e.type.toUpperCase()}] ${e.msg}</span></div>`).join('');
+}
+function toggleLog() { const p = document.getElementById('logPanel'); p.classList.toggle('show'); if (p.classList.contains('show')) renderLog(); }
+function clearLog() { errorLog = []; localStorage.removeItem('rollcall_log'); document.getElementById('logBtn').classList.remove('has-error'); renderLog(); }
 
-// Tab 切換
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['check','text'][i] === tab));
-  document.querySelectorAll('.tab-content').forEach((t,i) => t.classList.toggle('active', ['check','text'][i] === tab));
+window.onerror = (msg, src, line) => { logEvent('error', `JS例外：${msg}（第${line}行）`); return false; };
+window.addEventListener('unhandledrejection', e => logEvent('error', `Promise錯誤：${e.reason}`));
+
+/* ===== 多時段狀態 ===== */
+let currentSlot = '早點名';
+let slotStates = {};
+SLOTS.forEach(s => slotStates[s] = {});
+const dutyMap = {};  // 目前時段的差勤，key=姓名 value=差勤
+
+let currentMember = null;   // 單人選單
+let currentClassMembers = null; // 全班選單
+
+/* ===== 時段分頁 ===== */
+function buildSlotTabs() {
+  const container = document.getElementById('slotTabs');
+  SLOTS.forEach(slot => {
+    const tab = document.createElement('div');
+    tab.className = 'slot-tab' + (slot === currentSlot ? ' active' : '');
+    tab.dataset.slot = slot;
+    tab.innerHTML = `${slot}<span class="slot-dot" id="dot-${slot}"></span>`;
+    tab.onclick = () => switchSlot(slot);
+    container.appendChild(tab);
+  });
 }
 
-// 建立名冊 UI
+function switchSlot(slot) {
+  if (slot === currentSlot) return;
+  // 儲存目前時段
+  slotStates[currentSlot] = Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'));
+  // 切換
+  currentSlot = slot;
+  // 更新 tab UI
+  document.querySelectorAll('.slot-tab').forEach(t => t.classList.toggle('active', t.dataset.slot === slot));
+  // 載入新時段
+  loadSlotIntoDutyMap();
+  updateSummary();
+  updateStats();
+  document.getElementById('outputBox').style.display = 'none';
+  document.getElementById('copyBtn').style.display = 'none';
+  saveState();
+}
+
+function loadSlotIntoDutyMap() {
+  // 先重置
+  Object.keys(dutyMap).forEach(n => dutyMap[n] = '在勤');
+  document.querySelectorAll('.member-btn').forEach(b => b.className = 'member-btn');
+  // 載入該時段資料
+  const state = slotStates[currentSlot] || {};
+  Object.entries(state).forEach(([name, duty]) => {
+    if (dutyMap.hasOwnProperty(name) && duty !== '在勤') {
+      dutyMap[name] = duty;
+      const btn = document.getElementById('btn-' + name);
+      if (btn) btn.className = `member-btn duty-${duty}`;
+    }
+  });
+  updateSlotDots();
+}
+
+function updateSlotDots() {
+  SLOTS.forEach(slot => {
+    const data = slot === currentSlot
+      ? Object.values(dutyMap).some(d => d !== '在勤')
+      : Object.keys(slotStates[slot] || {}).length > 0;
+    const dot = document.getElementById('dot-' + slot);
+    if (dot) dot.classList.toggle('show', data);
+  });
+}
+
+/* ===== 名冊 UI ===== */
 function buildRoster() {
   const container = document.getElementById('squadsContainer');
   ROSTER.forEach(squad => {
@@ -427,10 +523,13 @@ function buildRoster() {
     squad.classes.forEach(cls => {
       const group = document.createElement('div');
       group.className = 'class-group';
+      // 班級標題（可點擊全班套用）
       const hdr = document.createElement('div');
       hdr.className = 'class-header';
       hdr.textContent = cls.name;
+      hdr.onclick = e => openClassMenu(e, cls.members, cls.name);
       group.appendChild(hdr);
+      // 成員按鈕
       const membersDiv = document.createElement('div');
       membersDiv.className = 'members';
       cls.members.forEach(name => {
@@ -449,17 +548,30 @@ function buildRoster() {
   });
 }
 
+/* ===== 差勤選單 ===== */
 function openMenu(e, name) {
   e.stopPropagation();
   currentMember = name;
+  currentClassMembers = null;
+  document.getElementById('dutyMenuLabel').textContent = name;
+  showDutyMenu(e.target.getBoundingClientRect());
+}
+
+function openClassMenu(e, members, className) {
+  e.stopPropagation();
+  currentMember = null;
+  currentClassMembers = members;
+  document.getElementById('dutyMenuLabel').textContent = className + '（全班）';
+  showDutyMenu(e.target.getBoundingClientRect());
+}
+
+function showDutyMenu(rect) {
   const menu = document.getElementById('dutyMenu');
-  const rect = e.target.getBoundingClientRect();
-  const menuHeight = 360;
+  const menuHeight = 420;
   const spaceBelow = window.innerHeight - rect.bottom;
   const top = spaceBelow >= menuHeight ? rect.bottom + 4 : rect.top - menuHeight - 4;
-  const left = Math.min(rect.left, window.innerWidth - 130);
   menu.style.top = Math.max(4, top) + 'px';
-  menu.style.left = left + 'px';
+  menu.style.left = Math.min(rect.left, window.innerWidth - 130) + 'px';
   menu.classList.add('show');
   document.getElementById('overlay').classList.add('show');
 }
@@ -468,29 +580,112 @@ function closeMenu() {
   document.getElementById('dutyMenu').classList.remove('show');
   document.getElementById('overlay').classList.remove('show');
   currentMember = null;
+  currentClassMembers = null;
 }
 
 function setDuty(duty) {
-  if (!currentMember) return;
-  dutyMap[currentMember] = duty;
-  const btn = document.getElementById('btn-' + currentMember);
-  btn.className = 'member-btn' + (duty !== '在勤' ? ' duty-' + duty : '');
+  if (currentMember) {
+    applyDuty(currentMember, duty);
+  } else if (currentClassMembers) {
+    currentClassMembers.forEach(name => applyDuty(name, duty));
+  }
   closeMenu();
   updateSummary();
+  updateSlotDots();
+  updateStats();
   saveState();
 }
 
+function applyDuty(name, duty) {
+  dutyMap[name] = duty;
+  const btn = document.getElementById('btn-' + name);
+  if (btn) btn.className = 'member-btn' + (duty !== '在勤' ? ' duty-' + duty : '');
+}
+
+/* ===== 搜尋 ===== */
+function doSearch(q) {
+  q = q.trim();
+  document.querySelectorAll('.member-btn').forEach(btn => {
+    if (!q) {
+      btn.classList.remove('dimmed', 'highlighted');
+    } else if (btn.textContent.includes(q)) {
+      btn.classList.remove('dimmed');
+      btn.classList.add('highlighted');
+    } else {
+      btn.classList.add('dimmed');
+      btn.classList.remove('highlighted');
+    }
+  });
+  if (q) {
+    const first = document.querySelector('.member-btn.highlighted');
+    if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  doSearch('');
+}
+
+/* ===== 模式切換 ===== */
+function switchMode(mode) {
+  document.querySelectorAll('.mode-tab').forEach((t, i) => t.classList.toggle('active', ['check','text'][i] === mode));
+  document.querySelectorAll('.tab-content').forEach((t, i) => t.classList.toggle('active', ['check','text'][i] === mode));
+}
+
+/* ===== 統計表 ===== */
+let statsOpen = false;
+function toggleStats() {
+  statsOpen = !statsOpen;
+  document.getElementById('statsTable').classList.toggle('show', statsOpen);
+  document.getElementById('statsArrow').textContent = statsOpen ? '▴' : '▾';
+  if (statsOpen) updateStats();
+}
+
+function updateStats() {
+  if (!statsOpen) return;
+  const table = document.getElementById('statsTable');
+  let html = `<div class="stats-row header"><span>組別</span><span>應到</span><span>差事</span><span>實到</span></div>`;
+  Object.entries(GROUPS).forEach(([grp, members]) => {
+    const total = members.length;
+    const absent = members.filter(m => dutyMap[m] && dutyMap[m] !== '在勤').length;
+    const present = total - absent;
+    html += `<div class="stats-row"><span>${grp}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${present}</span></div>`;
+  });
+  // 全中隊合計
+  const totalAbsent = Object.values(dutyMap).filter(d => d !== '在勤').length;
+  html += `<div class="stats-row" style="font-weight:bold;background:#f8f9fa"><span>全中隊</span><span>97</span><span class="${totalAbsent > 0 ? 's-absent' : ''}">${totalAbsent}</span><span class="s-present">${97 - totalAbsent}</span></div>`;
+  table.innerHTML = html;
+  document.getElementById('statsLabel').textContent = `各組統計（差事 ${totalAbsent} 員）`;
+}
+
+/* ===== 清除確認 ===== */
+function askReset() {
+  document.getElementById('confirmSlotName').textContent = currentSlot;
+  document.getElementById('confirmBackdrop').classList.add('show');
+}
+function closeConfirm() { document.getElementById('confirmBackdrop').classList.remove('show'); }
+function doReset() {
+  closeConfirm();
+  Object.keys(dutyMap).forEach(name => applyDuty(name, '在勤'));
+  slotStates[currentSlot] = {};
+  document.getElementById('outputBox').style.display = 'none';
+  document.getElementById('copyBtn').style.display = 'none';
+  document.getElementById('parseResult').innerHTML = '';
+  document.getElementById('textInput').value = '';
+  updateSummary();
+  updateSlotDots();
+  updateStats();
+  saveState();
+}
+
+/* ===== 儲存狀態 ===== */
 function saveState() {
   try {
-    const state = {
-      date: dateInput.value,
-      rollType: document.getElementById('rollType').value,
-      duties: Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'))
-    };
+    slotStates[currentSlot] = Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'));
+    const state = { date: dateInput.value, currentSlot, slotStates };
     localStorage.setItem('rollcall_state', JSON.stringify(state));
-  } catch(e) {
-    logEvent('error', `儲存狀態失敗：${e.message}`);
-  }
+  } catch(e) { logEvent('error', `儲存狀態失敗：${e.message}`); }
 }
 
 function loadState() {
@@ -499,102 +694,62 @@ function loadState() {
     if (!raw) return;
     const state = JSON.parse(raw);
     if (state.date) dateInput.value = state.date;
-    if (state.rollType) document.getElementById('rollType').value = state.rollType;
-    if (state.duties) {
-      Object.entries(state.duties).forEach(([name, duty]) => {
-        if (dutyMap.hasOwnProperty(name) && duty !== '在勤') {
-          dutyMap[name] = duty;
-          const btn = document.getElementById('btn-' + name);
-          if (btn) btn.className = `member-btn duty-${duty}`;
-        } else if (!dutyMap.hasOwnProperty(name)) {
-          logEvent('warn', `載入狀態：「${name}」不在名冊，已略過`);
-        }
-      });
+    if (state.slotStates) {
+      SLOTS.forEach(s => { slotStates[s] = state.slotStates[s] || {}; });
     }
-  } catch(e) {
-    logEvent('error', `載入狀態失敗：${e.message}`);
-  }
+    if (state.currentSlot && SLOTS.includes(state.currentSlot)) {
+      currentSlot = state.currentSlot;
+      document.querySelectorAll('.slot-tab').forEach(t => t.classList.toggle('active', t.dataset.slot === currentSlot));
+    }
+    loadSlotIntoDutyMap();
+  } catch(e) { logEvent('error', `載入狀態失敗：${e.message}`); }
 }
 
-function updateSummary() {
-  const absent = Object.values(dutyMap).filter(d => d !== '在勤').length;
-  document.getElementById('summaryBar').textContent =
-    `差事：${absent} 員 ／ 實到：${97 - absent} 員`;
-}
-
-function resetAll() {
-  Object.keys(dutyMap).forEach(name => {
-    dutyMap[name] = '在勤';
-    const btn = document.getElementById('btn-' + name);
-    if (btn) btn.className = 'member-btn';
-  });
-  document.getElementById('outputBox').style.display = 'none';
-  document.getElementById('copyBtn').style.display = 'none';
-  document.getElementById('parseResult').innerHTML = '';
-  document.getElementById('textInput').value = '';
-  updateSummary();
-  saveState();
-}
-
-// 文字解析
+/* ===== 文字解析 ===== */
 function parseText() {
   const text = document.getElementById('textInput').value;
   if (!text.trim()) return;
 
-  Object.keys(dutyMap).forEach(name => {
-    dutyMap[name] = '在勤';
-    const btn = document.getElementById('btn-' + name);
-    if (btn) btn.className = 'member-btn';
-  });
+  Object.keys(dutyMap).forEach(name => applyDuty(name, '在勤'));
 
   const resultDiv = document.getElementById('parseResult');
   resultDiv.innerHTML = '';
-  const unknownNames = [];
 
-  // key 為偵測用字串，value 為標準化標籤
   const dutyKeywords = {
-    '公假': '公假', '補休': '補休', '站哨': '站哨', '下夜': '下夜', '外派': '外派',
-    '正課': '正課', '龍隊': '龍隊', '社團': '社團', '喪假': '喪假', '病假': '病假',
-    '班消': '班消', 'bmi': 'BMI', '消委': '消委', '餐勤': '餐勤', '修委': '修委',
-    '校旗隊': '校旗隊', '事假': '事假', '美工': '美工'
+    '公假':'公假','補休':'補休','站哨':'站哨','下夜':'下夜','外派':'外派',
+    '正課':'正課','龍隊':'龍隊','社團':'社團','喪假':'喪假','病假':'病假',
+    '班消':'班消','bmi':'BMI','消委':'消委','餐勤':'餐勤','修委':'修委',
+    '校旗隊':'校旗隊','事假':'事假','美工':'美工'
   };
-  const lines = text.split(/[\n；;]/);
 
-  lines.forEach(line => {
+  text.split(/[\n；;]/).forEach(line => {
     line = line.trim();
     if (!line) return;
-    let matchedDuty = null;
-    let matchedKw = null;
-    const lineLower = line.toLowerCase();
+    let matchedDuty = null, matchedKw = null;
+    const ll = line.toLowerCase();
     for (const [kw, duty] of Object.entries(dutyKeywords)) {
-      if (lineLower.includes(kw.toLowerCase())) { matchedDuty = duty; matchedKw = kw; break; }
+      if (ll.includes(kw.toLowerCase())) { matchedDuty = duty; matchedKw = kw; break; }
     }
     if (!matchedDuty) return;
 
     let nameStr = '';
-    const bracketMatch = line.match(/[（(]([^）)]+)[）)]/);
-    if (bracketMatch) {
-      nameStr = bracketMatch[1];
+    const bm = line.match(/[（(]([^）)]+)[）)]/);
+    if (bm) {
+      nameStr = bm[1];
     } else if (line.includes('：') || line.includes(':')) {
       nameStr = line.replace(/^[^：:]*[：:]/, '');
     } else {
-      // 空格分隔：X員BMI 温梧淮 徐敏宗
-      const kwIdx = lineLower.indexOf(matchedKw.toLowerCase());
-      nameStr = line.substring(kwIdx + matchedKw.length);
+      nameStr = line.substring(ll.indexOf(matchedKw.toLowerCase()) + matchedKw.length);
     }
-    const names = nameStr.split(/[、，,\s\/]+/).map(s => s.trim()).filter(Boolean);
 
     const matched = [], unknown = [];
-    names.forEach(n => {
+    nameStr.split(/[、，,\s\/]+/).map(s => s.trim()).filter(Boolean).forEach(n => {
       if (allNames.has(n)) {
         matched.push(n);
-        dutyMap[n] = matchedDuty;
-        const btn = document.getElementById('btn-' + n);
-        if (btn) btn.className = `member-btn duty-${matchedDuty}`;
+        applyDuty(n, matchedDuty);
       } else if (n.length >= 2) {
         unknown.push(n);
-        unknownNames.push(n);
-        logEvent('warn', `解析：找不到「${n}」（差勤類別：${matchedDuty}）`);
+        logEvent('warn', `解析：找不到「${n}」（差勤：${matchedDuty}）`);
       }
     });
 
@@ -613,142 +768,153 @@ function parseText() {
   });
 
   if (resultDiv.innerHTML === '') {
-    resultDiv.innerHTML = '<div class="parse-item">未識別到任何差勤資料，請確認格式（例：公假：謝文杰、江驊庭）</div>';
-    logEvent('warn', `解析失敗：未識別到任何差勤，輸入前10字：「${text.trim().substring(0,10)}」`);
+    resultDiv.innerHTML = '<div class="parse-item">未識別到任何差勤資料，請確認格式</div>';
+    logEvent('warn', `解析失敗：「${text.trim().substring(0,15)}...」`);
   }
 
   updateSummary();
+  updateSlotDots();
+  updateStats();
   saveState();
 }
 
-function generateReport() {
+/* ===== 產生回報 ===== */
+function getReportData() {
   const dateVal = dateInput.value;
   const d = new Date(dateVal + 'T00:00:00');
   const month = d.getMonth() + 1;
   const day = d.getDate();
-  const rollType = document.getElementById('rollType').value;
-
+  const rollLabel = SLOT_LABELS[currentSlot] || currentSlot;
   const groups = {};
   DUTY_TYPES.slice(1).forEach(t => groups[t] = []);
-  Object.entries(dutyMap).forEach(([name, duty]) => {
-    if (duty !== '在勤') groups[duty].push(name);
-  });
-
+  Object.entries(dutyMap).forEach(([name, duty]) => { if (duty !== '在勤') groups[duty].push(name); });
   const totalAbsent = Object.values(groups).reduce((s, a) => s + a.length, 0);
-  const present = 97 - totalAbsent;
+  return { month, day, rollLabel, groups, totalAbsent, present: 97 - totalAbsent };
+}
 
-  let lines = [];
-  lines.push(`報告區隊長，以下為`);
-  lines.push(`${month}月${day}日 一中隊 ${rollType} 人數`);
-  lines.push('');
-  lines.push('應到 97 員');
-  lines.push('除');
-
+function generateReport() {
+  const { month, day, rollLabel, groups, totalAbsent, present } = getReportData();
+  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, '', '應到 97 員', '除'];
   let hasAbsent = false;
   DUTY_TYPES.slice(1).forEach(duty => {
-    if (groups[duty].length > 0) {
-      hasAbsent = true;
-      lines.push(`${groups[duty].length} 員 ${duty}`);
-      lines.push(`（${groups[duty].join('、')}）`);
-    }
+    if (!groups[duty].length) return;
+    hasAbsent = true;
+    lines.push(`${groups[duty].length} 員 ${duty}`);
+    lines.push(`（${groups[duty].join('、')}）`);
   });
   if (!hasAbsent) lines.push('0 員差事');
-
   lines.push(`合計差事：${totalAbsent} 員`);
   lines.push(`實到：${present} 員`);
   lines.push('請區隊長核示，謝謝區隊長。');
-
-  const box = document.getElementById('outputBox');
-  const copyBtn = document.getElementById('copyBtn');
-  box.textContent = lines.join('\n');
-  box.style.display = 'block';
-  copyBtn.style.display = 'block';
-  box.scrollIntoView({ behavior: 'smooth' });
+  showReport(lines.join('\n'));
 }
 
 function generateDetailReport() {
-  const dateVal = dateInput.value;
-  const d = new Date(dateVal + 'T00:00:00');
-  const month = d.getMonth() + 1;
-  const day = d.getDate();
-  const rollType = document.getElementById('rollType').value;
-
-  const groups = {};
-  DUTY_TYPES.slice(1).forEach(t => groups[t] = []);
-  Object.entries(dutyMap).forEach(([name, duty]) => {
-    if (duty !== '在勤') groups[duty].push(name);
-  });
-
-  const totalAbsent = Object.values(groups).reduce((s, a) => s + a.length, 0);
-  const present = 97 - totalAbsent;
-
-  let lines = [];
-  lines.push(`報告區隊長，以下為`);
-  lines.push(`${month}月${day}日 一中隊 ${rollType} 人數`);
-  lines.push('');
-  lines.push('應到 97 員');
-  lines.push('除');
-
+  const { month, day, rollLabel, groups, totalAbsent, present } = getReportData();
+  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, '', '應到 97 員', '除'];
   let hasAbsent = false;
   DUTY_TYPES.slice(1).forEach(duty => {
-    if (groups[duty].length === 0) return;
+    if (!groups[duty].length) return;
     hasAbsent = true;
     lines.push(`${groups[duty].length} 員 ${duty}`);
-
-    // 依建制班分組
     const byClass = {};
     groups[duty].forEach(name => {
-      const cls = nameToClass[name] || '中隊部';
-      const grp = nameToGroup[name] ? `${nameToGroup[name]}` : '';
-      const label = grp ? `${cls}／${grp}` : cls;
+      const label = nameToGroup[name] ? `${nameToClass[name] || '中隊部'}／${nameToGroup[name]}` : (nameToClass[name] || '中隊部');
       if (!byClass[label]) byClass[label] = [];
       byClass[label].push(name);
     });
-
-    Object.entries(byClass).forEach(([label, members]) => {
-      lines.push(`  ${label}：${members.join('、')}`);
-    });
+    Object.entries(byClass).forEach(([label, ms]) => lines.push(`  ${label}：${ms.join('、')}`));
   });
-
   if (!hasAbsent) lines.push('0 員差事');
   lines.push(`合計差事：${totalAbsent} 員`);
   lines.push(`實到：${present} 員`);
   lines.push('請區隊長核示，謝謝區隊長。');
+  showReport(lines.join('\n'));
+}
 
+function showReport(text) {
   const box = document.getElementById('outputBox');
-  const copyBtn = document.getElementById('copyBtn');
-  box.textContent = lines.join('\n');
+  const btn = document.getElementById('copyBtn');
+  box.textContent = text;
   box.style.display = 'block';
-  copyBtn.style.display = 'block';
+  btn.style.display = 'block';
   box.scrollIntoView({ behavior: 'smooth' });
+  saveHistory(text);
 }
 
 function copyReport() {
   const text = document.getElementById('outputBox').textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = '✓ 已複製！';
-    setTimeout(() => btn.textContent = '複製回報內容', 1800);
-  }).catch(() => {
-    // fallback
+  const btn = document.getElementById('copyBtn');
+  const done = () => { btn.textContent = '✓ 已複製！'; setTimeout(() => btn.textContent = '複製回報內容', 1800); };
+  navigator.clipboard.writeText(text).then(done).catch(() => {
     const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-    const btn = document.getElementById('copyBtn');
-    btn.textContent = '✓ 已複製！';
-    setTimeout(() => btn.textContent = '複製回報內容', 1800);
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    done();
   });
 }
 
-dateInput.addEventListener('change', saveState);
-document.getElementById('rollType').addEventListener('change', saveState);
+/* ===== 歷史回報 ===== */
+const MAX_HISTORY = 30;
+let historyList = [];
+try { historyList = JSON.parse(localStorage.getItem('rollcall_history') || '[]'); } catch(e) {}
 
+function saveHistory(text) {
+  const now = new Date();
+  const time = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  historyList.unshift({ time, slot: currentSlot, text });
+  if (historyList.length > MAX_HISTORY) historyList = historyList.slice(0, MAX_HISTORY);
+  try { localStorage.setItem('rollcall_history', JSON.stringify(historyList)); } catch(e) { logEvent('error', `歷史儲存失敗：${e.message}`); }
+}
+
+function renderHistory() {
+  const el = document.getElementById('historyEntries');
+  if (historyList.length === 0) { el.innerHTML = '<div class="history-empty">尚無歷史回報</div>'; return; }
+  el.innerHTML = historyList.map((h, i) => `
+    <div class="history-entry">
+      <div class="h-meta">${h.time}・${h.slot}</div>
+      <div class="h-text">${h.text}</div>
+      <button class="h-copy" onclick="copyHistoryEntry(${i})">複製</button>
+    </div>`).join('');
+}
+
+function copyHistoryEntry(i) {
+  const text = historyList[i].text;
+  const btn = event.target;
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = '✓ 已複製'; setTimeout(() => btn.textContent = '複製', 1500); }).catch(() => {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '✓ 已複製'; setTimeout(() => btn.textContent = '複製', 1500);
+  });
+}
+
+function toggleHistory() {
+  const p = document.getElementById('historyPanel');
+  p.classList.toggle('show');
+  if (p.classList.contains('show')) renderHistory();
+}
+
+function clearHistory() {
+  historyList = [];
+  localStorage.removeItem('rollcall_history');
+  renderHistory();
+}
+
+/* ===== 摘要 ===== */
+function updateSummary() {
+  const absent = Object.values(dutyMap).filter(d => d !== '在勤').length;
+  document.getElementById('summaryBar').textContent = `${currentSlot}  ─  差事：${absent} 員 ／ 實到：${97 - absent} 員`;
+}
+
+/* ===== 初始化 ===== */
+const dateInput = document.getElementById('dateInput');
+const today = new Date();
+dateInput.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+dateInput.addEventListener('change', saveState);
+
+buildSlotTabs();
 buildRoster();
 loadState();
 updateSummary();
+updateStats();
 </script>
 </body>
 </html>
