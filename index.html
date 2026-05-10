@@ -283,24 +283,24 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0;border:1px solid #ccc"></div>在勤</div>
     <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>公假</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#33691e"></div>事假</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#a93226"></div>病假</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2c2c2c"></div>喪假</div>
     <div class="legend-item"><div class="legend-dot" style="background:#27ae60"></div>補休</div>
     <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>站哨</div>
     <div class="legend-item"><div class="legend-dot" style="background:#e67e22"></div>下夜</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#795548"></div>餐勤</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e91e63"></div>班消</div>
     <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>外派</div>
     <div class="legend-item"><div class="legend-dot" style="background:#7d3c98"></div>正課</div>
     <div class="legend-item"><div class="legend-dot" style="background:#1abc9c"></div>龍隊</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#2471a3"></div>社團</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#2c2c2c"></div>喪假</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#a93226"></div>病假</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e91e63"></div>班消</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#00bcd4"></div>BMI</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#ff5722"></div>消委</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#795548"></div>餐勤</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f57f17"></div>修委</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#880e4f"></div>校旗隊</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#33691e"></div>事假</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f06292"></div>美工</div>
     <div class="legend-item"><div class="legend-dot" style="background:#5c6bc0"></div>研習</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff5722"></div>消委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f57f17"></div>修委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#2471a3"></div>社團</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#880e4f"></div>校旗隊</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f06292"></div>美工</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00bcd4"></div>BMI</div>
     <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
@@ -382,26 +382,32 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <button class="duty-menu-close" onclick="closeMenu()">✕</button>
   </div>
   <div class="duty-options-grid">
-    <div class="duty-option opt-在勤"   onclick="setDuty('在勤')">在勤</div>
+    <div class="duty-option opt-在勤"   onclick="setDuty('在勤')" style="grid-column:span 3;background:#f8f9fa;color:#555">在勤（清除）</div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 假別 ──</div>
     <div class="duty-option opt-公假"   onclick="setDuty('公假')">公假</div>
+    <div class="duty-option opt-事假"   onclick="setDuty('事假')">事假</div>
+    <div class="duty-option opt-病假"   onclick="setDuty('病假')">病假</div>
+    <div class="duty-option opt-喪假"   onclick="setDuty('喪假')">喪假</div>
     <div class="duty-option opt-補休"   onclick="setDuty('補休')">補休</div>
+    <div style="grid-column:span 1"></div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 勤務 ──</div>
     <div class="duty-option opt-站哨"   onclick="setDuty('站哨')">站哨</div>
     <div class="duty-option opt-下夜"   onclick="setDuty('下夜')">下夜</div>
+    <div class="duty-option opt-餐勤"   onclick="setDuty('餐勤')">餐勤</div>
+    <div class="duty-option opt-班消"   onclick="setDuty('班消')">班消</div>
     <div class="duty-option opt-外派"   onclick="setDuty('外派')">外派</div>
+    <div style="grid-column:span 1"></div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 訓練課程 ──</div>
     <div class="duty-option opt-正課"   onclick="setDuty('正課')">正課</div>
     <div class="duty-option opt-龍隊"   onclick="setDuty('龍隊')">龍隊</div>
-    <div class="duty-option opt-社團"   onclick="setDuty('社團')">社團</div>
-    <div class="duty-option opt-喪假"   onclick="setDuty('喪假')">喪假</div>
-    <div class="duty-option opt-病假"   onclick="setDuty('病假')">病假</div>
-    <div class="duty-option opt-班消"   onclick="setDuty('班消')">班消</div>
-    <div class="duty-option opt-BMI"    onclick="setDuty('BMI')">BMI</div>
-    <div class="duty-option opt-消委"   onclick="setDuty('消委')">消委</div>
-    <div class="duty-option opt-餐勤"   onclick="setDuty('餐勤')">餐勤</div>
-    <div class="duty-option opt-修委"   onclick="setDuty('修委')">修委</div>
-    <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
-    <div class="duty-option opt-事假"   onclick="setDuty('事假')">事假</div>
-    <div class="duty-option opt-美工"   onclick="setDuty('美工')">美工</div>
     <div class="duty-option opt-研習"   onclick="setDuty('研習')">研習</div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 委員活動 ──</div>
+    <div class="duty-option opt-消委"   onclick="setDuty('消委')">消委</div>
+    <div class="duty-option opt-修委"   onclick="setDuty('修委')">修委</div>
+    <div class="duty-option opt-社團"   onclick="setDuty('社團')">社團</div>
+    <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
+    <div class="duty-option opt-美工"   onclick="setDuty('美工')">美工</div>
+    <div class="duty-option opt-BMI"    onclick="setDuty('BMI')">BMI</div>
   </div>
 </div>
 
@@ -453,7 +459,17 @@ const GROUPS = {
   '專軍氣象組':   ['邱湧庭','洪塘訓','李姿縈','蕭梓嫣','徐斈僎','陳哲浩','何景藝','陳靖棻'],
 };
 
-const DUTY_TYPES = ['在勤','公假','補休','站哨','下夜','外派','正課','龍隊','社團','喪假','病假','班消','BMI','消委','餐勤','修委','校旗隊','事假','美工','研習'];
+const DUTY_TYPES = [
+  '在勤',
+  // 假別
+  '公假','事假','病假','喪假','補休',
+  // 勤務
+  '站哨','下夜','餐勤','班消','外派',
+  // 訓練課程
+  '正課','龍隊','研習',
+  // 委員活動
+  '消委','修委','社團','校旗隊','美工','BMI',
+];
 
 const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課','研習1700','研習1800'];
 const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
