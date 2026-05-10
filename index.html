@@ -911,6 +911,7 @@ function parseText() {
     '收委班長':'收委','收委':'收委',
     '收尾班長':'收委','收尾':'收委',
     '榮團會公差':'榮團會','榮團會':'榮團會',
+    '自行帶回':'正課','氣象館上課':'正課','上課':'正課',
   };
 
   text.split(/[\n；;]/).forEach(line => {
@@ -927,6 +928,21 @@ function parseText() {
     const kwIdx = ll.indexOf(matchedKw.toLowerCase());
     const afterKw = line.substring(kwIdx + matchedKw.length);
     const matched = greedyExtractNames(afterKw);
+
+    // 若沒找到個人姓名，偵測整行是否含組別名稱，自動套整組
+    if (matched.length === 0) {
+      for (const [groupName, groupMembers] of Object.entries(GROUPS)) {
+        if (line.includes(groupName)) {
+          groupMembers.forEach(n => { matched.push(n); });
+          const item = document.createElement('div');
+          item.className = 'parse-item';
+          item.innerHTML = `<span>${matchedDuty}</span>（${groupName}）：${groupMembers.join('、')}（${groupMembers.length} 員）`;
+          resultDiv.appendChild(item);
+          break;
+        }
+      }
+    }
+
     matched.forEach(n => applyDuty(n, matchedDuty));
 
     // 找未知姓名：純中文片段但不在名冊內
