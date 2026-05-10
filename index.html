@@ -115,6 +115,9 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-差勤  { background: #ff6f00; color: white; border-color: #e65100; }
 .member-btn.duty-燒委  { background: #d84315; color: white; border-color: #bf360c; }
 .member-btn.duty-巡水電 { background: #0277bd; color: white; border-color: #01579b; }
+.member-btn.duty-有意願 { background: #f9a825; color: #333;  border-color: #f57f17; }
+.member-btn.duty-無意願 { background: #e53935; color: white; border-color: #b71c1c; }
+.member-btn.duty-無資格 { background: #757575; color: white; border-color: #616161; }
 
 /* === 差勤選單（底部 sheet） === */
 .duty-menu {
@@ -172,6 +175,9 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-差勤  { background: #ff6f0022; color: #e65100; border-color: #ff6f0066; font-weight: bold; }
 .duty-option.opt-燒委  { background: #d8431522; color: #bf360c; border-color: #d8431566; font-weight: bold; }
 .duty-option.opt-巡水電 { background: #0277bd22; color: #01579b; border-color: #0277bd66; font-weight: bold; }
+.duty-option.opt-有意願 { background: #f9a82522; color: #e65100; border-color: #f9a82566; font-weight: bold; }
+.duty-option.opt-無意願 { background: #e5393522; color: #b71c1c; border-color: #e5393566; font-weight: bold; }
+.duty-option.opt-無資格 { background: #75757522; color: #424242; border-color: #75757566; font-weight: bold; }
 
 /* === 文字輸入 === */
 .text-section { padding: 12px 16px; }
@@ -323,6 +329,9 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="legend-item"><div class="legend-dot" style="background:#ff6f00"></div>差勤</div>
     <div class="legend-item"><div class="legend-dot" style="background:#d84315"></div>燒委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#0277bd"></div>巡水電</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f9a825"></div>有意願</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e53935"></div>無意願</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#757575"></div>無資格</div>
     <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
@@ -444,6 +453,10 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="duty-option opt-收委"   onclick="setDuty('收委')">收委</div>
     <div class="duty-option opt-榮團會"  onclick="setDuty('榮團會')">榮團會</div>
     <div class="duty-option opt-自行帶回" onclick="setDuty('自行帶回')">自行帶回</div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 研習假 ──</div>
+    <div class="duty-option opt-有意願"  onclick="setDuty('有意願')">有意願</div>
+    <div class="duty-option opt-無意願"  onclick="setDuty('無意願')">無意願</div>
+    <div class="duty-option opt-無資格"  onclick="setDuty('無資格')">無資格</div>
   </div>
 </div>
 
@@ -507,9 +520,11 @@ const DUTY_TYPES = [
   '消委','修委','社團','校旗隊','美工','BMI',
   // 其他
   '校隊','服檢','安檢','寢休','收委','榮團會','自行帶回',
+  // 研習假
+  '無意願','有意願','無資格',
 ];
 
-const SLOTS = ['早點名','0740','1200','1330','1700','1850','晚點名','軍訓課','研習1700','研習1800'];
+const SLOTS = ['早點名','0740','1200','1330','1700','1850','晚點名','軍訓課','研習假','研習1700','研習1800'];
 
 // 固定公差出任時段（可依實際名單修正）
 const FIXED_DUTIES = {
@@ -531,8 +546,8 @@ const FIXED_DUTIES = {
     '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
   },
 };
-const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','1850':'1850 點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
-const VACATION_SLOTS = new Set(['研習1700','研習1800']);
+const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','1850':'1850 點名','研習假':'研習假點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
+const VACATION_SLOTS = new Set(['研習假','研習1700','研習1800']);
 const VACATION_SLOT = '研習1700'; // 向下相容
 
 // 放假點名額外人員（大隊部＋外派）
@@ -551,13 +566,15 @@ function isVacationSlot(slot) { return VACATION_SLOTS.has(slot || currentSlot); 
 
 // 研習1700 已出發人員（有任何差勤的人）
 function get1700Departed() {
-  return new Set(Object.keys(slotStates['研習1700'] || {}).filter(n => slotStates['研習1700'][n] !== '在勤'));
+  return new Set(Object.keys(slotStates['研習1700'] || {}).filter(n => slotStates['研習1700'][n] === '有意願'));
 }
 
 function getTotal() {
   if (!isVacationSlot()) return NORMAL_TOTAL;
-  if (currentSlot === '研習1800') return VACATION_TOTAL - get1700Departed().size;
-  return VACATION_TOTAL;
+  const unqualified = Object.values(dutyMap).filter(d => d === '無資格').length;
+  const base = VACATION_TOTAL - unqualified;
+  if (currentSlot === '研習1800') return base - get1700Departed().size;
+  return base;
 }
 
 // 建姓名對照表
@@ -656,8 +673,16 @@ function loadSlotIntoDutyMap() {
     }
   });
 
-  // 研習1800：把1700已出發的人標示為 departed（灰掉、不可點）
+  // 研習1800：繼承研習1700的無資格/無意願，並標示已出發者
   if (currentSlot === '研習1800') {
+    const setup1700 = slotStates['研習1700'] || {};
+    Object.entries(setup1700).forEach(([name, duty]) => {
+      if ((duty === '無資格' || duty === '無意願') && dutyMap.hasOwnProperty(name) && dutyMap[name] === '在勤') {
+        dutyMap[name] = duty;
+        const btn = document.getElementById('btn-' + name);
+        if (btn) btn.className = `member-btn duty-${duty}`;
+      }
+    });
     get1700Departed().forEach(name => {
       const btn = document.getElementById('btn-' + name);
       if (btn) btn.className = 'member-btn departed';
@@ -808,24 +833,32 @@ function toggleStats() {
 function updateStats() {
   if (!statsOpen) return;
   const table = document.getElementById('statsTable');
+  const vacation = isVacationSlot();
+  const vacExclude = new Set(['有意願', '無資格']);
   let html = `<div class="stats-row header"><span>組別</span><span>應到</span><span>差事</span><span>實到</span></div>`;
-  Object.entries(GROUPS).forEach(([grp, members]) => {
-    const total = members.length;
+  const calcRow = members => {
+    if (vacation) {
+      const qualified = members.filter(m => dutyMap[m] !== '無資格');
+      const absent = qualified.filter(m => dutyMap[m] && !vacExclude.has(dutyMap[m]) && dutyMap[m] !== '在勤').length;
+      return { total: qualified.length, absent };
+    }
     const absent = members.filter(m => dutyMap[m] && dutyMap[m] !== '在勤').length;
-    const present = total - absent;
-    html += `<div class="stats-row"><span>${grp}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${present}</span></div>`;
+    return { total: members.length, absent };
+  };
+  Object.entries(GROUPS).forEach(([grp, members]) => {
+    const { total, absent } = calcRow(members);
+    html += `<div class="stats-row"><span>${grp}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${total - absent}</span></div>`;
   });
-  // 放假模式補充大隊部／外派
   if (isVacationSlot(currentSlot)) {
     VACATION_EXTRAS.forEach(squad => squad.classes.forEach(cls => {
-      const total = cls.members.length;
-      const absent = cls.members.filter(m => dutyMap[m] && dutyMap[m] !== '在勤').length;
+      const { total, absent } = calcRow(cls.members);
       html += `<div class="stats-row"><span>${cls.name}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${total - absent}</span></div>`;
     }));
   }
-  // 全中隊合計
   const total = getTotal();
-  const totalAbsent = Object.values(dutyMap).filter(d => d !== '在勤').length;
+  const totalAbsent = vacation
+    ? Object.values(dutyMap).filter(d => d !== '在勤' && !vacExclude.has(d)).length
+    : Object.values(dutyMap).filter(d => d !== '在勤').length;
   html += `<div class="stats-row" style="font-weight:bold;background:#f8f9fa"><span>全中隊</span><span>${total}</span><span class="${totalAbsent > 0 ? 's-absent' : ''}">${totalAbsent}</span><span class="s-present">${total - totalAbsent}</span></div>`;
   table.innerHTML = html;
   document.getElementById('statsLabel').textContent = `各組統計（差事 ${totalAbsent} 員）`;
@@ -947,6 +980,8 @@ function parseText() {
     '自行帶回':'自行帶回',
     '燒委':'燒委',
     '巡水電':'巡水電',
+    '無資格':'無資格','有意願':'有意願','無意願':'無意願',
+    '數學輔導課':'正課','英文輔導課':'正課',
     '氣象館上課':'正課','上課':'正課',
   };
 
@@ -1038,7 +1073,10 @@ function getReportData() {
   Object.entries(dutyMap).forEach(([name, duty]) => {
     if (duty !== '在勤' && !departed.has(name)) groups[duty].push(name);
   });
-  const totalAbsent = Object.values(groups).reduce((s, a) => s + a.length, 0);
+  const vacExclude = new Set(['有意願', '無資格']);
+  const totalAbsent = isVacationSlot()
+    ? Object.entries(groups).reduce((s, [t, a]) => s + (vacExclude.has(t) ? 0 : a.length), 0)
+    : Object.values(groups).reduce((s, a) => s + a.length, 0);
   return { month, day, rollLabel, total, groups, totalAbsent, present: total - totalAbsent, departed };
 }
 
@@ -1047,9 +1085,11 @@ function generateReport() {
   const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, ''];
   if (departed.size > 0) lines.push(`（1700 已出發 ${departed.size} 員，不列入本次點名）`);
   lines.push(`應到 ${total} 員`, '除');
+  const vacSkip = new Set(['有意願', '無資格']);
   let hasAbsent = false;
   DUTY_TYPES.slice(1).forEach(duty => {
     if (!groups[duty].length) return;
+    if (isVacationSlot() && vacSkip.has(duty)) return;
     hasAbsent = true;
     lines.push(`${groups[duty].length} 員 ${duty}`);
     lines.push(`（${groups[duty].join('、')}）`);
@@ -1201,7 +1241,9 @@ function updatePrefillBtn() {
 /* ===== 摘要 ===== */
 function updateSummary() {
   const total = getTotal();
-  const absent = Object.values(dutyMap).filter(d => d !== '在勤').length;
+  const absent = isVacationSlot()
+    ? Object.values(dutyMap).filter(d => d !== '在勤' && d !== '有意願' && d !== '無資格').length
+    : Object.values(dutyMap).filter(d => d !== '在勤').length;
   document.getElementById('summaryBar').textContent = `${currentSlot}  ─  應到 ${total} 員  差事：${absent} 員 ／ 實到：${total - absent} 員`;
 }
 
