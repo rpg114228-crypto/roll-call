@@ -134,11 +134,45 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
   cursor: pointer; width: 100%; display: none;
 }
 .copy-btn:hover { background: #219a52; }
+
+/* === 錯誤記錄 === */
+.log-btn {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px; padding: 4px 10px; font-size: 0.78em; cursor: pointer; font-family: inherit;
+}
+.log-btn.has-error { background: #e74c3c; border-color: #c0392b; }
+.log-panel {
+  position: fixed; bottom: 0; left: 0; right: 0; max-height: 50vh;
+  background: #1e1e1e; color: #d4d4d4; z-index: 2000;
+  display: none; flex-direction: column; font-size: 0.82em; font-family: monospace;
+}
+.log-panel.show { display: flex; }
+.log-toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 12px; background: #2d2d2d; border-bottom: 1px solid #444;
+}
+.log-toolbar span { color: #ccc; font-weight: bold; }
+.log-toolbar button {
+  background: #444; color: #ccc; border: none; border-radius: 4px;
+  padding: 3px 10px; cursor: pointer; font-family: monospace; font-size: 0.9em; margin-left: 6px;
+}
+.log-toolbar button:hover { background: #555; }
+.log-entries { overflow-y: auto; padding: 8px 12px; flex: 1; }
+.log-entry { padding: 3px 0; border-bottom: 1px solid #2a2a2a; line-height: 1.5; }
+.log-entry .log-time { color: #888; margin-right: 8px; }
+.log-entry.type-error .log-msg { color: #f48771; }
+.log-entry.type-warn  .log-msg { color: #dcdcaa; }
+.log-entry.type-info  .log-msg { color: #9cdcfe; }
+.log-empty { color: #666; padding: 8px 0; }
 </style>
 </head>
 <body>
 
-<div class="header"><h1>一中隊點名助手</h1></div>
+<div class="header" style="position:relative">
+  <h1>一中隊點名助手</h1>
+  <button class="log-btn" id="logBtn" onclick="toggleLog()">記錄</button>
+</div>
 
 <div class="controls">
   <label>日期</label>
@@ -211,6 +245,18 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
   <button class="copy-btn" id="copyBtn" onclick="copyReport()">複製回報內容</button>
 </div>
 
+<!-- 錯誤記錄面板 -->
+<div class="log-panel" id="logPanel">
+  <div class="log-toolbar">
+    <span>錯誤記錄</span>
+    <div>
+      <button onclick="clearLog()">清除</button>
+      <button onclick="toggleLog()">關閉</button>
+    </div>
+  </div>
+  <div class="log-entries" id="logEntries"></div>
+</div>
+
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 <div class="duty-menu" id="dutyMenu">
   <div class="duty-option opt-在勤" onclick="setDuty('在勤')">在勤</div>
@@ -280,6 +326,51 @@ const ROSTER = [
 ];
 
 const DUTY_TYPES = ['在勤','公假','補休','站哨','下夜','外派','正課','龍隊','社團','喪假','病假','班消','BMI','消委','餐勤','修委','校旗隊','事假','美工'];
+
+// ===== Error Log =====
+const MAX_LOG = 100;
+let errorLog = [];
+try { errorLog = JSON.parse(localStorage.getItem('rollcall_log') || '[]'); } catch(e) {}
+
+function logEvent(type, msg) {
+  const now = new Date();
+  const time = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  errorLog.unshift({ time, type, msg });
+  if (errorLog.length > MAX_LOG) errorLog = errorLog.slice(0, MAX_LOG);
+  try { localStorage.setItem('rollcall_log', JSON.stringify(errorLog)); } catch(e) {}
+  renderLog();
+  if (type === 'error') document.getElementById('logBtn').classList.add('has-error');
+}
+
+function renderLog() {
+  const el = document.getElementById('logEntries');
+  if (!el) return;
+  if (errorLog.length === 0) { el.innerHTML = '<div class="log-empty">無記錄</div>'; return; }
+  el.innerHTML = errorLog.map(e =>
+    `<div class="log-entry type-${e.type}"><span class="log-time">${e.time}</span><span class="log-msg">[${e.type.toUpperCase()}] ${e.msg}</span></div>`
+  ).join('');
+}
+
+function toggleLog() {
+  const panel = document.getElementById('logPanel');
+  panel.classList.toggle('show');
+  if (panel.classList.contains('show')) renderLog();
+}
+
+function clearLog() {
+  errorLog = [];
+  localStorage.removeItem('rollcall_log');
+  document.getElementById('logBtn').classList.remove('has-error');
+  renderLog();
+}
+
+window.onerror = function(msg, src, line, col, err) {
+  logEvent('error', `JS例外：${msg}（第${line}行）`);
+  return false;
+};
+window.addEventListener('unhandledrejection', e => {
+  logEvent('error', `Promise錯誤：${e.reason}`);
+});
 const dutyMap = {};
 let currentMember = null;
 
@@ -389,12 +480,16 @@ function setDuty(duty) {
 }
 
 function saveState() {
-  const state = {
-    date: dateInput.value,
-    rollType: document.getElementById('rollType').value,
-    duties: Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'))
-  };
-  localStorage.setItem('rollcall_state', JSON.stringify(state));
+  try {
+    const state = {
+      date: dateInput.value,
+      rollType: document.getElementById('rollType').value,
+      duties: Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'))
+    };
+    localStorage.setItem('rollcall_state', JSON.stringify(state));
+  } catch(e) {
+    logEvent('error', `儲存狀態失敗：${e.message}`);
+  }
 }
 
 function loadState() {
@@ -410,10 +505,14 @@ function loadState() {
           dutyMap[name] = duty;
           const btn = document.getElementById('btn-' + name);
           if (btn) btn.className = `member-btn duty-${duty}`;
+        } else if (!dutyMap.hasOwnProperty(name)) {
+          logEvent('warn', `載入狀態：「${name}」不在名冊，已略過`);
         }
       });
     }
-  } catch(e) {}
+  } catch(e) {
+    logEvent('error', `載入狀態失敗：${e.message}`);
+  }
 }
 
 function updateSummary() {
@@ -494,6 +593,7 @@ function parseText() {
       } else if (n.length >= 2) {
         unknown.push(n);
         unknownNames.push(n);
+        logEvent('warn', `解析：找不到「${n}」（差勤類別：${matchedDuty}）`);
       }
     });
 
@@ -513,6 +613,7 @@ function parseText() {
 
   if (resultDiv.innerHTML === '') {
     resultDiv.innerHTML = '<div class="parse-item">未識別到任何差勤資料，請確認格式（例：公假：謝文杰、江驊庭）</div>';
+    logEvent('warn', `解析失敗：未識別到任何差勤，輸入前10字：「${text.trim().substring(0,10)}」`);
   }
 
   updateSummary();
