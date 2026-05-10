@@ -193,6 +193,12 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .output-box { background: white; border: 1px solid #ddd; border-radius: 10px; padding: 14px; font-size: 0.92em; line-height: 1.9; white-space: pre-wrap; font-family: 'Microsoft JhengHei', sans-serif; display: none; }
 .copy-btn { margin-top: 8px; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 0.92em; font-family: inherit; cursor: pointer; width: 100%; display: none; }
 .copy-btn:hover { background: #219a52; }
+.prefill-btn {
+  width: 100%; padding: 9px; margin-bottom: 8px; font-family: inherit; font-size: 0.9em;
+  background: #00897b; color: white; border: none; border-radius: 8px; cursor: pointer;
+}
+.prefill-btn:hover { background: #00695c; }
+.prefill-btn:disabled { background: #b0bec5; cursor: default; }
 
 /* === 確認 Modal === */
 .confirm-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 3000; display: none; align-items: center; justify-content: center; }
@@ -320,6 +326,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 <!-- 底部 -->
 <div class="bottom-bar">
   <div class="summary-bar" id="summaryBar">差事：0 員 ／ 實到：97 員</div>
+  <button class="prefill-btn" id="prefillBtn" onclick="applyFixedDuties()">預填公差</button>
   <div class="action-row">
     <button class="reset-btn" onclick="askReset()">清除</button>
     <button class="generate-btn" onclick="generateReport()">標準回報</button>
@@ -467,6 +474,23 @@ const DUTY_TYPES = [
 ];
 
 const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課','研習1700','研習1800'];
+
+// 固定公差出任時段（可依實際名單修正）
+const FIXED_DUTIES = {
+  '0740': {
+    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+  },
+  '1200': {
+    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
+  },
+  '1330': {
+    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+  },
+  '晚點名': {
+    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
+  },
+};
 const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
 const VACATION_SLOTS = new Set(['研習1700','研習1800']);
 const VACATION_SLOT = '研習1700'; // 向下相容
@@ -568,6 +592,7 @@ function switchSlot(slot) {
   loadSlotIntoDutyMap();
   updateSummary();
   updateStats();
+  updatePrefillBtn();
   document.getElementById('outputBox').style.display = 'none';
   document.getElementById('copyBtn').style.display = 'none';
   saveState();
@@ -1021,6 +1046,52 @@ function clearHistory() {
   renderHistory();
 }
 
+/* ===== 預填公差 ===== */
+function applyFixedDuties() {
+  const duties = FIXED_DUTIES[currentSlot];
+  const btn = document.getElementById('prefillBtn');
+
+  if (!duties) {
+    btn.textContent = '此時段無固定公差';
+    setTimeout(() => updatePrefillBtn(), 1800);
+    return;
+  }
+
+  const departed = get1700Departed();
+  let count = 0;
+  Object.entries(duties).forEach(([duty, members]) => {
+    members.forEach(name => {
+      // 只填入目前在勤的人，不覆蓋已有差勤
+      if (dutyMap.hasOwnProperty(name) && dutyMap[name] === '在勤' && !departed.has(name)) {
+        applyDuty(name, duty);
+        count++;
+      }
+    });
+  });
+
+  updateSummary();
+  updateSlotDots();
+  updateStats();
+  saveState();
+
+  btn.textContent = count > 0 ? `已預填 ${count} 員` : '已全數填入（無新增）';
+  setTimeout(() => updatePrefillBtn(), 2000);
+}
+
+function updatePrefillBtn() {
+  const btn = document.getElementById('prefillBtn');
+  if (!btn) return;
+  const duties = FIXED_DUTIES[currentSlot];
+  if (!duties) {
+    btn.textContent = '此時段無固定公差';
+    btn.disabled = true;
+  } else {
+    const labels = Object.keys(duties).join('、');
+    btn.textContent = `預填公差（${labels}）`;
+    btn.disabled = false;
+  }
+}
+
 /* ===== 摘要 ===== */
 function updateSummary() {
   const total = getTotal();
@@ -1039,6 +1110,7 @@ buildRoster();
 loadState();
 updateSummary();
 updateStats();
+updatePrefillBtn();
 </script>
 </body>
 </html>
