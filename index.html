@@ -108,6 +108,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-正常假 { background: #546e7a; color: white; border-color: #37474f; }
 .member-btn.duty-服檢  { background: #1565c0; color: white; border-color: #0d47a1; }
 .member-btn.duty-安檢  { background: #bf360c; color: white; border-color: #870000; }
+.member-btn.duty-寢休  { background: #4527a0; color: white; border-color: #311b92; }
 
 /* === 差勤選單（底部 sheet） === */
 .duty-menu {
@@ -158,6 +159,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-正常假 { background: #546e7a22; color: #37474f; border-color: #546e7a66; font-weight: bold; }
 .duty-option.opt-服檢  { background: #1565c022; color: #0d47a1; border-color: #1565c066; font-weight: bold; }
 .duty-option.opt-安檢  { background: #bf360c22; color: #870000; border-color: #bf360c66; font-weight: bold; }
+.duty-option.opt-寢休  { background: #4527a022; color: #311b92; border-color: #4527a066; font-weight: bold; }
 
 /* === 文字輸入 === */
 .text-section { padding: 12px 16px; }
@@ -302,6 +304,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="legend-item"><div class="legend-dot" style="background:#546e7a"></div>正常假</div>
     <div class="legend-item"><div class="legend-dot" style="background:#1565c0"></div>服檢</div>
     <div class="legend-item"><div class="legend-dot" style="background:#bf360c"></div>安檢</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4527a0"></div>寢休</div>
     <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
@@ -416,6 +419,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="duty-option opt-正常假" onclick="setDuty('正常假')">正常假</div>
     <div class="duty-option opt-服檢"   onclick="setDuty('服檢')">服檢</div>
     <div class="duty-option opt-安檢"   onclick="setDuty('安檢')">安檢</div>
+    <div class="duty-option opt-寢休"   onclick="setDuty('寢休')">寢休</div>
   </div>
 </div>
 
@@ -478,7 +482,7 @@ const DUTY_TYPES = [
   // 委員活動
   '消委','修委','社團','校旗隊','美工','BMI',
   // 其他
-  '校隊','服檢','安檢',
+  '校隊','服檢','安檢','寢休',
 ];
 
 const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課','研習1700','研習1800'];
@@ -869,6 +873,7 @@ function parseText() {
     '罰勤':'罰勤',
     '大隊服儀檢查':'服檢','大隊服檢':'服檢','服儀檢查':'服檢','服檢':'服檢',
     '收假安檢':'安檢','安檢':'安檢',
+    '寢休':'寢休',
   };
 
   text.split(/[\n；;]/).forEach(line => {
