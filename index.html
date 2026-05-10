@@ -110,7 +110,8 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-安檢  { background: #bf360c; color: white; border-color: #870000; }
 .member-btn.duty-寢休  { background: #4527a0; color: white; border-color: #311b92; }
 .member-btn.duty-收委  { background: #558b2f; color: white; border-color: #33691e; }
-.member-btn.duty-榮團會 { background: #ad1457; color: white; border-color: #880e4f; }
+.member-btn.duty-榮團會  { background: #ad1457; color: white; border-color: #880e4f; }
+.member-btn.duty-自行帶回 { background: #78909c; color: white; border-color: #546e7a; }
 
 /* === 差勤選單（底部 sheet） === */
 .duty-menu {
@@ -163,7 +164,8 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-安檢  { background: #bf360c22; color: #870000; border-color: #bf360c66; font-weight: bold; }
 .duty-option.opt-寢休  { background: #4527a022; color: #311b92; border-color: #4527a066; font-weight: bold; }
 .duty-option.opt-收委  { background: #558b2f22; color: #33691e; border-color: #558b2f66; font-weight: bold; }
-.duty-option.opt-榮團會 { background: #ad145722; color: #880e4f; border-color: #ad145766; font-weight: bold; }
+.duty-option.opt-榮團會  { background: #ad145722; color: #880e4f; border-color: #ad145766; font-weight: bold; }
+.duty-option.opt-自行帶回 { background: #78909c22; color: #546e7a; border-color: #78909c66; font-weight: bold; }
 
 /* === 文字輸入 === */
 .text-section { padding: 12px 16px; }
@@ -311,6 +313,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="legend-item"><div class="legend-dot" style="background:#4527a0"></div>寢休</div>
     <div class="legend-item"><div class="legend-dot" style="background:#558b2f"></div>收委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#ad1457"></div>榮團會</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#78909c"></div>自行帶回</div>
     <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
@@ -427,7 +430,8 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="duty-option opt-安檢"   onclick="setDuty('安檢')">安檢</div>
     <div class="duty-option opt-寢休"   onclick="setDuty('寢休')">寢休</div>
     <div class="duty-option opt-收委"   onclick="setDuty('收委')">收委</div>
-    <div class="duty-option opt-榮團會" onclick="setDuty('榮團會')">榮團會</div>
+    <div class="duty-option opt-榮團會"  onclick="setDuty('榮團會')">榮團會</div>
+    <div class="duty-option opt-自行帶回" onclick="setDuty('自行帶回')">自行帶回</div>
   </div>
 </div>
 
@@ -490,7 +494,7 @@ const DUTY_TYPES = [
   // 委員活動
   '消委','修委','社團','校旗隊','美工','BMI',
   // 其他
-  '校隊','服檢','安檢','寢休','收委','榮團會',
+  '校隊','服檢','安檢','寢休','收委','榮團會','自行帶回',
 ];
 
 const SLOTS = ['早點名','0740','1200','1330','1700','1850','晚點名','軍訓課','研習1700','研習1800'];
@@ -911,7 +915,8 @@ function parseText() {
     '收委班長':'收委','收委':'收委',
     '收尾班長':'收委','收尾':'收委',
     '榮團會公差':'榮團會','榮團會':'榮團會',
-    '自行帶回':'正課','氣象館上課':'正課','上課':'正課',
+    '自行帶回':'自行帶回',
+    '氣象館上課':'正課','上課':'正課',
   };
 
   text.split(/[\n；;]/).forEach(line => {
