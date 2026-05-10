@@ -102,6 +102,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-校旗隊 { background: #880e4f; color: white; border-color: #6a0136; }
 .member-btn.duty-事假  { background: #33691e; color: white; border-color: #255216; }
 .member-btn.duty-美工  { background: #f06292; color: white; border-color: #e91e63; }
+.member-btn.duty-研習  { background: #5c6bc0; color: white; border-color: #3949ab; }
 
 /* === 差勤選單 === */
 .duty-menu {
@@ -132,6 +133,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-校旗隊 { color: #6a0136; font-weight: bold; }
 .duty-option.opt-事假  { color: #255216; font-weight: bold; }
 .duty-option.opt-美工  { color: #e91e63; font-weight: bold; }
+.duty-option.opt-研習  { color: #3949ab; font-weight: bold; }
 
 /* === 文字輸入 === */
 .text-section { padding: 12px 16px; }
@@ -264,6 +266,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="legend-item"><div class="legend-dot" style="background:#880e4f"></div>校旗隊</div>
     <div class="legend-item"><div class="legend-dot" style="background:#33691e"></div>事假</div>
     <div class="legend-item"><div class="legend-dot" style="background:#f06292"></div>美工</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#5c6bc0"></div>研習</div>
     <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
@@ -360,6 +363,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
   <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
   <div class="duty-option opt-事假"  onclick="setDuty('事假')">事假</div>
   <div class="duty-option opt-美工"  onclick="setDuty('美工')">美工</div>
+  <div class="duty-option opt-研習"  onclick="setDuty('研習')">研習</div>
 </div>
 
 <script>
@@ -410,7 +414,7 @@ const GROUPS = {
   '專軍氣象組':   ['邱湧庭','洪塘訓','李姿縈','蕭梓嫣','徐斈僎','陳哲浩','何景藝','陳靖棻'],
 };
 
-const DUTY_TYPES = ['在勤','公假','補休','站哨','下夜','外派','正課','龍隊','社團','喪假','病假','班消','BMI','消委','餐勤','修委','校旗隊','事假','美工'];
+const DUTY_TYPES = ['在勤','公假','補休','站哨','下夜','外派','正課','龍隊','社團','喪假','病假','班消','BMI','消委','餐勤','修委','校旗隊','事假','美工','研習'];
 
 const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課','研習1700','研習1800'];
 const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
@@ -776,7 +780,7 @@ function parseText() {
     '公假':'公假','補休':'補休','站哨':'站哨','下夜':'下夜','外派':'外派',
     '正課':'正課','龍隊':'龍隊','社團':'社團','喪假':'喪假','病假':'病假',
     '班消':'班消','bmi':'BMI','消委':'消委','餐勤':'餐勤','修委':'修委',
-    '校旗隊':'校旗隊','事假':'事假','美工':'美工'
+    '校旗隊':'校旗隊','事假':'事假','美工':'美工','研習':'研習'
   };
 
   text.split(/[\n；;]/).forEach(line => {
