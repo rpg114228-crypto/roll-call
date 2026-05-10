@@ -148,26 +148,6 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-事假  { background: #33691e22; color: #255216; border-color: #33691e66; font-weight: bold; }
 .duty-option.opt-美工  { background: #f0629222; color: #e91e63; border-color: #f0629266; font-weight: bold; }
 .duty-option.opt-研習  { background: #5c6bc022; color: #3949ab; border-color: #5c6bc066; font-weight: bold; }
-.duty-option.opt-在勤  { color: #555; }
-.duty-option.opt-公假  { color: #2980b9; font-weight: bold; }
-.duty-option.opt-補休  { color: #219a52; font-weight: bold; }
-.duty-option.opt-站哨  { color: #e08e0b; font-weight: bold; }
-.duty-option.opt-下夜  { color: #d35400; font-weight: bold; }
-.duty-option.opt-外派  { color: #c0392b; font-weight: bold; }
-.duty-option.opt-正課  { color: #6c3483; font-weight: bold; }
-.duty-option.opt-龍隊  { color: #17a589; font-weight: bold; }
-.duty-option.opt-社團  { color: #1a5276; font-weight: bold; }
-.duty-option.opt-喪假  { color: #2c2c2c; font-weight: bold; }
-.duty-option.opt-病假  { color: #922b21; font-weight: bold; }
-.duty-option.opt-班消  { color: #c2185b; font-weight: bold; }
-.duty-option.opt-BMI   { color: #0097a7; font-weight: bold; }
-.duty-option.opt-消委  { color: #e64a19; font-weight: bold; }
-.duty-option.opt-餐勤  { color: #5d4037; font-weight: bold; }
-.duty-option.opt-修委  { color: #e65100; font-weight: bold; }
-.duty-option.opt-校旗隊 { color: #6a0136; font-weight: bold; }
-.duty-option.opt-事假  { color: #255216; font-weight: bold; }
-.duty-option.opt-美工  { color: #e91e63; font-weight: bold; }
-.duty-option.opt-研習  { color: #3949ab; font-weight: bold; }
 
 /* === 文字輸入 === */
 .text-section { padding: 12px 16px; }
@@ -685,10 +665,11 @@ function closeMenu() {
 }
 
 function setDuty(duty) {
+  const departed = currentSlot === '研習1800' ? get1700Departed() : new Set();
   if (currentMember) {
-    applyDuty(currentMember, duty);
+    if (!departed.has(currentMember)) applyDuty(currentMember, duty);
   } else if (currentClassMembers) {
-    currentClassMembers.forEach(name => applyDuty(name, duty));
+    currentClassMembers.forEach(name => { if (!departed.has(name)) applyDuty(name, duty); });
   }
   closeMenu();
   updateSummary();
@@ -707,6 +688,7 @@ function applyDuty(name, duty) {
 function doSearch(q) {
   q = q.trim();
   document.querySelectorAll('.member-btn').forEach(btn => {
+    if (btn.classList.contains('departed')) return; // 不干擾 departed 樣式
     if (!q) {
       btn.classList.remove('dimmed', 'highlighted');
     } else if (btn.textContent.includes(q)) {
@@ -754,7 +736,7 @@ function updateStats() {
     html += `<div class="stats-row"><span>${grp}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${present}</span></div>`;
   });
   // 放假模式補充大隊部／外派
-  if (currentSlot === VACATION_SLOT) {
+  if (isVacationSlot(currentSlot)) {
     VACATION_EXTRAS.forEach(squad => squad.classes.forEach(cls => {
       const total = cls.members.length;
       const absent = cls.members.filter(m => dutyMap[m] && dutyMap[m] !== '在勤').length;
@@ -777,8 +759,8 @@ function askReset() {
 function closeConfirm() { document.getElementById('confirmBackdrop').classList.remove('show'); }
 function doReset() {
   closeConfirm();
-  Object.keys(dutyMap).forEach(name => applyDuty(name, '在勤'));
   slotStates[currentSlot] = {};
+  loadSlotIntoDutyMap(); // 重置並重新套用 departed 樣式
   document.getElementById('outputBox').style.display = 'none';
   document.getElementById('copyBtn').style.display = 'none';
   document.getElementById('parseResult').innerHTML = '';
