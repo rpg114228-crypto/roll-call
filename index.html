@@ -266,6 +266,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
+  <div class="squads" id="vacationContainer" style="display:none"></div>
 </div>
 
 <!-- 文字輸入模式 -->
@@ -410,14 +411,32 @@ const GROUPS = {
 
 const DUTY_TYPES = ['在勤','公假','補休','站哨','下夜','外派','正課','龍隊','社團','喪假','病假','班消','BMI','消委','餐勤','修委','校旗隊','事假','美工'];
 
-const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課'];
+const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課','放假點名'];
 const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名' };
+const VACATION_SLOT = '放假點名';
+
+// 放假點名額外人員（大隊部＋外派）
+const VACATION_EXTRAS = [
+  { squad: '實習大隊部（9人）', classes: [
+    { name: '大隊部', members: ['趙百睿','陳文正','蔡宜玹','王彥','黃士朋','黃喬偉','戴佾訓','楊人龍','蘇鈺茗'] }
+  ]},
+  { squad: '外派人員（15人）', classes: [
+    { name: '外派', members: ['梁浩瑋','陳詠琪','羅欽瑋','彭于宸','韋秉言','湯淞棋','林慧貞','陳冠緯','黃馨','蔡雨容','葉政庭','陳芯媛','李臆全','藍沉芹','李沛萱'] }
+  ]}
+];
+const VACATION_TOTAL = 121;
+const NORMAL_TOTAL = 97;
+
+function getTotal() { return currentSlot === VACATION_SLOT ? VACATION_TOTAL : NORMAL_TOTAL; }
 
 // 建姓名對照表
 const nameToClass = {}, nameToGroup = {}, allNames = new Set();
 ROSTER.forEach(s => s.classes.forEach(cls => {
   const simple = cls.name.replace(/（.*）/, '').trim();
   cls.members.forEach(m => { nameToClass[m] = simple; allNames.add(m); });
+}));
+VACATION_EXTRAS.forEach(s => s.classes.forEach(cls => {
+  cls.members.forEach(m => { nameToClass[m] = cls.name; allNames.add(m); });
 }));
 Object.entries(GROUPS).forEach(([g, ms]) => ms.forEach(m => nameToGroup[m] = g));
 
@@ -488,7 +507,10 @@ function switchSlot(slot) {
 }
 
 function loadSlotIntoDutyMap() {
-  // 先重置
+  const isVacation = currentSlot === VACATION_SLOT;
+  // 顯示/隱藏放假名冊
+  document.getElementById('vacationContainer').style.display = isVacation ? 'block' : 'none';
+  // 先重置所有人
   Object.keys(dutyMap).forEach(n => dutyMap[n] = '在勤');
   document.querySelectorAll('.member-btn').forEach(b => b.className = 'member-btn');
   // 載入該時段資料
@@ -514,22 +536,19 @@ function updateSlotDots() {
 }
 
 /* ===== 名冊 UI ===== */
-function buildRoster() {
-  const container = document.getElementById('squadsContainer');
-  ROSTER.forEach(squad => {
+function buildSquadCards(roster, container) {
+  roster.forEach(squad => {
     const card = document.createElement('div');
     card.className = 'squad-card';
     card.innerHTML = `<div class="squad-header">${squad.squad}</div>`;
     squad.classes.forEach(cls => {
       const group = document.createElement('div');
       group.className = 'class-group';
-      // 班級標題（可點擊全班套用）
       const hdr = document.createElement('div');
       hdr.className = 'class-header';
       hdr.textContent = cls.name;
       hdr.onclick = e => openClassMenu(e, cls.members, cls.name);
       group.appendChild(hdr);
-      // 成員按鈕
       const membersDiv = document.createElement('div');
       membersDiv.className = 'members';
       cls.members.forEach(name => {
@@ -546,6 +565,11 @@ function buildRoster() {
     });
     container.appendChild(card);
   });
+}
+
+function buildRoster() {
+  buildSquadCards(ROSTER, document.getElementById('squadsContainer'));
+  buildSquadCards(VACATION_EXTRAS, document.getElementById('vacationContainer'));
 }
 
 /* ===== 差勤選單 ===== */
@@ -652,9 +676,18 @@ function updateStats() {
     const present = total - absent;
     html += `<div class="stats-row"><span>${grp}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${present}</span></div>`;
   });
+  // 放假模式補充大隊部／外派
+  if (currentSlot === VACATION_SLOT) {
+    VACATION_EXTRAS.forEach(squad => squad.classes.forEach(cls => {
+      const total = cls.members.length;
+      const absent = cls.members.filter(m => dutyMap[m] && dutyMap[m] !== '在勤').length;
+      html += `<div class="stats-row"><span>${cls.name}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${total - absent}</span></div>`;
+    }));
+  }
   // 全中隊合計
+  const total = getTotal();
   const totalAbsent = Object.values(dutyMap).filter(d => d !== '在勤').length;
-  html += `<div class="stats-row" style="font-weight:bold;background:#f8f9fa"><span>全中隊</span><span>97</span><span class="${totalAbsent > 0 ? 's-absent' : ''}">${totalAbsent}</span><span class="s-present">${97 - totalAbsent}</span></div>`;
+  html += `<div class="stats-row" style="font-weight:bold;background:#f8f9fa"><span>全中隊</span><span>${total}</span><span class="${totalAbsent > 0 ? 's-absent' : ''}">${totalAbsent}</span><span class="s-present">${total - totalAbsent}</span></div>`;
   table.innerHTML = html;
   document.getElementById('statsLabel').textContent = `各組統計（差事 ${totalAbsent} 員）`;
 }
@@ -785,16 +818,17 @@ function getReportData() {
   const month = d.getMonth() + 1;
   const day = d.getDate();
   const rollLabel = SLOT_LABELS[currentSlot] || currentSlot;
+  const total = getTotal();
   const groups = {};
   DUTY_TYPES.slice(1).forEach(t => groups[t] = []);
   Object.entries(dutyMap).forEach(([name, duty]) => { if (duty !== '在勤') groups[duty].push(name); });
   const totalAbsent = Object.values(groups).reduce((s, a) => s + a.length, 0);
-  return { month, day, rollLabel, groups, totalAbsent, present: 97 - totalAbsent };
+  return { month, day, rollLabel, total, groups, totalAbsent, present: total - totalAbsent };
 }
 
 function generateReport() {
-  const { month, day, rollLabel, groups, totalAbsent, present } = getReportData();
-  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, '', '應到 97 員', '除'];
+  const { month, day, rollLabel, total, groups, totalAbsent, present } = getReportData();
+  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, '', `應到 ${total} 員`, '除'];
   let hasAbsent = false;
   DUTY_TYPES.slice(1).forEach(duty => {
     if (!groups[duty].length) return;
@@ -810,8 +844,8 @@ function generateReport() {
 }
 
 function generateDetailReport() {
-  const { month, day, rollLabel, groups, totalAbsent, present } = getReportData();
-  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, '', '應到 97 員', '除'];
+  const { month, day, rollLabel, total, groups, totalAbsent, present } = getReportData();
+  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, '', `應到 ${total} 員`, '除'];
   let hasAbsent = false;
   DUTY_TYPES.slice(1).forEach(duty => {
     if (!groups[duty].length) return;
@@ -900,8 +934,9 @@ function clearHistory() {
 
 /* ===== 摘要 ===== */
 function updateSummary() {
+  const total = getTotal();
   const absent = Object.values(dutyMap).filter(d => d !== '在勤').length;
-  document.getElementById('summaryBar').textContent = `${currentSlot}  ─  差事：${absent} 員 ／ 實到：${97 - absent} 員`;
+  document.getElementById('summaryBar').textContent = `${currentSlot}  ─  應到 ${total} 員  差事：${absent} 員 ／ 實到：${total - absent} 員`;
 }
 
 /* ===== 初始化 ===== */
