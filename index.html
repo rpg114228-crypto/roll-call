@@ -104,16 +104,50 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-美工  { background: #f06292; color: white; border-color: #e91e63; }
 .member-btn.duty-研習  { background: #5c6bc0; color: white; border-color: #3949ab; }
 
-/* === 差勤選單 === */
+/* === 差勤選單（底部 sheet） === */
 .duty-menu {
-  position: fixed; background: white; border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2); padding: 6px;
-  z-index: 1000; display: none; min-width: 110px; max-height: 80vh; overflow-y: auto;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: white; border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+  z-index: 1000; display: none; max-height: 72vh; overflow-y: auto;
 }
 .duty-menu.show { display: block; }
-.duty-menu-label { padding: 4px 14px 2px; font-size: 0.75em; color: #aaa; }
-.duty-option { padding: 7px 14px; cursor: pointer; border-radius: 6px; font-size: 0.9em; text-align: center; }
-.duty-option:hover { background: #f0f0f0; }
+.duty-menu-header {
+  position: sticky; top: 0; background: white; z-index: 1;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px 10px; border-bottom: 1px solid #eee;
+}
+.duty-menu-label { font-size: 0.92em; font-weight: bold; color: #333; }
+.duty-menu-close {
+  background: #eee; border: none; border-radius: 50%;
+  width: 28px; height: 28px; cursor: pointer; font-size: 1em; line-height: 28px; text-align: center;
+}
+.duty-options-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 10px 12px 20px; }
+.duty-option {
+  padding: 10px 4px; cursor: pointer; border-radius: 10px; font-size: 0.88em;
+  text-align: center; border: 1.5px solid #eee; transition: all 0.15s;
+}
+.duty-option:hover { filter: brightness(0.93); }
+.duty-option.opt-在勤  { color: #555; }
+.duty-option.opt-公假  { background: #3498db22; color: #2980b9; border-color: #3498db66; font-weight: bold; }
+.duty-option.opt-補休  { background: #27ae6022; color: #219a52; border-color: #27ae6066; font-weight: bold; }
+.duty-option.opt-站哨  { background: #f39c1222; color: #e08e0b; border-color: #f39c1266; font-weight: bold; }
+.duty-option.opt-下夜  { background: #e67e2222; color: #d35400; border-color: #e67e2266; font-weight: bold; }
+.duty-option.opt-外派  { background: #e74c3c22; color: #c0392b; border-color: #e74c3c66; font-weight: bold; }
+.duty-option.opt-正課  { background: #7d3c9822; color: #6c3483; border-color: #7d3c9866; font-weight: bold; }
+.duty-option.opt-龍隊  { background: #1abc9c22; color: #17a589; border-color: #1abc9c66; font-weight: bold; }
+.duty-option.opt-社團  { background: #2471a322; color: #1a5276; border-color: #2471a366; font-weight: bold; }
+.duty-option.opt-喪假  { background: #2c2c2c22; color: #2c2c2c; border-color: #2c2c2c66; font-weight: bold; }
+.duty-option.opt-病假  { background: #a9322622; color: #922b21; border-color: #a9322666; font-weight: bold; }
+.duty-option.opt-班消  { background: #e91e6322; color: #c2185b; border-color: #e91e6366; font-weight: bold; }
+.duty-option.opt-BMI   { background: #00bcd422; color: #0097a7; border-color: #00bcd466; font-weight: bold; }
+.duty-option.opt-消委  { background: #ff572222; color: #e64a19; border-color: #ff572266; font-weight: bold; }
+.duty-option.opt-餐勤  { background: #79554822; color: #5d4037; border-color: #79554866; font-weight: bold; }
+.duty-option.opt-修委  { background: #f57f1722; color: #e65100; border-color: #f57f1766; font-weight: bold; }
+.duty-option.opt-校旗隊 { background: #880e4f22; color: #6a0136; border-color: #880e4f66; font-weight: bold; }
+.duty-option.opt-事假  { background: #33691e22; color: #255216; border-color: #33691e66; font-weight: bold; }
+.duty-option.opt-美工  { background: #f0629222; color: #e91e63; border-color: #f0629266; font-weight: bold; }
+.duty-option.opt-研習  { background: #5c6bc022; color: #3949ab; border-color: #5c6bc066; font-weight: bold; }
 .duty-option.opt-在勤  { color: #555; }
 .duty-option.opt-公假  { color: #2980b9; font-weight: bold; }
 .duty-option.opt-補休  { color: #219a52; font-weight: bold; }
@@ -343,27 +377,32 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 <div class="duty-menu" id="dutyMenu">
-  <div class="duty-menu-label" id="dutyMenuLabel">選擇差勤</div>
-  <div class="duty-option opt-在勤"  onclick="setDuty('在勤')">在勤</div>
-  <div class="duty-option opt-公假"  onclick="setDuty('公假')">公假</div>
-  <div class="duty-option opt-補休"  onclick="setDuty('補休')">補休</div>
-  <div class="duty-option opt-站哨"  onclick="setDuty('站哨')">站哨</div>
-  <div class="duty-option opt-下夜"  onclick="setDuty('下夜')">下夜</div>
-  <div class="duty-option opt-外派"  onclick="setDuty('外派')">外派</div>
-  <div class="duty-option opt-正課"  onclick="setDuty('正課')">正課</div>
-  <div class="duty-option opt-龍隊"  onclick="setDuty('龍隊')">龍隊</div>
-  <div class="duty-option opt-社團"  onclick="setDuty('社團')">社團</div>
-  <div class="duty-option opt-喪假"  onclick="setDuty('喪假')">喪假</div>
-  <div class="duty-option opt-病假"  onclick="setDuty('病假')">病假</div>
-  <div class="duty-option opt-班消"  onclick="setDuty('班消')">班消</div>
-  <div class="duty-option opt-BMI"   onclick="setDuty('BMI')">BMI</div>
-  <div class="duty-option opt-消委"  onclick="setDuty('消委')">消委</div>
-  <div class="duty-option opt-餐勤"  onclick="setDuty('餐勤')">餐勤</div>
-  <div class="duty-option opt-修委"  onclick="setDuty('修委')">修委</div>
-  <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
-  <div class="duty-option opt-事假"  onclick="setDuty('事假')">事假</div>
-  <div class="duty-option opt-美工"  onclick="setDuty('美工')">美工</div>
-  <div class="duty-option opt-研習"  onclick="setDuty('研習')">研習</div>
+  <div class="duty-menu-header">
+    <span class="duty-menu-label" id="dutyMenuLabel">選擇差勤</span>
+    <button class="duty-menu-close" onclick="closeMenu()">✕</button>
+  </div>
+  <div class="duty-options-grid">
+    <div class="duty-option opt-在勤"   onclick="setDuty('在勤')">在勤</div>
+    <div class="duty-option opt-公假"   onclick="setDuty('公假')">公假</div>
+    <div class="duty-option opt-補休"   onclick="setDuty('補休')">補休</div>
+    <div class="duty-option opt-站哨"   onclick="setDuty('站哨')">站哨</div>
+    <div class="duty-option opt-下夜"   onclick="setDuty('下夜')">下夜</div>
+    <div class="duty-option opt-外派"   onclick="setDuty('外派')">外派</div>
+    <div class="duty-option opt-正課"   onclick="setDuty('正課')">正課</div>
+    <div class="duty-option opt-龍隊"   onclick="setDuty('龍隊')">龍隊</div>
+    <div class="duty-option opt-社團"   onclick="setDuty('社團')">社團</div>
+    <div class="duty-option opt-喪假"   onclick="setDuty('喪假')">喪假</div>
+    <div class="duty-option opt-病假"   onclick="setDuty('病假')">病假</div>
+    <div class="duty-option opt-班消"   onclick="setDuty('班消')">班消</div>
+    <div class="duty-option opt-BMI"    onclick="setDuty('BMI')">BMI</div>
+    <div class="duty-option opt-消委"   onclick="setDuty('消委')">消委</div>
+    <div class="duty-option opt-餐勤"   onclick="setDuty('餐勤')">餐勤</div>
+    <div class="duty-option opt-修委"   onclick="setDuty('修委')">修委</div>
+    <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
+    <div class="duty-option opt-事假"   onclick="setDuty('事假')">事假</div>
+    <div class="duty-option opt-美工"   onclick="setDuty('美工')">美工</div>
+    <div class="duty-option opt-研習"   onclick="setDuty('研習')">研習</div>
+  </div>
 </div>
 
 <script>
@@ -606,7 +645,7 @@ function openMenu(e, name) {
   currentMember = name;
   currentClassMembers = null;
   document.getElementById('dutyMenuLabel').textContent = name;
-  showDutyMenu(e.target.getBoundingClientRect());
+  showDutyMenu();
 }
 
 function openClassMenu(e, members, className) {
@@ -614,17 +653,11 @@ function openClassMenu(e, members, className) {
   currentMember = null;
   currentClassMembers = members;
   document.getElementById('dutyMenuLabel').textContent = className + '（全班）';
-  showDutyMenu(e.target.getBoundingClientRect());
+  showDutyMenu();
 }
 
-function showDutyMenu(rect) {
-  const menu = document.getElementById('dutyMenu');
-  const menuHeight = 420;
-  const spaceBelow = window.innerHeight - rect.bottom;
-  const top = spaceBelow >= menuHeight ? rect.bottom + 4 : rect.top - menuHeight - 4;
-  menu.style.top = Math.max(4, top) + 'px';
-  menu.style.left = Math.min(rect.left, window.innerWidth - 130) + 'px';
-  menu.classList.add('show');
+function showDutyMenu() {
+  document.getElementById('dutyMenu').classList.add('show');
   document.getElementById('overlay').classList.add('show');
 }
 
