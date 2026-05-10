@@ -865,6 +865,21 @@ function loadState() {
   } catch(e) { logEvent('error', `載入狀態失敗：${e.message}`); }
 }
 
+/* ===== 組別別名對照（縮寫 → GROUPS 鍵名） ===== */
+const GROUP_ALIASES = [
+  ['專軍通資電','專軍通資電組'],['專軍攔管','專軍攔管組'],['專軍測量','專軍測量組'],['專軍氣象','專軍氣象組'],
+  ['航電','航電組'],['雷達','雷達組'],['通訊','通訊組'],['氣象','氣象組'],
+  ['人事','人事組'],['資管','資管組'],['後管','後管組'],
+];
+
+function detectGroupFromLine(line) {
+  // 優先完整比對（最長優先），再用別名
+  const sorted = Object.keys(GROUPS).sort((a,b) => b.length - a.length);
+  for (const g of sorted) { if (line.includes(g)) return g; }
+  for (const [alias, g] of GROUP_ALIASES) { if (line.includes(alias)) return g; }
+  return null;
+}
+
 /* ===== 貪婪姓名匹配 ===== */
 function greedyExtractNames(str) {
   const results = [];
@@ -897,6 +912,8 @@ function parseText() {
   const resultDiv = document.getElementById('parseResult');
   resultDiv.innerHTML = '';
 
+  let currentContext = null; // 當前組別上下文（跨行追蹤）
+
   const dutyKeywords = {
     '公假':'公假','補休':'補休','站哨':'站哨','下夜':'下夜','外派':'外派',
     '正課人員':'正課','正課':'正課',
@@ -922,6 +939,11 @@ function parseText() {
   text.split(/[\n；;]/).forEach(line => {
     line = line.trim();
     if (!line) return;
+
+    // 每行先更新組別上下文
+    const detected = detectGroupFromLine(line);
+    if (detected) currentContext = detected;
+
     let matchedDuty = null, matchedKw = null;
     const ll = line.toLowerCase();
     for (const [kw, duty] of Object.entries(dutyKeywords)) {
@@ -934,21 +956,29 @@ function parseText() {
     const afterKw = line.substring(kwIdx + matchedKw.length);
     const matched = greedyExtractNames(afterKw);
 
-    // 若沒找到個人姓名，偵測整行是否含組別名稱，自動套整組
+    // 若沒找到個人姓名，先看同行組別，再用跨行上下文
+    let groupApplied = false;
     if (matched.length === 0) {
-      for (const [groupName, groupMembers] of Object.entries(GROUPS)) {
-        if (line.includes(groupName)) {
-          groupMembers.forEach(n => { matched.push(n); });
-          const item = document.createElement('div');
-          item.className = 'parse-item';
-          item.innerHTML = `<span>${matchedDuty}</span>（${groupName}）：${groupMembers.join('、')}（${groupMembers.length} 員）`;
-          resultDiv.appendChild(item);
-          break;
-        }
+      const inlineGroup = detectGroupFromLine(line);
+      const groupToUse = inlineGroup || currentContext;
+      if (groupToUse && GROUPS[groupToUse]) {
+        GROUPS[groupToUse].forEach(n => matched.push(n));
+        groupApplied = true;
+        const item = document.createElement('div');
+        item.className = 'parse-item';
+        item.innerHTML = `<span>${matchedDuty}</span>（${groupToUse}，整組）：${GROUPS[groupToUse].join('、')}（${GROUPS[groupToUse].length} 員）`;
+        resultDiv.appendChild(item);
       }
     }
 
     matched.forEach(n => applyDuty(n, matchedDuty));
+
+    if (matched.length > 0 && !groupApplied) {
+      const item = document.createElement('div');
+      item.className = 'parse-item';
+      item.innerHTML = `<span>${matchedDuty}</span>：${matched.join('、')}（${matched.length} 員）`;
+      resultDiv.appendChild(item);
+    }
 
     // 找未知姓名：純中文片段但不在名冊內
     const unknown = [];
@@ -960,13 +990,6 @@ function parseText() {
           logEvent('warn', `解析：找不到「${seg}」（差勤：${matchedDuty}）`);
         }
       });
-
-    if (matched.length > 0) {
-      const item = document.createElement('div');
-      item.className = 'parse-item';
-      item.innerHTML = `<span>${matchedDuty}</span>：${matched.join('、')}（${matched.length} 員）`;
-      resultDiv.appendChild(item);
-    }
     if (unknown.length > 0) {
       const item = document.createElement('div');
       item.className = 'parse-item unknown';
