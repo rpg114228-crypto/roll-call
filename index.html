@@ -116,6 +116,8 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-差勤  { background: #ff6f00; color: white; border-color: #e65100; }
 .member-btn.duty-燒委  { background: #d84315; color: white; border-color: #bf360c; }
 .member-btn.duty-巡水電 { background: #0277bd; color: white; border-color: #01579b; }
+.member-btn.duty-數學輔導\(正課\) { background: #6a1b9a; color: white; border-color: #4a148c; }
+.member-btn.duty-英文輔導\(正課\) { background: #283593; color: white; border-color: #1a237e; }
 .member-btn.duty-有意願 { background: #f9a825; color: #333;  border-color: #f57f17; }
 .member-btn.duty-無意願 { background: #e53935; color: white; border-color: #b71c1c; }
 .member-btn.duty-無資格 { background: #757575; color: white; border-color: #616161; }
@@ -177,6 +179,8 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-差勤  { background: #ff6f0022; color: #e65100; border-color: #ff6f0066; font-weight: bold; }
 .duty-option.opt-燒委  { background: #d8431522; color: #bf360c; border-color: #d8431566; font-weight: bold; }
 .duty-option.opt-巡水電 { background: #0277bd22; color: #01579b; border-color: #0277bd66; font-weight: bold; }
+.duty-option.opt-數學輔導 { background: #6a1b9a22; color: #4a148c; border-color: #6a1b9a66; font-weight: bold; }
+.duty-option.opt-英文輔導 { background: #28359322; color: #1a237e; border-color: #28359366; font-weight: bold; }
 .duty-option.opt-有意願 { background: #f9a82522; color: #e65100; border-color: #f9a82566; font-weight: bold; }
 .duty-option.opt-無意願 { background: #e5393522; color: #b71c1c; border-color: #e5393566; font-weight: bold; }
 .duty-option.opt-無資格 { background: #75757522; color: #424242; border-color: #75757566; font-weight: bold; }
@@ -332,6 +336,8 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="legend-item"><div class="legend-dot" style="background:#ff6f00"></div>差勤</div>
     <div class="legend-item"><div class="legend-dot" style="background:#d84315"></div>燒委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#0277bd"></div>巡水電</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#6a1b9a"></div>數學輔導</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#283593"></div>英文輔導</div>
     <div class="legend-item"><div class="legend-dot" style="background:#f9a825"></div>有意願</div>
     <div class="legend-item"><div class="legend-dot" style="background:#e53935"></div>無意願</div>
     <div class="legend-item"><div class="legend-dot" style="background:#757575"></div>無資格</div>
@@ -440,6 +446,8 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="duty-option opt-正課"   onclick="setDuty('正課')">正課</div>
     <div class="duty-option opt-龍隊"   onclick="setDuty('龍隊')">龍隊</div>
     <div class="duty-option opt-研習"   onclick="setDuty('研習')">研習</div>
+    <div class="duty-option opt-數學輔導" onclick="setDuty('數學輔導(正課)')">數學輔導(正課)</div>
+    <div class="duty-option opt-英文輔導" onclick="setDuty('英文輔導(正課)')">英文輔導(正課)</div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 委員活動 ──</div>
     <div class="duty-option opt-消委"   onclick="setDuty('消委')">消委</div>
     <div class="duty-option opt-修委"   onclick="setDuty('修委')">修委</div>
@@ -519,7 +527,7 @@ const DUTY_TYPES = [
   // 勤務
   '站哨','下夜','餐勤','班消','外派','罰勤','值星','差勤','燒委','巡水電',
   // 訓練課程
-  '正課','龍隊','研習',
+  '正課','龍隊','研習','數學輔導(正課)','英文輔導(正課)',
   // 委員活動
   '消委','修委','社團','校旗隊','美工','BMI',
   // 其他
@@ -987,7 +995,8 @@ function parseText() {
     '燒委':'燒委',
     '巡水電':'巡水電',
     '無資格':'無資格','有意願':'有意願','無意願':'無意願',
-    '數學輔導課':'正課','英文輔導課':'正課',
+    '數學輔導課':'數學輔導(正課)','數學輔導':'數學輔導(正課)',
+    '英文輔導課':'英文輔導(正課)','英文輔導':'英文輔導(正課)',
     '氣象館上課':'正課','上課':'正課',
   };
 
