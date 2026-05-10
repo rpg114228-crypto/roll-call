@@ -373,6 +373,35 @@ function setDuty(duty) {
   btn.className = 'member-btn' + (duty !== '在勤' ? ' duty-' + duty : '');
   closeMenu();
   updateSummary();
+  saveState();
+}
+
+function saveState() {
+  const state = {
+    date: dateInput.value,
+    rollType: document.getElementById('rollType').value,
+    duties: Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'))
+  };
+  localStorage.setItem('rollcall_state', JSON.stringify(state));
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('rollcall_state');
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    if (state.date) dateInput.value = state.date;
+    if (state.rollType) document.getElementById('rollType').value = state.rollType;
+    if (state.duties) {
+      Object.entries(state.duties).forEach(([name, duty]) => {
+        if (dutyMap.hasOwnProperty(name) && duty !== '在勤') {
+          dutyMap[name] = duty;
+          const btn = document.getElementById('btn-' + name);
+          if (btn) btn.className = `member-btn duty-${duty}`;
+        }
+      });
+    }
+  } catch(e) {}
 }
 
 function updateSummary() {
@@ -392,6 +421,7 @@ function resetAll() {
   document.getElementById('parseResult').innerHTML = '';
   document.getElementById('textInput').value = '';
   updateSummary();
+  saveState();
 }
 
 // 文字解析
@@ -473,6 +503,7 @@ function parseText() {
   }
 
   updateSummary();
+  saveState();
 }
 
 function generateReport() {
@@ -597,7 +628,11 @@ function copyReport() {
   });
 }
 
+dateInput.addEventListener('change', saveState);
+document.getElementById('rollType').addEventListener('change', saveState);
+
 buildRoster();
+loadState();
 updateSummary();
 </script>
 </body>
