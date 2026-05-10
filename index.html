@@ -82,6 +82,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn:hover { border-color: #aaa; }
 .member-btn.dimmed { opacity: 0.2; }
 .member-btn.highlighted { box-shadow: 0 0 0 3px #f39c12; }
+.member-btn.departed { opacity: 0.35; cursor: not-allowed; background: #bdc3c7 !important; color: #666 !important; border-color: #aaa !important; text-decoration: line-through; }
 
 .member-btn.duty-公假  { background: #3498db; color: white; border-color: #2980b9; }
 .member-btn.duty-補休  { background: #27ae60; color: white; border-color: #219a52; }
@@ -411,9 +412,10 @@ const GROUPS = {
 
 const DUTY_TYPES = ['在勤','公假','補休','站哨','下夜','外派','正課','龍隊','社團','喪假','病假','班消','BMI','消委','餐勤','修委','校旗隊','事假','美工'];
 
-const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課','放假點名'];
-const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名' };
-const VACATION_SLOT = '放假點名';
+const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課','研習1700','研習1800'];
+const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
+const VACATION_SLOTS = new Set(['研習1700','研習1800']);
+const VACATION_SLOT = '研習1700'; // 向下相容
 
 // 放假點名額外人員（大隊部＋外派）
 const VACATION_EXTRAS = [
@@ -427,7 +429,18 @@ const VACATION_EXTRAS = [
 const VACATION_TOTAL = 121;
 const NORMAL_TOTAL = 97;
 
-function getTotal() { return currentSlot === VACATION_SLOT ? VACATION_TOTAL : NORMAL_TOTAL; }
+function isVacationSlot(slot) { return VACATION_SLOTS.has(slot || currentSlot); }
+
+// 研習1700 已出發人員（有任何差勤的人）
+function get1700Departed() {
+  return new Set(Object.keys(slotStates['研習1700'] || {}).filter(n => slotStates['研習1700'][n] !== '在勤'));
+}
+
+function getTotal() {
+  if (!isVacationSlot()) return NORMAL_TOTAL;
+  if (currentSlot === '研習1800') return VACATION_TOTAL - get1700Departed().size;
+  return VACATION_TOTAL;
+}
 
 // 建姓名對照表
 const nameToClass = {}, nameToGroup = {}, allNames = new Set();
@@ -507,12 +520,13 @@ function switchSlot(slot) {
 }
 
 function loadSlotIntoDutyMap() {
-  const isVacation = currentSlot === VACATION_SLOT;
-  // 顯示/隱藏放假名冊
-  document.getElementById('vacationContainer').style.display = isVacation ? 'block' : 'none';
-  // 先重置所有人
+  const vacation = isVacationSlot(currentSlot);
+  document.getElementById('vacationContainer').style.display = vacation ? 'block' : 'none';
+
+  // 重置所有人
   Object.keys(dutyMap).forEach(n => dutyMap[n] = '在勤');
   document.querySelectorAll('.member-btn').forEach(b => b.className = 'member-btn');
+
   // 載入該時段資料
   const state = slotStates[currentSlot] || {};
   Object.entries(state).forEach(([name, duty]) => {
@@ -522,6 +536,15 @@ function loadSlotIntoDutyMap() {
       if (btn) btn.className = `member-btn duty-${duty}`;
     }
   });
+
+  // 研習1800：把1700已出發的人標示為 departed（灰掉、不可點）
+  if (currentSlot === '研習1800') {
+    get1700Departed().forEach(name => {
+      const btn = document.getElementById('btn-' + name);
+      if (btn) btn.className = 'member-btn departed';
+    });
+  }
+
   updateSlotDots();
 }
 
@@ -557,7 +580,8 @@ function buildSquadCards(roster, container) {
         btn.className = 'member-btn';
         btn.id = 'btn-' + name;
         btn.textContent = name;
-        btn.onclick = e => openMenu(e, name);
+        btn.dataset.name = name;
+        btn.onclick = e => { if (!btn.classList.contains('departed')) openMenu(e, name); };
         membersDiv.appendChild(btn);
       });
       group.appendChild(membersDiv);
@@ -818,17 +842,23 @@ function getReportData() {
   const month = d.getMonth() + 1;
   const day = d.getDate();
   const rollLabel = SLOT_LABELS[currentSlot] || currentSlot;
+  const departed = currentSlot === '研習1800' ? get1700Departed() : new Set();
   const total = getTotal();
   const groups = {};
   DUTY_TYPES.slice(1).forEach(t => groups[t] = []);
-  Object.entries(dutyMap).forEach(([name, duty]) => { if (duty !== '在勤') groups[duty].push(name); });
+  // departed 的人不列入 1800 的差勤計算
+  Object.entries(dutyMap).forEach(([name, duty]) => {
+    if (duty !== '在勤' && !departed.has(name)) groups[duty].push(name);
+  });
   const totalAbsent = Object.values(groups).reduce((s, a) => s + a.length, 0);
-  return { month, day, rollLabel, total, groups, totalAbsent, present: total - totalAbsent };
+  return { month, day, rollLabel, total, groups, totalAbsent, present: total - totalAbsent, departed };
 }
 
 function generateReport() {
-  const { month, day, rollLabel, total, groups, totalAbsent, present } = getReportData();
-  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, '', `應到 ${total} 員`, '除'];
+  const { month, day, rollLabel, total, groups, totalAbsent, present, departed } = getReportData();
+  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, ''];
+  if (departed.size > 0) lines.push(`（1700 已出發 ${departed.size} 員，不列入本次點名）`);
+  lines.push(`應到 ${total} 員`, '除');
   let hasAbsent = false;
   DUTY_TYPES.slice(1).forEach(duty => {
     if (!groups[duty].length) return;
@@ -844,8 +874,10 @@ function generateReport() {
 }
 
 function generateDetailReport() {
-  const { month, day, rollLabel, total, groups, totalAbsent, present } = getReportData();
-  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, '', `應到 ${total} 員`, '除'];
+  const { month, day, rollLabel, total, groups, totalAbsent, present, departed } = getReportData();
+  const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, ''];
+  if (departed.size > 0) lines.push(`（1700 已出發 ${departed.size} 員，不列入本次點名）`);
+  lines.push(`應到 ${total} 員`, '除');
   let hasAbsent = false;
   DUTY_TYPES.slice(1).forEach(duty => {
     if (!groups[duty].length) return;
