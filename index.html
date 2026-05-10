@@ -103,6 +103,9 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-事假  { background: #33691e; color: white; border-color: #255216; }
 .member-btn.duty-美工  { background: #f06292; color: white; border-color: #e91e63; }
 .member-btn.duty-研習  { background: #5c6bc0; color: white; border-color: #3949ab; }
+.member-btn.duty-校隊  { background: #00897b; color: white; border-color: #00695c; }
+.member-btn.duty-罰勤  { background: #4e342e; color: white; border-color: #3e2723; }
+.member-btn.duty-正常假 { background: #546e7a; color: white; border-color: #37474f; }
 
 /* === 差勤選單（底部 sheet） === */
 .duty-menu {
@@ -148,6 +151,9 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-事假  { background: #33691e22; color: #255216; border-color: #33691e66; font-weight: bold; }
 .duty-option.opt-美工  { background: #f0629222; color: #e91e63; border-color: #f0629266; font-weight: bold; }
 .duty-option.opt-研習  { background: #5c6bc022; color: #3949ab; border-color: #5c6bc066; font-weight: bold; }
+.duty-option.opt-校隊  { background: #00897b22; color: #00695c; border-color: #00897b66; font-weight: bold; }
+.duty-option.opt-罰勤  { background: #4e342e22; color: #4e342e; border-color: #4e342e66; font-weight: bold; }
+.duty-option.opt-正常假 { background: #546e7a22; color: #37474f; border-color: #546e7a66; font-weight: bold; }
 
 /* === 文字輸入 === */
 .text-section { padding: 12px 16px; }
@@ -281,6 +287,9 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="legend-item"><div class="legend-dot" style="background:#880e4f"></div>校旗隊</div>
     <div class="legend-item"><div class="legend-dot" style="background:#f06292"></div>美工</div>
     <div class="legend-item"><div class="legend-dot" style="background:#00bcd4"></div>BMI</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00897b"></div>校隊</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#4e342e"></div>罰勤</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#546e7a"></div>正常假</div>
     <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
@@ -388,6 +397,10 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
     <div class="duty-option opt-美工"   onclick="setDuty('美工')">美工</div>
     <div class="duty-option opt-BMI"    onclick="setDuty('BMI')">BMI</div>
+    <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 其他 ──</div>
+    <div class="duty-option opt-校隊"   onclick="setDuty('校隊')">校隊</div>
+    <div class="duty-option opt-罰勤"   onclick="setDuty('罰勤')">罰勤</div>
+    <div class="duty-option opt-正常假" onclick="setDuty('正常假')">正常假</div>
   </div>
 </div>
 
@@ -442,13 +455,15 @@ const GROUPS = {
 const DUTY_TYPES = [
   '在勤',
   // 假別
-  '公假','事假','病假','喪假','補休',
+  '公假','事假','病假','喪假','補休','正常假',
   // 勤務
-  '站哨','下夜','餐勤','班消','外派',
+  '站哨','下夜','餐勤','班消','外派','罰勤',
   // 訓練課程
   '正課','龍隊','研習',
   // 委員活動
   '消委','修委','社團','校旗隊','美工','BMI',
+  // 其他
+  '校隊',
 ];
 
 const SLOTS = ['早點名','0740','1200','1330','1700','晚點名','軍訓課','研習1700','研習1800'];
@@ -809,9 +824,16 @@ function parseText() {
 
   const dutyKeywords = {
     '公假':'公假','補休':'補休','站哨':'站哨','下夜':'下夜','外派':'外派',
-    '正課':'正課','龍隊':'龍隊','社團':'社團','喪假':'喪假','病假':'病假',
+    '正課人員':'正課','正課':'正課',
+    '龍隊人員':'龍隊','龍隊':'龍隊',
+    '社團練習':'社團','社團':'社團',
+    '研習假人員':'研習','研習假':'研習','研習':'研習',
+    '喪假':'喪假','病假':'病假','事假':'事假',
+    '正常假':'正常假',
     '班消':'班消','bmi':'BMI','消委':'消委','餐勤':'餐勤','修委':'修委',
-    '校旗隊':'校旗隊','事假':'事假','美工':'美工','研習':'研習'
+    '校旗隊':'校旗隊','美工':'美工',
+    '校隊':'校隊','球隊':'校隊',
+    '罰勤':'罰勤',
   };
 
   text.split(/[\n；;]/).forEach(line => {
