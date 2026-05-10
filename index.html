@@ -853,6 +853,28 @@ function loadState() {
   } catch(e) { logEvent('error', `載入狀態失敗：${e.message}`); }
 }
 
+/* ===== 貪婪姓名匹配 ===== */
+function greedyExtractNames(str) {
+  const results = [];
+  let i = 0;
+  while (i < str.length) {
+    let found = false;
+    for (let len = 4; len >= 2; len--) {
+      if (i + len <= str.length) {
+        const candidate = str.substring(i, i + len);
+        if (allNames.has(candidate)) {
+          results.push(candidate);
+          i += len;
+          found = true;
+          break;
+        }
+      }
+    }
+    if (!found) i++;
+  }
+  return results;
+}
+
 /* ===== 文字解析 ===== */
 function parseText() {
   const text = document.getElementById('textInput').value;
@@ -879,6 +901,7 @@ function parseText() {
     '收假安檢':'安檢','安檢':'安檢',
     '寢休':'寢休',
     '收委班長':'收委','收委':'收委',
+    '收尾班長':'收委','收尾':'收委',
   };
 
   text.split(/[\n；;]/).forEach(line => {
@@ -891,26 +914,22 @@ function parseText() {
     }
     if (!matchedDuty) return;
 
-    let nameStr = '';
-    const bm = line.match(/[（(]([^）)]+)[）)]/);
-    if (bm) {
-      nameStr = bm[1];
-    } else if (line.includes('：') || line.includes(':')) {
-      nameStr = line.replace(/^[^：:]*[：:]/, '');
-    } else {
-      nameStr = line.substring(ll.indexOf(matchedKw.toLowerCase()) + matchedKw.length);
-    }
+    // 從關鍵字位置往後貪婪匹配姓名，不受格式限制
+    const kwIdx = ll.indexOf(matchedKw.toLowerCase());
+    const afterKw = line.substring(kwIdx + matchedKw.length);
+    const matched = greedyExtractNames(afterKw);
+    matched.forEach(n => applyDuty(n, matchedDuty));
 
-    const matched = [], unknown = [];
-    nameStr.split(/[、，,\s\/]+/).map(s => s.trim()).filter(Boolean).forEach(n => {
-      if (allNames.has(n)) {
-        matched.push(n);
-        applyDuty(n, matchedDuty);
-      } else if (n.length >= 2) {
-        unknown.push(n);
-        logEvent('warn', `解析：找不到「${n}」（差勤：${matchedDuty}）`);
-      }
-    });
+    // 找未知姓名：純中文片段但不在名冊內
+    const unknown = [];
+    afterKw.split(/[、，,\s\/(（)）：:＋+\d員\-—]+/).map(s => s.trim())
+      .filter(s => s.length >= 2 && /^[一-鿿]+$/.test(s))
+      .forEach(seg => {
+        if (greedyExtractNames(seg).length === 0) {
+          unknown.push(seg);
+          logEvent('warn', `解析：找不到「${seg}」（差勤：${matchedDuty}）`);
+        }
+      });
 
     if (matched.length > 0) {
       const item = document.createElement('div');
