@@ -1058,7 +1058,12 @@ function parseText() {
       }
     }
 
-    matched.forEach(n => applyDuty(n, matchedDuty));
+    // 整組套用時保護已有個人差勤的人，個人指定則直接覆蓋
+    if (groupApplied) {
+      matched.forEach(n => { if (dutyMap[n] === '在勤') applyDuty(n, matchedDuty); });
+    } else {
+      matched.forEach(n => applyDuty(n, matchedDuty));
+    }
 
     if (matched.length > 0 && !groupApplied) {
       const item = document.createElement('div');
