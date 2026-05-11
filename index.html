@@ -1162,7 +1162,8 @@ function generateReport() {
   });
   if (!hasAbsent) lines.push('0 員差事');
   lines.push(`合計差事：${totalAbsent} 員`);
-  lines.push(`實到：${present} 員`);
+  const presentNames = isVacationSlot() && groups['有意願']?.length ? `（${groups['有意願'].join('、')}）` : '';
+  lines.push(`實到：${present} 員${presentNames}`);
   lines.push('請區隊長核示，謝謝區隊長。');
   showReport(lines.join('\n'));
 }
@@ -1175,6 +1176,7 @@ function generateDetailReport() {
   let hasAbsent = false;
   const sortedDutiesDetail = DUTY_TYPES.slice(1).filter(d => groups[d]?.length).sort((a, b) => groups[b].length - groups[a].length);
   sortedDutiesDetail.forEach(duty => {
+    if (isVacationSlot() && duty === '無資格') return;
     hasAbsent = true;
     lines.push(`${groups[duty].length} 員 ${duty}`);
     const byClass = {};
@@ -1187,7 +1189,8 @@ function generateDetailReport() {
   });
   if (!hasAbsent) lines.push('0 員差事');
   lines.push(`合計差事：${totalAbsent} 員`);
-  lines.push(`實到：${present} 員`);
+  const presentNamesDetail = isVacationSlot() && groups['有意願']?.length ? `（${groups['有意願'].join('、')}）` : '';
+  lines.push(`實到：${present} 員${presentNamesDetail}`);
   lines.push('請區隊長核示，謝謝區隊長。');
   showReport(lines.join('\n'));
 }
