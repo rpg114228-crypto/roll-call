@@ -870,8 +870,9 @@ function updateStats() {
   let html = `<div class="stats-row header"><span>組別</span><span>應到</span><span>差事</span><span>實到</span></div>`;
   const calcRow = members => {
     if (vacation) {
-      const qualified = members.filter(m => dutyMap[m] !== '無資格');
-      const absent = qualified.filter(m => dutyMap[m] && !vacExclude.has(dutyMap[m]) && dutyMap[m] !== '在勤').length;
+      // 研習假：有回報差勤的才算應到，在勤=未回報=無資格
+      const qualified = members.filter(m => dutyMap[m] !== '在勤' && dutyMap[m] !== '無資格');
+      const absent = qualified.filter(m => !vacExclude.has(dutyMap[m])).length;
       return { total: qualified.length, absent };
     }
     const absent = members.filter(m => dutyMap[m] && dutyMap[m] !== '在勤').length;
