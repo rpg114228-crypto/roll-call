@@ -114,6 +114,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-自行帶回 { background: #78909c; color: white; border-color: #546e7a; }
 .member-btn.duty-值星  { background: #00838f; color: white; border-color: #006064; }
 .member-btn.duty-差勤  { background: #ff6f00; color: white; border-color: #e65100; }
+.member-btn.duty-公差  { background: #039be5; color: white; border-color: #0277bd; }
 .member-btn.duty-燒委  { background: #d84315; color: white; border-color: #bf360c; }
 .member-btn.duty-花魚委 { background: #26c6da; color: white; border-color: #0097a7; }
 .member-btn.duty-巡水電 { background: #0277bd; color: white; border-color: #01579b; }
@@ -178,6 +179,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-自行帶回 { background: #78909c22; color: #546e7a; border-color: #78909c66; font-weight: bold; }
 .duty-option.opt-值星  { background: #00838f22; color: #006064; border-color: #00838f66; font-weight: bold; }
 .duty-option.opt-差勤  { background: #ff6f0022; color: #e65100; border-color: #ff6f0066; font-weight: bold; }
+.duty-option.opt-公差  { background: #039be522; color: #0277bd; border-color: #039be566; font-weight: bold; }
 .duty-option.opt-燒委  { background: #d8431522; color: #bf360c; border-color: #d8431566; font-weight: bold; }
 .duty-option.opt-花魚委 { background: #26c6da22; color: #0097a7; border-color: #26c6da66; font-weight: bold; }
 .duty-option.opt-巡水電 { background: #0277bd22; color: #01579b; border-color: #0277bd66; font-weight: bold; }
@@ -441,6 +443,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="duty-option opt-外派"   onclick="setDuty('外派')">外派</div>
     <div class="duty-option opt-值星"   onclick="setDuty('值星')">值星</div>
     <div class="duty-option opt-差勤"   onclick="setDuty('差勤')">差勤</div>
+    <div class="duty-option opt-公差"   onclick="setDuty('公差')">公差</div>
     <div class="duty-option opt-巡水電" onclick="setDuty('巡水電')">巡水電</div>
     <div style="grid-column:span 1"></div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 訓練課程 ──</div>
@@ -530,7 +533,7 @@ const DUTY_TYPES = [
   // 假別
   '公假','事假','病假','喪假','補休','正常假',
   // 勤務
-  '站哨','下夜','餐勤','班消','外派','罰勤','值星','差勤','燒委','巡水電',
+  '站哨','下夜','餐勤','班消','外派','罰勤','值星','差勤','公差','燒委','巡水電',
   // 訓練課程
   '正課','龍隊','研習','數學輔導(正課)','英文輔導(正課)',
   // 委員活動
@@ -996,7 +999,7 @@ function parseText() {
     '榮團會公差':'榮團會','榮團會':'榮團會',
     '自行帶回':'自行帶回',
     '值星':'值星',
-    '差勤公差':'差勤','差勤':'差勤',
+    '差勤公差':'差勤','差勤':'差勤','公差':'公差',
     '燒委':'燒委',
     '巡水電':'巡水電',
     '無資格':'無資格','有意願':'有意願','無意願':'無意願',
