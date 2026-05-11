@@ -1125,8 +1125,8 @@ function generateReport() {
   lines.push(`應到 ${total} 員`, '除');
   const vacSkip = new Set(['有意願', '無資格']);
   let hasAbsent = false;
-  DUTY_TYPES.slice(1).forEach(duty => {
-    if (!groups[duty].length) return;
+  const sortedDuties = DUTY_TYPES.slice(1).filter(d => groups[d]?.length).sort((a, b) => groups[b].length - groups[a].length);
+  sortedDuties.forEach(duty => {
     if (isVacationSlot() && vacSkip.has(duty)) return;
     hasAbsent = true;
     lines.push(`${groups[duty].length} 員 ${duty}`);
@@ -1145,8 +1145,8 @@ function generateDetailReport() {
   if (departed.size > 0) lines.push(`（1700 已出發 ${departed.size} 員，不列入本次點名）`);
   lines.push(`應到 ${total} 員`, '除');
   let hasAbsent = false;
-  DUTY_TYPES.slice(1).forEach(duty => {
-    if (!groups[duty].length) return;
+  const sortedDutiesDetail = DUTY_TYPES.slice(1).filter(d => groups[d]?.length).sort((a, b) => groups[b].length - groups[a].length);
+  sortedDutiesDetail.forEach(duty => {
     hasAbsent = true;
     lines.push(`${groups[duty].length} 員 ${duty}`);
     const byClass = {};
