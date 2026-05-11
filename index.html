@@ -1032,6 +1032,9 @@ function parseText() {
     const detected = detectGroupFromLine(line);
     if (detected) currentContext = detected;
 
+    // 「實到」「應到」行：只更新組別，不做差勤解析、不當續行
+    if (/^實到|^應到/.test(line)) { lastMatchedDuty = null; return; }
+
     let matchedDuty = null, matchedKw = null;
     const ll = line.toLowerCase();
     for (const [kw, duty] of Object.entries(dutyKeywords)) {
@@ -1063,7 +1066,7 @@ function parseText() {
     let groupUsedName = null;
     if (matched.length === 0) {
       const inlineGroup = detectGroupFromLine(line);
-      groupUsedName = inlineGroup || currentContext;
+      groupUsedName = inlineGroup; // 只用同行明確標示的組別，避免誤套跨行組別
       if (groupUsedName && GROUPS[groupUsedName]) {
         GROUPS[groupUsedName].forEach(n => matched.push(n));
         groupApplied = true;
