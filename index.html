@@ -1060,22 +1060,26 @@ function parseText() {
 
     // 若沒找到個人姓名，先看同行組別，再用跨行上下文
     let groupApplied = false;
+    let groupUsedName = null;
     if (matched.length === 0) {
       const inlineGroup = detectGroupFromLine(line);
-      const groupToUse = inlineGroup || currentContext;
-      if (groupToUse && GROUPS[groupToUse]) {
-        GROUPS[groupToUse].forEach(n => matched.push(n));
+      groupUsedName = inlineGroup || currentContext;
+      if (groupUsedName && GROUPS[groupUsedName]) {
+        GROUPS[groupUsedName].forEach(n => matched.push(n));
         groupApplied = true;
-        const item = document.createElement('div');
-        item.className = 'parse-item';
-        item.innerHTML = `<span>${matchedDuty}</span>（${groupToUse}，整組）：${GROUPS[groupToUse].join('、')}（${GROUPS[groupToUse].length} 員）`;
-        resultDiv.appendChild(item);
       }
     }
 
     // 整組套用時保護已有個人差勤的人，個人指定則直接覆蓋
     if (groupApplied) {
-      matched.forEach(n => { if (dutyMap[n] === '在勤') applyDuty(n, matchedDuty); });
+      const actualApplied = matched.filter(n => dutyMap[n] === '在勤');
+      actualApplied.forEach(n => applyDuty(n, matchedDuty));
+      if (actualApplied.length > 0) {
+        const item = document.createElement('div');
+        item.className = 'parse-item';
+        item.innerHTML = `<span>${matchedDuty}</span>（${groupUsedName}）：${actualApplied.join('、')}（${actualApplied.length} 員）`;
+        resultDiv.appendChild(item);
+      }
     } else {
       matched.forEach(n => applyDuty(n, matchedDuty));
     }
