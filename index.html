@@ -603,10 +603,10 @@ function get1700Departed() {
 
 function getTotal() {
   if (!isVacationSlot()) return NORMAL_TOTAL;
-  const unqualified = Object.values(dutyMap).filter(d => d === '無資格').length;
-  const base = VACATION_TOTAL - unqualified;
-  if (currentSlot === '研習1800') return base - get1700Departed().size;
-  return base;
+  // 研習假：有回報任何差勤的人才算有資格（應到），在勤（未回報）= 無資格，不算進應到
+  const qualified = Object.values(dutyMap).filter(d => d !== '在勤' && d !== '無資格').length;
+  if (currentSlot === '研習1800') return qualified - get1700Departed().size;
+  return qualified;
 }
 
 // 建姓名對照表
