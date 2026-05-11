@@ -978,6 +978,7 @@ function parseText() {
   resultDiv.innerHTML = '';
 
   let currentContext = null; // 當前組別上下文（跨行追蹤）
+  let lastMatchedDuty = null; // 上一行的差勤，供續行使用
 
   const dutyKeywords = {
     '公假':'公假','補休':'補休','站哨':'站哨','下夜':'下夜','外派':'外派',
@@ -1021,7 +1022,21 @@ function parseText() {
     for (const [kw, duty] of Object.entries(dutyKeywords)) {
       if (ll.includes(kw.toLowerCase())) { matchedDuty = duty; matchedKw = kw; break; }
     }
-    if (!matchedDuty) return;
+    if (!matchedDuty) {
+      // 無關鍵字：嘗試當作上一差勤的續行
+      if (lastMatchedDuty) {
+        const continued = greedyExtractNames(line);
+        if (continued.length > 0) {
+          continued.forEach(n => applyDuty(n, lastMatchedDuty));
+          const item = document.createElement('div');
+          item.className = 'parse-item';
+          item.innerHTML = `<span>${lastMatchedDuty}</span>（續行）：${continued.join('、')}（${continued.length} 員）`;
+          resultDiv.appendChild(item);
+        }
+      }
+      return;
+    }
+    lastMatchedDuty = matchedDuty;
 
     // 從關鍵字位置往後貪婪匹配姓名，不受格式限制
     const kwIdx = ll.indexOf(matchedKw.toLowerCase());
