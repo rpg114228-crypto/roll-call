@@ -102,6 +102,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-校旗隊 { background: #880e4f; color: white; border-color: #6a0136; }
 .member-btn.duty-事假  { background: #33691e; color: white; border-color: #255216; }
 .member-btn.duty-美工  { background: #f06292; color: white; border-color: #e91e63; }
+.member-btn.duty-大美  { background: #7b1fa2; color: white; border-color: #6a1b9a; }
 .member-btn.duty-研習  { background: #5c6bc0; color: white; border-color: #3949ab; }
 .member-btn.duty-校隊  { background: #00897b; color: white; border-color: #00695c; }
 .member-btn.duty-罰勤  { background: #4e342e; color: white; border-color: #3e2723; }
@@ -170,6 +171,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-校旗隊 { background: #880e4f22; color: #6a0136; border-color: #880e4f66; font-weight: bold; }
 .duty-option.opt-事假  { background: #33691e22; color: #255216; border-color: #33691e66; font-weight: bold; }
 .duty-option.opt-美工  { background: #f0629222; color: #e91e63; border-color: #f0629266; font-weight: bold; }
+.duty-option.opt-大美  { background: #7b1fa222; color: #6a1b9a; border-color: #7b1fa266; font-weight: bold; }
 .duty-option.opt-研習  { background: #5c6bc022; color: #3949ab; border-color: #5c6bc066; font-weight: bold; }
 .duty-option.opt-校隊  { background: #00897b22; color: #00695c; border-color: #00897b66; font-weight: bold; }
 .duty-option.opt-罰勤  { background: #4e342e22; color: #4e342e; border-color: #4e342e66; font-weight: bold; }
@@ -469,6 +471,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="duty-option opt-社團"   onclick="setDuty('社團')">社團</div>
     <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
     <div class="duty-option opt-美工"   onclick="setDuty('美工')">美工</div>
+    <div class="duty-option opt-大美"   onclick="setDuty('大美')">大美</div>
     <div class="duty-option opt-BMI"    onclick="setDuty('BMI')">BMI</div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 其他 ──</div>
     <div class="duty-option opt-校隊"   onclick="setDuty('校隊')">校隊</div>
@@ -547,7 +550,7 @@ const DUTY_TYPES = [
   // 訓練課程
   '正課','龍隊','研習','數學輔導(正課)','英文輔導(正課)',
   // 委員活動
-  '消委','修委','社團','校旗隊','美工','BMI','花魚委',
+  '消委','修委','社團','校旗隊','美工','大美','BMI','花魚委',
   // 其他
   '校隊','服檢','安檢','寢休','收委','榮團會','自行帶回',
   // 內務
@@ -1002,7 +1005,7 @@ function parseText() {
     '喪假':'喪假','病假':'病假','事假':'事假',
     '正常假':'正常假',
     '班消':'班消','bmi':'BMI','消委':'消委','餐勤':'餐勤','修委':'修委',
-    '校旗隊':'校旗隊','校旗':'校旗隊','美工':'美工',
+    '校旗隊':'校旗隊','校旗':'校旗隊','大隊美工':'大美','大美':'大美','美工':'美工',
     '校隊':'校隊','球隊':'校隊',
     '罰勤':'罰勤',
     '大隊服儀檢查':'服檢','大隊服檢':'服檢','服儀檢查':'服檢','服檢':'服檢',
