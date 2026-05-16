@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>地圖卡片 Demo｜Google Maps Embed 版</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft JhengHei','PingFang TC',sans-serif;background:#f5f5f5;padding:2em;color:#222}
+    .header{text-align:center;margin-bottom:2em}
+    .header h1{font-size:1.6em;color:#1a1a2e;margin-bottom:.4em}
+    .badge{display:inline-block;background:#34a853;color:#fff;padding:.3em 1em;border-radius:50px;font-size:.85em;margin:.2em}
+    .badge.warn{background:#f39c12}
+    .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5em;max-width:1000px;margin:0 auto}
+
+    /* 卡片樣式 */
+    .acard{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10);transition:transform .2s}
+    .acard:hover{transform:translateY(-4px)}
+
+    /* Google Maps iframe 作為卡片頭部圖 */
+    .map-frame{width:100%;height:200px;border:none;display:block;pointer-events:none}
+    .acard:hover .map-frame{pointer-events:auto}
+
+    .acard-body{padding:1.2em}
+    .acard-body h3{font-size:1.05em;color:#1a1a2e;margin-bottom:.5em}
+    .tags{display:flex;gap:.4em;flex-wrap:wrap;margin-bottom:.6em}
+    .tag{padding:.15em .6em;border-radius:10px;font-size:.74em}
+    .t-nature{background:#e8f3ff;color:#2980b9}
+    .t-child{background:#fde8e8;color:#c0392b}
+    .t-culture{background:#fff8e8;color:#d35400}
+    .acard-body p{font-size:.85em;color:#555;line-height:1.55;margin-bottom:.7em}
+    .map-open{display:inline-flex;align-items:center;gap:.3em;color:#1a73e8;font-size:.8em;font-weight:700;text-decoration:none}
+    .map-open:hover{text-decoration:underline}
+
+    .note{max-width:1000px;margin:2em auto 0;background:#fff8e1;border-left:4px solid #f39c12;border-radius:0 12px 12px 0;padding:1em 1.4em;font-size:.88em;line-height:1.7}
+    .note b{color:#d35400}
+    .compare-btn{display:block;text-align:center;margin:1.5em auto 0;max-width:300px;padding:.7em 1.5em;background:#1a1a2e;color:#fff;border-radius:50px;text-decoration:none;font-weight:700;font-size:.9em}
+    .compare-btn:hover{background:#c0392b}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🗺️ 地圖卡片 Demo — Google Maps Embed 版</h1>
+  <span class="badge">✅ 免費・免 API Key</span>
+  <span class="badge">🖱️ Hover 可互動地圖</span>
+  <span class="badge warn">⚠️ iframe 格式（非 img）</span>
+</div>
+
+<div class="cards">
+
+  <!-- 伊根湾遊覧船 -->
+  <div class="acard">
+    <iframe class="map-frame"
+      src="https://www.google.com/maps?q=伊根湾めぐり遊覧船+伊根町&z=14&output=embed"
+      title="伊根湾遊覧船" loading="lazy">
+    </iframe>
+    <div class="acard-body">
+      <h3>京都北部-伊根湾賞景観光船（Ine Bay）</h3>
+      <div class="tags">
+        <span class="tag t-child">孩子必愛</span>
+        <span class="tag t-nature">海景</span>
+      </div>
+      <p>從船上餵海鷗，孩子100%尖叫。船行繞過伊根灣，沿途江戶時代舟屋盡入眼簾。</p>
+      <a class="map-open" href="https://www.google.com/maps/search/伊根湾めぐり遊覧船+伊根町" target="_blank">📍 在 Google Maps 開啟 →</a>
+    </div>
+  </div>
+
+  <!-- 天橋立 -->
+  <div class="acard">
+    <iframe class="map-frame"
+      src="https://www.google.com/maps?q=天橋立+宮津市&z=13&output=embed"
+      title="天橋立" loading="lazy">
+    </iframe>
+    <div class="acard-body">
+      <h3>京都北部-天橋立（Amanohashidate）</h3>
+      <div class="tags">
+        <span class="tag t-nature">日本三景</span>
+        <span class="tag t-culture">文化</span>
+      </div>
+      <p>日本三景之一，全長3.6km松林砂洲橫越宮津灣。在車站附近拍照即可，不需走完全程。</p>
+      <a class="map-open" href="https://www.google.com/maps/search/天橋立+宮津市" target="_blank">📍 在 Google Maps 開啟 →</a>
+    </div>
+  </div>
+
+  <!-- 伊根舟屋群 -->
+  <div class="acard">
+    <iframe class="map-frame"
+      src="https://www.google.com/maps?q=伊根の舟屋+伊根町&z=14&output=embed"
+      title="伊根舟屋群" loading="lazy">
+    </iframe>
+    <div class="acard-body">
+      <h3>京都北部-伊根舟屋群（Funaya）</h3>
+      <div class="tags">
+        <span class="tag t-culture">日本遺産</span>
+        <span class="tag t-nature">漁村</span>
+      </div>
+      <p>230棟江戶時代舟屋，一樓停船二樓住人，直接蓋在海面上。孩子可在碼頭邊餵小魚。</p>
+      <a class="map-open" href="https://www.google.com/maps/search/伊根の舟屋+伊根町" target="_blank">📍 在 Google Maps 開啟 →</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  <b>Google Maps Embed 版特點：</b><br>
+  ✅ 不需 API Key，直接用 iframe 嵌入真實 Google Maps<br>
+  ✅ Hover 時可互動（縮放/移動地圖）<br>
+  ⚠️ 卡片頭部是 iframe，不是 &lt;img&gt;，無法做 object-fit 裁切效果<br>
+  ⚠️ 地圖載入需要連線，且有 Google 浮水印和介面元素無法隱藏<br>
+  ⚠️ 若需要 <code>Places Embed API</code>（顯示照片+評分）則需要 API Key
+</div>
+
+<a class="compare-btn" href="map_demo_osm.html">👉 切換查看 OpenStreetMap 版</a>
+
+</body>
+</html>
