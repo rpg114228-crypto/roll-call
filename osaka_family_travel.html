@@ -1357,6 +1357,34 @@
         <p>折扣採購 → 步行過橋 → 關西機場出發</p>
       </div>
     </div>
+
+    <div class="route-detail" style="background:linear-gradient(135deg,#0f0f1a,#1a1a2e);color:#fff;border-radius:14px;padding:1.2em 1.5em;margin-bottom:1.5em;">
+      <h4 style="color:var(--gold);font-size:.88em;margin-bottom:.8em;display:flex;align-items:center;gap:.4em;">🚇 難波 → 臨空城 → 關西機場 路線</h4>
+      <div style="display:flex;flex-wrap:wrap;gap:.4em;align-items:center;font-size:.82em;">
+        <span style="background:rgba(255,255,255,.12);padding:.2em .7em;border-radius:20px">難波駅</span>
+        <span style="color:var(--orange)">→</span>
+        <span style="background:rgba(255,255,255,.12);padding:.2em .7em;border-radius:20px">南海急行（40分 ¥930）</span>
+        <span style="color:var(--orange)">→</span>
+        <span style="background:rgba(255,255,255,.12);padding:.2em .7em;border-radius:20px">臨空城駅</span>
+        <span style="color:var(--orange)">→</span>
+        <span style="background:rgba(255,255,255,.12);padding:.2em .7em;border-radius:20px">Rinku Outlets（步行3分）</span>
+        <span style="color:var(--orange)">→</span>
+        <span style="background:rgba(255,255,255,.12);padding:.2em .7em;border-radius:20px">關西機場（步行15分 or 南海1站）</span>
+      </div>
+      <div style="font-size:.78em;color:rgba(255,255,255,.6);margin-top:.6em;line-height:1.6;">
+        <span style="margin-right:1em">• ICOCA 可刷，¥930/人</span>
+        <span>• 大行李可存臨空城駅置物櫃（¥500–700），輕裝逛街</span>
+      </div>
+      <a href="https://www.google.com/maps/dir/?api=1&origin=Namba+Station+Osaka&destination=Rinku+Premium+Outlets+Osaka&travelmode=transit" target="_blank"
+        style="display:inline-flex;align-items:center;gap:.3em;padding:.3em .9em;border-radius:20px;font-size:.76em;text-decoration:none;font-weight:700;background:#34a853;color:#fff;margin-top:.6em">
+        📍 Google 路線（難波→臨空城）
+      </a>
+      <a href="https://www.google.com/maps/dir/?api=1&origin=Rinku+Premium+Outlets+Osaka&destination=Kansai+International+Airport&travelmode=walking" target="_blank"
+        style="display:inline-flex;align-items:center;gap:.3em;padding:.3em .9em;border-radius:20px;font-size:.76em;text-decoration:none;font-weight:700;background:#1a73e8;color:#fff;margin-top:.6em;margin-left:.4em">
+        🚶 步行路線（臨空城→KIX）
+      </a>
+    </div>
+
     <div class="schedule">
       <div class="sch-item"><span class="sch-time">08:00</span><span class="sch-dot">▸</span><span>飯店 Check-out，行李全帶走</span></div>
       <div class="sch-item"><span class="sch-time">08:30</span><span class="sch-dot">▸</span><span>梅田 → 難波（Midosuji線 4分）</span></div>
@@ -1630,8 +1658,8 @@
         <span class="lbl">✈️ 機票（來回 6人）</span>
       </div>
       <div class="bitem">
-        <span class="amt">3–5萬</span>
-        <span class="lbl">🏨 住宿（8晚）</span>
+        <span class="amt">3.5–6萬</span>
+        <span class="lbl">🏨 住宿（9晚）</span>
       </div>
       <div class="bitem">
         <span class="amt">2–3萬</span>
@@ -1642,19 +1670,19 @@
         <span class="lbl">🐟 海遊館 + NIFREL</span>
       </div>
       <div class="bitem">
-        <span class="amt">3–5萬</span>
-        <span class="lbl">🍜 餐費（9天）</span>
+        <span class="amt">3.5–5.5萬</span>
+        <span class="lbl">🍜 餐費（10天）</span>
       </div>
       <div class="bitem">
-        <span class="amt">1–2萬</span>
-        <span class="lbl">🚇 交通（市區+日遊）</span>
+        <span class="amt">1.5–2.5萬</span>
+        <span class="lbl">🚇 交通（市區+特急+日遊）</span>
       </div>
       <div class="bitem">
         <span class="amt">1–3萬</span>
         <span class="lbl">🛍 伴手禮採購</span>
       </div>
       <div class="bitem" style="background:rgba(255,255,255,.3);font-weight:bold">
-        <span class="amt">17–29萬</span>
+        <span class="amt">19–32萬</span>
         <span class="lbl">💰 總計預估</span>
       </div>
     </div>
@@ -2086,8 +2114,17 @@ const dayRoutesDefault = {
     {n:'EXPOCITY',q:'EXPOCITY 吹田市千里万博公園'},
     {n:'梅田（返回）',q:'阪急百貨店梅田本店 大阪市北区'},
   ]},
-  day9:{ label:'Day 9 回程', stops:[
+  day9:{ label:'Day 9 梅田採購', stops:[
     {n:'梅田（出發）',q:'梅田駅 大阪市北区'},
+    {n:'阪急百貨',q:'阪急百貨店梅田本店 大阪市北区'},
+    {n:'心齋橋',q:'心斎橋筋商店街 大阪市中央区'},
+    {n:'道頓堀',q:'道頓堀 大阪市中央区'},
+    {n:'梅田（返回）',q:'梅田駅 大阪市北区'},
+  ]},
+  day10:{ label:'Day 10 臨空城・KIX', stops:[
+    {n:'難波（出發）',q:'難波駅 大阪市浪速区'},
+    {n:'臨空城',q:'りんくうプレミアム・アウトレット 泉佐野市'},
+    {n:'Rinku Premium Outlets',q:'りんくうプレミアム・アウトレット 泉佐野市'},
     {n:'關西機場',q:'関西国際空港 泉佐野市'},
   ]},
 };
