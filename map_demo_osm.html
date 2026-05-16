@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>地圖卡片 Demo｜OpenStreetMap 靜態圖版</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft JhengHei','PingFang TC',sans-serif;background:#f5f5f5;padding:2em;color:#222}
+    .header{text-align:center;margin-bottom:2em}
+    .header h1{font-size:1.6em;color:#1a1a2e;margin-bottom:.4em}
+    .badge{display:inline-block;background:#27ae60;color:#fff;padding:.3em 1em;border-radius:50px;font-size:.85em;margin:.2em}
+    .badge.blue{background:#2980b9}
+    .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5em;max-width:1000px;margin:0 auto}
+
+    /* 卡片樣式 */
+    .acard{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10);transition:transform .2s}
+    .acard:hover{transform:translateY(-4px)}
+
+    /* OSM 靜態圖 作為卡片頭部 */
+    .acard img{width:100%;height:200px;object-fit:cover;display:block;background:#e0e0e0}
+
+    .acard-body{padding:1.2em}
+    .acard-body h3{font-size:1.05em;color:#1a1a2e;margin-bottom:.5em}
+    .tags{display:flex;gap:.4em;flex-wrap:wrap;margin-bottom:.6em}
+    .tag{padding:.15em .6em;border-radius:10px;font-size:.74em}
+    .t-nature{background:#e8f3ff;color:#2980b9}
+    .t-child{background:#fde8e8;color:#c0392b}
+    .t-culture{background:#fff8e8;color:#d35400}
+    .acard-body p{font-size:.85em;color:#555;line-height:1.55;margin-bottom:.7em}
+    .map-open{display:inline-flex;align-items:center;gap:.3em;color:#c0392b;font-size:.8em;font-weight:700;text-decoration:none}
+    .map-open:hover{text-decoration:underline}
+
+    /* 座標標籤 */
+    .coord{font-size:.72em;color:#999;margin-top:.4em;font-family:monospace}
+
+    .note{max-width:1000px;margin:2em auto 0;background:#e8f3ff;border-left:4px solid #2980b9;border-radius:0 12px 12px 0;padding:1em 1.4em;font-size:.88em;line-height:1.7}
+    .note b{color:#1a6fa0}
+    .compare-btn{display:block;text-align:center;margin:1.5em auto 0;max-width:300px;padding:.7em 1.5em;background:#1a1a2e;color:#fff;border-radius:50px;text-decoration:none;font-weight:700;font-size:.9em}
+    .compare-btn:hover{background:#c0392b}
+
+    /* 地圖圖片載入失敗時的樣式 */
+    .acard img::after{content:'地圖載入中...';display:block;text-align:center;padding:4em;color:#aaa}
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🗺️ 地圖卡片 Demo — OpenStreetMap 靜態圖版</h1>
+  <span class="badge">✅ 完全免費</span>
+  <span class="badge">✅ 不需 API Key</span>
+  <span class="badge blue">📷 靜態 img 格式</span>
+  <span class="badge blue">✂️ 支援 object-fit 裁切</span>
+</div>
+
+<div class="cards">
+
+  <!-- 伊根湾遊覧船 -->
+  <!-- 伊根湾座標：35.6814, 135.2784 -->
+  <div class="acard">
+    <img
+      src="https://staticmap.openstreetmap.de/staticmap.php?center=35.6814,135.2784&zoom=14&size=600x370&markers=35.6814,135.2784,red-pushpin"
+      alt="伊根湾遊覧船 地圖"
+      loading="lazy">
+    <div class="acard-body">
+      <h3>京都北部-伊根湾賞景観光船（Ine Bay）</h3>
+      <div class="tags">
+        <span class="tag t-child">孩子必愛</span>
+        <span class="tag t-nature">海景</span>
+      </div>
+      <p>從船上餵海鷗，孩子100%尖叫。船行繞過伊根灣，沿途江戶時代舟屋盡入眼簾。</p>
+      <a class="map-open" href="https://www.openstreetmap.org/?mlat=35.6814&mlon=135.2784&zoom=14" target="_blank">📍 在 OpenStreetMap 查看 →</a>
+      <div class="coord">35.6814°N, 135.2784°E</div>
+    </div>
+  </div>
+
+  <!-- 天橋立 -->
+  <!-- 天橋立座標：35.5697, 135.1942 -->
+  <div class="acard">
+    <img
+      src="https://staticmap.openstreetmap.de/staticmap.php?center=35.5697,135.1942&zoom=13&size=600x370&markers=35.5697,135.1942,red-pushpin"
+      alt="天橋立 地圖"
+      loading="lazy">
+    <div class="acard-body">
+      <h3>京都北部-天橋立（Amanohashidate）</h3>
+      <div class="tags">
+        <span class="tag t-nature">日本三景</span>
+        <span class="tag t-culture">文化</span>
+      </div>
+      <p>日本三景之一，全長3.6km松林砂洲橫越宮津灣。在車站附近拍照即可，不需走完全程。</p>
+      <a class="map-open" href="https://www.openstreetmap.org/?mlat=35.5697&mlon=135.1942&zoom=13" target="_blank">📍 在 OpenStreetMap 查看 →</a>
+      <div class="coord">35.5697°N, 135.1942°E</div>
+    </div>
+  </div>
+
+  <!-- 伊根舟屋群 -->
+  <!-- 伊根漁村座標：35.6802, 135.2770 -->
+  <div class="acard">
+    <img
+      src="https://staticmap.openstreetmap.de/staticmap.php?center=35.6802,135.2770&zoom=15&size=600x370&markers=35.6802,135.2770,red-pushpin"
+      alt="伊根舟屋群 地圖"
+      loading="lazy">
+    <div class="acard-body">
+      <h3>京都北部-伊根舟屋群（Funaya）</h3>
+      <div class="tags">
+        <span class="tag t-culture">日本遺産</span>
+        <span class="tag t-nature">漁村</span>
+      </div>
+      <p>230棟江戶時代舟屋，一樓停船二樓住人，直接蓋在海面上。孩子可在碼頭邊餵小魚。</p>
+      <a class="map-open" href="https://www.openstreetmap.org/?mlat=35.6802&mlon=135.2770&zoom=15" target="_blank">📍 在 OpenStreetMap 查看 →</a>
+      <div class="coord">35.6802°N, 135.2770°E</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  <b>OpenStreetMap 靜態圖版特點：</b><br>
+  ✅ 完全免費，無需 API Key，無使用量限制<br>
+  ✅ 是真正的 &lt;img&gt; 標籤，支援 object-fit: cover 裁切，和現有卡片完全相容<br>
+  ✅ 地圖樣式清晰，紅色標記指示精確位置<br>
+  ⚠️ 外觀是 OpenStreetMap 風格（不是 Google Maps 的衛星圖或彩色路線圖）<br>
+  ⚠️ 伺服器在歐洲，第一次載入可能稍慢（約 1–2 秒）<br>
+  💡 <b>若要改景點</b>：只需修改 URL 中的 <code>center=緯度,經度</code> 即可，圖片自動更新
+</div>
+
+<a class="compare-btn" href="map_demo_google.html">👉 切換查看 Google Maps 版</a>
+
+</body>
+</html>
