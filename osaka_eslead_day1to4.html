@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大阪 Day 1–4｜ESLEAD 日本橋 量身行程表</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --red:#c0392b;--orange:#e67e22;--gold:#f39c12;
+      --dark:#1a1a2e;--darker:#0f0f1a;--light:#fdf6f0;
+      --text:#2c2c2c;--muted:#888;--card:#fff;
+      --shadow:0 4px 24px rgba(0,0,0,.10);
+      --green:#27ae60;--blue:#2980b9;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Microsoft JhengHei','PingFang TC',Arial,sans-serif;background:var(--light);color:var(--text);line-height:1.7}
+
+    /* ── HERO ── */
+    .hero{
+      min-height:60vh;
+      background:linear-gradient(160deg,rgba(10,10,30,.8) 0%,rgba(192,57,43,.55) 100%),
+        url('https://images.unsplash.com/photo-1590559899731-a382839e5549?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+      display:flex;flex-direction:column;justify-content:center;align-items:center;
+      text-align:center;color:#fff;padding:2em;
+    }
+    .hero-jp{font-size:1em;letter-spacing:.3em;opacity:.8;margin-bottom:.4em}
+    .hero h1{font-size:clamp(1.8em,5vw,3.2em);text-shadow:0 2px 12px rgba(0,0,0,.5);margin-bottom:.4em;line-height:1.2}
+    .hero-sub{font-size:1em;opacity:.88;margin-bottom:1.5em}
+    .hero-badges{display:flex;gap:.6em;flex-wrap:wrap;justify-content:center}
+    .badge{background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.25);padding:.35em 1em;border-radius:50px;font-size:.85em}
+
+    /* ── STICKY NAV ── */
+    .sticky-nav{
+      position:sticky;top:0;z-index:200;
+      background:var(--darker);padding:.65em 1em;
+      display:flex;gap:.4em;overflow-x:auto;scrollbar-width:none;
+    }
+    .sticky-nav::-webkit-scrollbar{display:none}
+    .nav-btn{
+      background:rgba(255,255,255,.08);color:#fff;
+      border:1px solid rgba(255,255,255,.15);
+      padding:.3em .9em;border-radius:20px;
+      cursor:pointer;white-space:nowrap;font-size:.82em;
+      transition:.2s;text-decoration:none;font-family:inherit;
+    }
+    .nav-btn:hover{background:var(--red);border-color:var(--red)}
+
+    /* ── SECTIONS ── */
+    section{padding:3.5em 0}
+    section:nth-child(even){background:#fff}
+    .container{max-width:1000px;margin:0 auto;padding:0 1.5em}
+    .sec-title{text-align:center;font-size:1.75em;color:var(--dark);margin-bottom:1.4em;position:relative}
+    .sec-title::after{content:'';display:block;width:48px;height:4px;background:var(--red);border-radius:2px;margin:.4em auto 0}
+
+    /* ── HOTEL CARD ── */
+    .hotel-overview{
+      background:linear-gradient(135deg,#1a1a2e,#2c3e50);
+      color:#fff;border-radius:20px;padding:2em;margin-bottom:2em;
+      display:flex;gap:2em;flex-wrap:wrap;align-items:flex-start;
+    }
+    .hotel-info{flex:1;min-width:240px}
+    .hotel-info h2{font-size:1.3em;color:var(--gold);margin-bottom:.5em}
+    .hotel-info h3{font-size:.9em;color:rgba(255,255,255,.7);font-weight:400;margin-bottom:1em}
+    .hotel-meta{display:flex;flex-direction:column;gap:.5em;font-size:.88em}
+    .hmrow{display:flex;align-items:flex-start;gap:.6em}
+    .hmrow .ic{font-size:1.1em;flex-shrink:0;margin-top:.1em}
+    .score-box{background:rgba(255,255,255,.1);border-radius:12px;padding:1.2em;text-align:center;min-width:120px;flex-shrink:0}
+    .score-num{font-size:3em;font-weight:900;color:var(--gold);line-height:1}
+    .score-lbl{font-size:.78em;opacity:.8;margin-top:.2em}
+    .score-cnt{font-size:.75em;opacity:.65}
+
+    /* ── CHECKIN WARNING ── */
+    .checkin-note{
+      background:linear-gradient(135deg,#fff3cd,#ffe0b2);
+      border-left:4px solid var(--orange);border-radius:0 14px 14px 0;
+      padding:1em 1.4em;font-size:.88em;line-height:1.7;margin-bottom:2em;
+    }
+    .checkin-note b{color:#d35400}
+
+    /* ── ROUTE MAP ── */
+    .route-map{
+      background:var(--darker);color:#fff;border-radius:18px;
+      padding:1.6em;margin-bottom:2em;
+    }
+    .route-map h3{color:var(--gold);margin-bottom:1em;font-size:1em;display:flex;align-items:center;gap:.4em}
+    .rmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1em}
+    .rmap-item{background:rgba(255,255,255,.07);border-radius:12px;padding:1em}
+    .rmap-item h4{color:var(--orange);font-size:.85em;margin-bottom:.5em}
+    .rmap-step{display:flex;align-items:center;gap:.4em;font-size:.8em;margin:.25em 0;flex-wrap:wrap}
+    .rnode{background:rgba(255,255,255,.12);padding:.18em .65em;border-radius:20px;font-size:.88em;white-space:nowrap}
+    .rarr{color:var(--orange);font-size:.85em}
+    .rinfo{font-size:.75em;color:rgba(255,255,255,.55);margin-top:.4em;line-height:1.5}
+
+    /* ── DAY HEADER ── */
+    .day-header{display:flex;align-items:center;gap:1em;margin-bottom:1.5em}
+    .day-circle{
+      width:60px;height:60px;border-radius:50%;
+      background:var(--red);color:#fff;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      flex-shrink:0;font-weight:900;line-height:1.1;
+    }
+    .day-circle small{font-size:.58em;font-weight:400;opacity:.85}
+    .day-circle span{font-size:1.4em}
+    .day-head-text h2{font-size:1.5em;color:var(--dark)}
+    .day-head-text p{color:var(--muted);font-size:.88em}
+
+    /* ── TRANSPORT BADGE ── */
+    .transport-badge{
+      display:inline-flex;align-items:center;gap:.5em;
+      background:var(--dark);color:#fff;border-radius:50px;
+      padding:.4em 1.1em;font-size:.82em;margin-bottom:1.4em;
+      font-weight:700;
+    }
+    .transport-badge .tb-time{color:var(--gold)}
+
+    /* ── TIMETABLE ── */
+    .timetable{border-radius:16px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:1.5em}
+    .timetable-header{
+      background:var(--dark);color:#fff;
+      padding:.7em 1.2em;font-size:.88em;font-weight:700;
+      display:flex;align-items:center;gap:.5em;
+    }
+    .tt-row{
+      display:grid;grid-template-columns:80px 1fr auto;
+      gap:.5em;align-items:center;
+      padding:.75em 1.2em;border-bottom:1px solid #f0f0f0;
+      background:#fff;font-size:.88em;
+    }
+    .tt-row:last-child{border-bottom:none}
+    .tt-row.transit{background:#f8f9ff}
+    .tt-row.meal{background:#f8fff8}
+    .tt-row.rest{background:#fffdf0}
+    .tt-row.key{background:#fff5f5}
+    .tt-time{font-weight:700;color:var(--red);font-size:.95em}
+    .tt-act{}
+    .tt-tip{font-size:.76em;color:var(--muted);text-align:right;white-space:nowrap}
+    .tt-icon{font-size:1.1em}
+
+    /* ── ROUTE DETAIL ── */
+    .route-detail{
+      background:linear-gradient(135deg,#0f0f1a,#1a1a2e);
+      color:#fff;border-radius:14px;padding:1.2em 1.5em;margin-bottom:1.5em;
+    }
+    .route-detail h4{color:var(--gold);font-size:.88em;margin-bottom:.8em;display:flex;align-items:center;gap:.4em}
+    .rd-steps{display:flex;flex-wrap:wrap;gap:.4em;align-items:center;font-size:.82em}
+    .rd-node{background:rgba(255,255,255,.12);padding:.2em .7em;border-radius:20px}
+    .rd-arr{color:var(--orange)}
+    .rd-info{font-size:.78em;color:rgba(255,255,255,.6);margin-top:.6em;line-height:1.6}
+    .rd-info span::before{content:'• ';color:var(--gold)}
+
+    /* ── ATTRACTION CARDS ── */
+    .attractions{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.3em;margin-bottom:1.5em}
+    .acard{background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);transition:transform .2s}
+    .acard:hover{transform:translateY(-4px)}
+    .acard img{width:100%;height:170px;object-fit:cover;background:#ddd}
+    .acard-body{padding:1.1em}
+    .acard-body h3{font-size:1em;color:var(--dark);margin-bottom:.3em}
+    .acard-body p{font-size:.83em;color:#555;margin-bottom:.7em;line-height:1.5}
+    .tags{display:flex;gap:.35em;flex-wrap:wrap;margin-bottom:.6em}
+    .tag{padding:.15em .6em;border-radius:10px;font-size:.74em}
+    .t-child{background:#fde8e8;color:#c0392b}
+    .t-food{background:#e8f8ee;color:#27ae60}
+    .t-nature{background:#e8f3ff;color:#2980b9}
+    .t-indoor{background:#f3e8ff;color:#8e44ad}
+    .t-culture{background:#fff8e8;color:#d35400}
+    .t-walk{background:#e8ffef;color:#1a7a3c}
+    .alink{color:var(--red);font-size:.8em;font-weight:700;text-decoration:none}
+    .alink:hover{text-decoration:underline}
+    .ticket{font-size:.78em;color:#666;margin-top:.3em}
+    .ticket b{color:var(--red)}
+
+    /* ── DAY NOTE ── */
+    .day-note{
+      background:linear-gradient(135deg,#fff8e1,#ffe0b2);
+      border-left:4px solid var(--orange);border-radius:0 14px 14px 0;
+      padding:1em 1.4em;margin-top:1.2em;font-size:.88em;
+    }
+    .day-note b{color:var(--red)}
+
+    /* ── WALK INDICATOR ── */
+    .walk-badge{
+      display:inline-flex;align-items:center;gap:.4em;
+      background:#e8ffef;color:#1a7a3c;border-radius:50px;
+      padding:.28em .85em;font-size:.78em;font-weight:700;margin-bottom:1em;
+    }
+
+    /* ── FOOTER ── */
+    footer{background:var(--darker);color:rgba(255,255,255,.45);text-align:center;padding:2em;font-size:.82em}
+
+    /* ── MAP BUTTON ── */
+    .map-btn{display:inline-flex;align-items:center;gap:.3em;padding:.3em .9em;border-radius:20px;font-size:.76em;text-decoration:none;font-weight:700;transition:.15s;white-space:nowrap;background:#34a853;color:#fff;margin-top:.6em}
+    .map-btn:hover{background:#2d8f47;transform:translateY(-1px)}
+    .map-btn-blue{background:#1a73e8}.map-btn-blue:hover{background:#1557b0}
+
+    @media(max-width:600px){
+      .hero h1{font-size:1.8em}
+      .hotel-overview{flex-direction:column}
+      .tt-row{grid-template-columns:70px 1fr;font-size:.82em}
+      .tt-tip{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-jp">OSAKA · 親子旅遊 · Day 1–4 量身行程</div>
+  <h1>ESLEAD 日本橋 據點版<br>4天3夜 行程時間表</h1>
+  <div class="hero-sub">以恵美須町為中心，最短交通 × 幼童節奏 × 地理動線最佳化</div>
+  <div class="hero-badges">
+    <span class="badge">🏨 ESLEAD 日本橋</span>
+    <span class="badge">👨‍👩‍👧 3大3小</span>
+    <span class="badge">👶 3–4歲</span>
+    <span class="badge">📍 恵美須町駅 1分</span>
+    <span class="badge">⭐ 評分 9.0 / 1,980則</span>
+  </div>
+</div>
+
+<!-- ═══ STICKY NAV ═══ -->
+<nav class="sticky-nav">
+  <a class="nav-btn" href="#hotel">飯店資訊</a>
+  <a class="nav-btn" href="#route">交通路線</a>
+  <a class="nav-btn" href="#day1">Day 1</a>
+  <a class="nav-btn" href="#day2">Day 2</a>
+  <a class="nav-btn" href="#day3">Day 3</a>
+  <a class="nav-btn" href="#day4">Day 4</a>
+</nav>
+
+<!-- ═══ HOTEL INFO ═══ -->
+<section id="hotel">
+  <div class="container">
+    <h2 class="sec-title">住宿據點 · ESLEAD 日本橋</h2>
+
+    <div class="hotel-overview">
+      <div class="hotel-info">
+        <h2>ESLEAD HOTEL Osaka Nipponbashi</h2>
+        <h3>ESLEAD 酒店大阪日本橋（整棟公寓式）</h3>
+        <div class="hotel-meta">
+          <div class="hmrow"><span class="ic">📍</span><span>大阪市浪速区日本橋 5丁目12-16</span></div>
+          <div class="hmrow"><span class="ic">🚉</span><span>恵美須町駅（堺筋線）<strong style="color:var(--gold)">步行 1 分</strong></span></div>
+          <div class="hmrow"><span class="ic">🚉</span><span>日本橋駅（千日前線 / 堺筋線）步行 5 分</span></div>
+          <div class="hmrow"><span class="ic">🚶</span><span>道頓堀 步行 15 分 ／ 黒門市場 步行 10 分</span></div>
+          <div class="hmrow"><span class="ic">🚶</span><span>新世界・通天閣 步行 15 分（西北方向）</span></div>
+          <div class="hmrow"><span class="ic">🏠</span><span>公寓式整棟住宿，自助 check-in，有廚房設備</span></div>
+        </div>
+      </div>
+      <div class="score-box">
+        <div class="score-num">9.0</div>
+        <div class="score-lbl">Agoda 評分</div>
+        <div class="score-cnt">1,980 則評論</div>
+      </div>
+    </div>
+
+    <div class="checkin-note">
+      <b>⚠️ 自助 Check-in 注意事項：</b>本物件為無人 Key Box 入住，建議出發前確認 Agoda/預訂信箱的
+      入室方式說明（密碼或 QR Code）。第一天從機場到達前先確認好，避免到門口才找不到說明。
+      帶小孩的情況下，建議最晚 17:30 前到達，避免摸黑操作。
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ ROUTE MAP ═══ -->
+<section id="route" style="background:#fff">
+  <div class="container">
+    <h2 class="sec-title">從飯店出發・各景點交通一覽</h2>
+
+    <div class="route-map">
+      <h3>🗺️ 恵美須町駅（飯店1分）為起點</h3>
+      <div class="rmap-grid">
+
+        <div class="rmap-item">
+          <h4>🎢 USJ 環球影城</h4>
+          <div class="rmap-step">
+            <span class="rnode">恵美須町</span>
+            <span class="rarr">→</span>
+            <span class="rnode">動物園前</span>
+            <span class="rarr">→</span>
+            <span class="rnode">JR新今宮</span>
+            <span class="rarr">→</span>
+            <span class="rnode">西九条</span>
+            <span class="rarr">→</span>
+            <span class="rnode">USJ</span>
+          </div>
+          <div class="rinfo">
+            <span>堺筋線 1站 → 步行7分 → JR大阪環状線+桜島線</span>
+            <span>全程約 <strong style="color:var(--gold)">30 分鐘</strong>，¥200/人</span>
+          </div>
+          <a class="map-btn" href="https://www.google.com/maps/dir/?api=1&origin=Ebisucho+Station+Osaka&destination=Universal+Studios+Japan&travelmode=transit" target="_blank">📍 Google 路線</a>
+        </div>
+
+        <div class="rmap-item">
+          <h4>🐠 海遊館（大阪港）</h4>
+          <div class="rmap-step">
+            <span class="rnode">恵美須町</span>
+            <span class="rarr">→</span>
+            <span class="rnode">堺筋本町</span>
+            <span class="rarr">→</span>
+            <span class="rnode">大阪港</span>
+            <span class="rarr">→</span>
+            <span class="rnode">海遊館</span>
+          </div>
+          <div class="rinfo">
+            <span>堺筋線北行 4站（8分）→ 轉中央線西行 7站（12分）→ 步行5分</span>
+            <span>全程約 <strong style="color:var(--gold)">25 分鐘</strong>，¥350/人</span>
+          </div>
+          <a class="map-btn" href="https://www.google.com/maps/dir/?api=1&origin=Ebisucho+Station+Osaka&destination=Kaiyukan+Osaka+Aquarium&travelmode=transit" target="_blank">📍 Google 路線</a>
+        </div>
+
+        <div class="rmap-item">
+          <h4>🏯 大阪城</h4>
+          <div class="rmap-step">
+            <span class="rnode">日本橋</span>
+            <span class="rarr">→</span>
+            <span class="rnode">谷町九丁目</span>
+            <span class="rarr">→</span>
+            <span class="rnode">谷町四丁目</span>
+            <span class="rarr">→</span>
+            <span class="rnode">大阪城</span>
+          </div>
+          <div class="rinfo">
+            <span>步行5分到日本橋駅 → 千日前線 1站 → 谷町線 1站 → 步行8分</span>
+            <span>全程約 <strong style="color:var(--gold)">20 分鐘</strong>，¥230/人</span>
+          </div>
+          <a class="map-btn" href="https://www.google.com/maps/dir/?api=1&origin=Nipponbashi+Station+Osaka&destination=Osaka+Castle+Park&travelmode=transit" target="_blank">📍 Google 路線</a>
+        </div>
+
+        <div class="rmap-item">
+          <h4>🦁 天王寺動物園</h4>
+          <div class="rmap-step">
+            <span class="rnode">恵美須町</span>
+            <span class="rarr">→</span>
+            <span class="rnode">動物園前</span>
+            <span class="rarr">→</span>
+            <span class="rnode">天王寺動物園</span>
+          </div>
+          <div class="rinfo">
+            <span>堺筋線南行 1站（2分）→ 步行5分</span>
+            <span>全程約 <strong style="color:var(--gold)">10 分鐘</strong>，¥180/人</span>
+          </div>
+          <a class="map-btn" href="https://www.google.com/maps/dir/?api=1&origin=Ebisucho+Station+Osaka&destination=Tennoji+Zoo+Osaka&travelmode=transit" target="_blank">📍 Google 路線</a>
+        </div>
+
+        <div class="rmap-item">
+          <h4>🍜 道頓堀・難波</h4>
+          <div class="rmap-step">
+            <span class="rnode">飯店</span>
+            <span class="rarr">→</span>
+            <span class="rnode">道頓堀</span>
+          </div>
+          <div class="rinfo">
+            <span>步行北上 15 分（沿日本橋通り往北）</span>
+            <span>全程 <strong style="color:var(--gold)">步行 15 分</strong>，免交通費</span>
+          </div>
+          <a class="map-btn map-btn-blue" href="https://www.google.com/maps/dir/?api=1&origin=ESLEAD+Hotel+Osaka+Nipponbashi&destination=Dotonbori+Osaka&travelmode=walking" target="_blank">🚶 Google 步行路線</a>
+        </div>
+
+        <div class="rmap-item">
+          <h4>🥩 新世界・通天閣</h4>
+          <div class="rmap-step">
+            <span class="rnode">飯店</span>
+            <span class="rarr">→</span>
+            <span class="rnode">新世界</span>
+          </div>
+          <div class="rinfo">
+            <span>步行西北方向 15 分</span>
+            <span>全程 <strong style="color:var(--gold)">步行 15 分</strong>，免交通費</span>
+          </div>
+          <a class="map-btn map-btn-blue" href="https://www.google.com/maps/dir/?api=1&origin=ESLEAD+Hotel+Osaka+Nipponbashi&destination=Shinsekai+Osaka&travelmode=walking" target="_blank">🚶 Google 步行路線</a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════ DAY 1 ═══════════════════════════ -->
+<section id="day1">
+  <div class="container">
+    <div class="day-header">
+      <div class="day-circle"><small>Day</small><span>1</span></div>
+      <div class="day-head-text">
+        <h2>抵達大阪・難波初探</h2>
+        <p>關西機場 → ESLEAD 報到 → 黒門市場 → 道頓堀夜遊</p>
+      </div>
+    </div>
+
+    <span class="walk-badge">🚶 今日最遠步行：飯店↔道頓堀 約 15 分</span>
+
+    <div class="route-detail">
+      <h4>✈️ 機場 → 飯店 路線</h4>
+      <div class="rd-steps">
+        <span class="rd-node">關西機場</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">南海急行</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">難波（南海）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">步行 20 分</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">ESLEAD</span>
+      </div>
+      <div class="rd-info">
+        <span>南海急行：45 分，¥920/人（特急ラピート ¥1,450，建議有推車帶孩子選ラピート空間大）</span>
+        <span>難波 → ESLEAD：沿堺筋南下步行約 20 分，或出站搭計程車 ¥800–1,000</span>
+        <span>提醒：出站後開始走日本橋でんでんタウン（電器街），孩子可先逛玩具店</span>
+      </div>
+      <a class="map-btn" href="https://www.google.com/maps/dir/?api=1&origin=Kansai+International+Airport&destination=ESLEAD+Hotel+Osaka+Nipponbashi&travelmode=transit" target="_blank">📍 Google 路線（機場→飯店）</a>
+    </div>
+
+    <div class="timetable">
+      <div class="timetable-header">📅 Day 1 行程時間表</div>
+      <div class="tt-row transit"><span class="tt-time">15:00</span><span class="tt-act">🛬 關西機場入境・領行李</span><span class="tt-tip">預留 45 分入境手續</span></div>
+      <div class="tt-row transit"><span class="tt-time">16:00</span><span class="tt-act">🚃 南海急行 → 難波（45 分，¥920/人）</span><span class="tt-tip">有推車選ラピート</span></div>
+      <div class="tt-row transit"><span class="tt-time">16:45</span><span class="tt-act">🚶 難波 → ESLEAD 日本橋（步行 20 分 or 計程車）</span><span class="tt-tip">順路逛でんでんタウン</span></div>
+      <div class="tt-row key"><span class="tt-time">17:15</span><span class="tt-act">🏨 ESLEAD Check-in・整理行李</span><span class="tt-tip">先確認 Key Box 密碼</span></div>
+      <div class="tt-row rest"><span class="tt-time">18:00</span><span class="tt-act">💤 孩子小休 20 分（長途飛行後充電）</span><span class="tt-tip">勿省略</span></div>
+      <div class="tt-row"><span class="tt-time">18:30</span><span class="tt-act">🚶 步行 10 分 → 黒門市場（快速逛，18:30 部分攤位仍營業）</span><span class="tt-tip">步行北上</span></div>
+      <div class="tt-row meal"><span class="tt-time">19:00</span><span class="tt-act">🍜 步行 5 分 → 道頓堀・晚餐（章魚燒、炸串、烏龍麵）</span><span class="tt-tip">幼童點烏龍麵安全</span></div>
+      <div class="tt-row"><span class="tt-time">20:00</span><span class="tt-act">🌃 道頓堀夜景散步（格力高跑者看板打卡）</span><span class="tt-tip">孩子看霓虹燈超開心</span></div>
+      <div class="tt-row transit"><span class="tt-time">20:30</span><span class="tt-act">🚶 步行 15 分 → 回飯店</span><span class="tt-tip">第一天輕鬆為主</span></div>
+      <div class="tt-row rest"><span class="tt-time">21:00</span><span class="tt-act">🛁 洗澡・就寢（明天 USJ 要早起）</span><span class="tt-tip"></span></div>
+    </div>
+
+    <div class="attractions">
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=600&h=340&q=80" alt="黒門市場" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪難波-黒門市場（Kuromon Ichiba）</h3>
+          <div class="tags"><span class="tag t-food">美食</span><span class="tag t-walk">步行10分</span></div>
+          <p>大阪廚房，海鮮串、草莓、蟹腳邊走邊吃。傍晚 18:00 後人潮稍減，輕鬆推車逛。</p>
+          <div class="ticket">⏰ 多數攤位 09:00–18:00（部分延至 19:00）</div>
+        </div>
+      </div>
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1590559899731-a382839e5549?auto=format&fit=crop&w=600&h=340&q=80" alt="道頓堀" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪難波-道頓堀（Dotonbori）</h3>
+          <div class="tags"><span class="tag t-food">美食</span><span class="tag t-child">幼童友善</span><span class="tag t-walk">步行15分</span></div>
+          <p>霓虹燈招牌、格力高跑者看板，孩子第一眼就被震撼。章魚燒現炸，帶孩子嘗試大阪第一口味。</p>
+          <div class="ticket">🍡 推薦：道頓堀 くくる 章魚燒、金龍拉麵</div>
+        </div>
+      </div>
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1764069138714-bcc6783b8e48?auto=format&fit=crop&w=600&h=340&q=80" alt="でんでんタウン" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪難波-でんでんタウン（Denden Town）</h3>
+          <div class="tags"><span class="tag t-culture">電器玩具</span><span class="tag t-walk">飯店旁</span></div>
+          <p>日本橋でんでんタウン就在飯店附近，動漫玩具、模型、電器。帶孩子逛玩具區是他們最開心的事。</p>
+          <div class="ticket">🏬 大型店：Joshin、SUPER KIDS LAND（玩具5層樓）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-note">
+      <b>Day 1 關鍵提醒：</b>
+      第一天不要排太多，孩子長途飛行體力本就不足。黒門市場 + 道頓堀散步已足夠。
+      <br>從難波走回飯店路上正好經過でんでんタウン，孩子如果精神好可以短暫停留，不用刻意排進行程。
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════ DAY 2 ═══════════════════════════ -->
+<section id="day2" style="background:#fff">
+  <div class="container">
+    <div class="day-header">
+      <div class="day-circle"><small>Day</small><span>2</span></div>
+      <div class="day-head-text">
+        <h2>USJ 環球影城</h2>
+        <p>飯店 → 恵美須町 → 動物園前 → JR新今宮 → Universal City（約 30 分鐘）</p>
+      </div>
+    </div>
+
+    <div class="transport-badge">
+      🚇 恵美須町 → USJ 全程 <span class="tb-time">約 30 分</span>・¥200/人
+    </div>
+
+    <div class="route-detail">
+      <h4>🚇 飯店 → USJ 完整路線</h4>
+      <div class="rd-steps">
+        <span class="rd-node">ESLEAD（步行1分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">恵美須町駅</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">動物園前（1停・2分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">步行 7 分</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">JR 新今宮駅</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">西九条（大阪環状線・15分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">ユニバーサルシティ（桜島線・8分）</span>
+      </div>
+      <div class="rd-info">
+        <span>堺筋線：恵美須町 → 動物園前 ¥180，JR：新今宮 → ユニバーサルシティ ¥200（ICOCA 可刷）</span>
+        <span>與從梅田/難波中心出發相比，<strong style="color:var(--gold)">本飯店位置前往 USJ 是最快的出發點之一</strong></span>
+        <span>建議 08:30 前出發，開園前 30 分到達可搶前排</span>
+      </div>
+      <a class="map-btn" href="https://www.google.com/maps/dir/?api=1&origin=Ebisucho+Station+Osaka&destination=Universal+Studios+Japan&travelmode=transit" target="_blank">📍 Google 路線（恵美須町→USJ）</a>
+    </div>
+
+    <div class="timetable">
+      <div class="timetable-header">📅 Day 2 行程時間表</div>
+      <div class="tt-row rest"><span class="tt-time">07:30</span><span class="tt-act">🌅 起床・早餐（便利商店 or 飯店附近咖啡）</span><span class="tt-tip">711 / Lawson 都可</span></div>
+      <div class="tt-row key"><span class="tt-time">08:15</span><span class="tt-act">🎒 出發（確認票券已下載進手機）</span><span class="tt-tip">USJ App 要先抓好</span></div>
+      <div class="tt-row transit"><span class="tt-time">08:16</span><span class="tt-act">🚇 步行 1 分 → 恵美須町駅</span><span class="tt-tip">堺筋線 南行</span></div>
+      <div class="tt-row transit"><span class="tt-time">08:18</span><span class="tt-act">🚇 堺筋線 → 動物園前（1停 2分）下車</span><span class="tt-tip">¥180/人</span></div>
+      <div class="tt-row transit"><span class="tt-time">08:25</span><span class="tt-act">🚶 步行 7 分 → JR 新今宮駅</span><span class="tt-tip">往南出口走</span></div>
+      <div class="tt-row transit"><span class="tt-time">08:35</span><span class="tt-act">🚃 JR 大阪環状線（外回り）→ 西九条（15 分）</span><span class="tt-tip">¥200/人</span></div>
+      <div class="tt-row transit"><span class="tt-time">08:50</span><span class="tt-act">🚃 JR 桜島線 → ユニバーサルシティ（8 分）</span><span class="tt-tip">同一票可轉乘</span></div>
+      <div class="tt-row key"><span class="tt-time">09:00</span><span class="tt-act">🎡 USJ 入場（09:00 開園）</span><span class="tt-tip">先往 環球奇境！</span></div>
+      <div class="tt-row"><span class="tt-time">09:00–11:30</span><span class="tt-act">🎠 環球奇境（Universal Wonderland）→ 3–4 歲最佳區域</span><span class="tt-tip">開園立刻衝</span></div>
+      <div class="tt-row meal"><span class="tt-time">11:30</span><span class="tt-act">🍔 USJ 內午餐（建議 Minion Café or 環球美食街）</span><span class="tt-tip">11:30 前吃避免人龍</span></div>
+      <div class="tt-row rest"><span class="tt-time">13:00</span><span class="tt-act">💺 推車休息 30 分（重要！孩子午後體力恢復）</span><span class="tt-tip">找陰涼長椅</span></div>
+      <div class="tt-row"><span class="tt-time">13:30</span><span class="tt-act">🎪 小小兵樂園（Minion Park）→ 拍照 + 遊樂設施</span><span class="tt-tip">排隊30分內可接受</span></div>
+      <div class="tt-row"><span class="tt-time">15:30</span><span class="tt-act">🛒 USJ 紀念品採購（在出口前）</span><span class="tt-tip">小小兵玩具孩子必買</span></div>
+      <div class="tt-row transit"><span class="tt-time">16:00</span><span class="tt-act">🚃 原路返回飯店（約 30 分）</span><span class="tt-tip">孩子在車上睡著正常</span></div>
+      <div class="tt-row rest"><span class="tt-time">16:30</span><span class="tt-act">💤 回飯店小睡 1 小時</span><span class="tt-tip">必要！</span></div>
+      <div class="tt-row meal"><span class="tt-time">18:30</span><span class="tt-act">🥩 步行 15 分 → 新世界・串炸晚餐（先預習明天的重頭戲）</span><span class="tt-tip">步行即可到</span></div>
+      <div class="tt-row transit"><span class="tt-time">20:00</span><span class="tt-act">🚶 步行回飯店（15 分）</span><span class="tt-tip"></span></div>
+    </div>
+
+    <div class="attractions">
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=600&h=340&q=80" alt="環球奇境" loading="lazy">
+        <div class="acard-body">
+          <h3>USJ-環球奇境（Universal Wonderland）</h3>
+          <div class="tags"><span class="tag t-child">幼童最佳</span><span class="tag t-indoor">室內設施</span></div>
+          <p>超級任天堂世界旁，3–4 歲孩子最適合的區域。哈囉基蒂、史努比、芝麻街，設施身高限制低，幾乎全部都可玩。</p>
+          <div class="ticket">🎫 開園立刻衝，是全天人最少的時段</div>
+        </div>
+      </div>
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1519861531473-9200262188bf?auto=format&fit=crop&w=600&h=340&q=80" alt="小小兵" loading="lazy">
+        <div class="acard-body">
+          <h3>USJ-小小兵樂園（Minion Park）</h3>
+          <div class="tags"><span class="tag t-child">幼童友善</span></div>
+          <p>小小兵主題樂園，射擊遊戲（Despicable Me Minion Mayhem）建議 4 歲以上。紀念品店是最大亮點，周邊商品品項最多。</p>
+          <div class="ticket">⏰ 建議下午 13:30 後前往（人潮稍退）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-note">
+      <b>USJ 幼童攻略（3–4 歲）：</b>
+      ① 超級任天堂世界需要額外預約入場券，3–4 歲孩子<strong>大部分設施不能玩</strong>，不建議排。
+      ② 環球奇境 + 小小兵樂園 就夠玩半天，不用強求走完全園。
+      ③ 推車可全程使用，官方有推車停放區。
+      ④ 本飯店距 JR 新今宮只需 10 分鐘，是難波周邊 <strong>前往 USJ 最快的出發點</strong>。
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════ DAY 3 ═══════════════════════════ -->
+<section id="day3">
+  <div class="container">
+    <div class="day-header">
+      <div class="day-circle"><small>Day</small><span>3</span></div>
+      <div class="day-head-text">
+        <h2>大阪港・海遊館 + 新世界串炸</h2>
+        <p>上午大阪港→下午回程→步行新世界・通天閣、串炸晚餐</p>
+      </div>
+    </div>
+
+    <div class="transport-badge">
+      🚇 恵美須町 → 大阪港（海遊館）全程 <span class="tb-time">約 25 分</span>・¥350/人
+    </div>
+
+    <div class="route-detail">
+      <h4>🚇 飯店 → 海遊館 路線</h4>
+      <div class="rd-steps">
+        <span class="rd-node">ESLEAD（步行1分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">恵美須町駅</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">堺筋本町（4停 8分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">大阪港（中央線 7停 12分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">步行 5 分</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">海遊館</span>
+      </div>
+      <div class="rd-info">
+        <span>堺筋線北行（天神橋筋六丁目方向）4 停到 堺筋本町，転中央線西行（コスモスクエア方向）7 停到 大阪港</span>
+        <span>大阪港站出來往海遊館方向步行 5 分，沿途路標清楚</span>
+      </div>
+      <a class="map-btn" href="https://www.google.com/maps/dir/?api=1&origin=Ebisucho+Station+Osaka&destination=Kaiyukan+Osaka+Aquarium&travelmode=transit" target="_blank">📍 Google 路線（恵美須町→海遊館）</a>
+    </div>
+
+    <div class="timetable">
+      <div class="timetable-header">📅 Day 3 行程時間表</div>
+      <div class="tt-row rest"><span class="tt-time">08:30</span><span class="tt-act">🌅 起床・早餐（飯店附近便利商店）</span><span class="tt-tip">711 熱食 or おにぎり</span></div>
+      <div class="tt-row transit"><span class="tt-time">09:30</span><span class="tt-act">🚇 恵美須町 → 堺筋本町（堺筋線北行 4停 8分）</span><span class="tt-tip">¥230</span></div>
+      <div class="tt-row transit"><span class="tt-time">09:40</span><span class="tt-act">🚇 堺筋本町 転 中央線西行 → 大阪港（7停 12分）</span><span class="tt-tip">繼續同卡刷</span></div>
+      <div class="tt-row transit"><span class="tt-time">09:55</span><span class="tt-act">🚶 大阪港站 步行 5 分 → 海遊館</span><span class="tt-tip">路標清楚</span></div>
+      <div class="tt-row key"><span class="tt-time">10:00</span><span class="tt-act">🐠 海遊館開館入場</span><span class="tt-tip">大人 ¥2,400 / 3–15歲 ¥1,200 / 未滿3歲免費</span></div>
+      <div class="tt-row"><span class="tt-time">10:00–12:30</span><span class="tt-act">🌊 海遊館遊覽（2.5 小時 → 重點：太平洋水槽、企鵝、水母）</span><span class="tt-tip">幼童館內全程推車OK</span></div>
+      <div class="tt-row meal"><span class="tt-time">12:30</span><span class="tt-act">🍱 天保山 Marketplace 午餐（海遊館出口旁商場）</span><span class="tt-tip">有各種日式料理</span></div>
+      <div class="tt-row key"><span class="tt-time">13:30</span><span class="tt-act">🎡 天保山摩天輪（海遊館旁，步行 2 分）</span><span class="tt-tip">大人 ¥800 / 3–12歲 ¥400</span></div>
+      <div class="tt-row rest"><span class="tt-time">14:30</span><span class="tt-act">💺 孩子推車休息 / 濱海散步</span><span class="tt-tip">天保山公園草坪可放電</span></div>
+      <div class="tt-row transit"><span class="tt-time">15:00</span><span class="tt-act">🚇 原路返回 → 恵美須町（25 分）</span><span class="tt-tip">孩子回程可能睡著</span></div>
+      <div class="tt-row rest"><span class="tt-time">15:30</span><span class="tt-act">💤 飯店小休 1 小時</span><span class="tt-tip">重要！下午再出發</span></div>
+      <div class="tt-row transit"><span class="tt-time">16:30</span><span class="tt-act">🚶 步行 15 分 → 新世界・通天閣</span><span class="tt-tip">往西北方向走</span></div>
+      <div class="tt-row"><span class="tt-time">17:00</span><span class="tt-act">👀 通天閣外觀打卡（不用買票上去，外觀就很壯觀）</span><span class="tt-tip">孩子愛看燈</span></div>
+      <div class="tt-row meal"><span class="tt-time">17:30</span><span class="tt-act">🍢 新世界・串炸晚餐（大阪在地招牌 = 必吃）</span><span class="tt-tip">二度沾醬違反規定！</span></div>
+      <div class="tt-row transit"><span class="tt-time">19:00</span><span class="tt-act">🚶 步行 15 分 → 回飯店</span><span class="tt-tip">今天走量最多，早休息</span></div>
+    </div>
+
+    <div class="attractions">
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1501426026826-31c667bdf23d?auto=format&fit=crop&w=600&h=340&q=80" alt="海遊館" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪港-海遊館（Kaiyukan）</h3>
+          <div class="tags"><span class="tag t-indoor">全室內</span><span class="tag t-child">必去</span><span class="tag t-nature">海洋</span></div>
+          <p>世界最大級水族館之一。8公尺高太平洋大水槽、鯨鯊、企鵝游泳。全程室內，下雨天最佳。3–4歲孩子可看2–3小時不膩。</p>
+          <div class="ticket"><b>大人 ¥2,400 ／ 3–15歲 ¥1,200 ／ 未滿3歲 免費</b>（三位小孩免費！）</div>
+          <a class="alink" href="https://www.kaiyukan.com" target="_blank">官方網站 →</a>
+        </div>
+      </div>
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1757059221115-36448e083d39?auto=format&fit=crop&w=600&h=340&q=80" alt="天保山摩天輪" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪港-天保山摩天輪（Tempozan）</h3>
+          <div class="tags"><span class="tag t-child">孩子喜歡</span></div>
+          <p>海遊館旁步行 2 分，¥800 可鳥瞰大阪灣。透明地板車廂（心臟強才坐），普通車廂更安心。3歲以上可搭。</p>
+          <div class="ticket"><b>大人 ¥800 ／ 3–12歲 ¥400</b></div>
+        </div>
+      </div>
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?auto=format&fit=crop&w=600&h=340&q=80" alt="新世界" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪-新世界・通天閣（Shinsekai）</h3>
+          <div class="tags"><span class="tag t-food">串炸</span><span class="tag t-culture">在地文化</span><span class="tag t-walk">步行15分</span></div>
+          <p>大阪最在地的老街，串炸（串カツ）文化發源地。飯店步行15分可到。通天閣燈光夜景壯觀，孩子即使不上去也看得入迷。</p>
+          <div class="ticket">🍢 串炸推薦：だるま本店、横綱（孩子可吃炸薯條、炸蝦）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-note">
+      <b>Day 3 地理優勢：</b>
+      海遊館回程後不需要再搭車，步行 15 分就到新世界吃晚餐，動線完美沒有浪費。
+      3 位孩子（未滿 3 歲）海遊館<strong>全部免費</strong>，省下 ¥3,600，今天是最划算的一天。
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════ DAY 4 ═══════════════════════════ -->
+<section id="day4" style="background:#fff">
+  <div class="container">
+    <div class="day-header">
+      <div class="day-circle"><small>Day</small><span>4</span></div>
+      <div class="day-head-text">
+        <h2>大阪城 + 黒門市場 + 最後道頓堀</h2>
+        <p>上午大阪城→午休→下午黑門+心齋橋→晚上道頓堀最後一逛・明日移往梅田</p>
+      </div>
+    </div>
+
+    <div class="transport-badge">
+      🚇 日本橋 → 大阪城（谷町四丁目） <span class="tb-time">約 20 分</span>・¥230/人
+    </div>
+
+    <div class="route-detail">
+      <h4>🚇 飯店 → 大阪城 路線</h4>
+      <div class="rd-steps">
+        <span class="rd-node">ESLEAD（步行5分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">日本橋駅</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">谷町九丁目（千日前線 1停 3分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">谷町四丁目（谷町線 1停 2分）</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">步行 8 分</span>
+        <span class="rd-arr">→</span>
+        <span class="rd-node">大阪城公園</span>
+      </div>
+      <div class="rd-info">
+        <span>飯店往北步行 5 分到 日本橋駅（千日前線 / 堺筋線 共用站）</span>
+        <span>千日前線 東行 → 谷町九丁目，転 谷町線 北行 → 谷町四丁目，出站往大阪城方向步行 8 分</span>
+        <span>注意：大阪城<strong>天守閣</strong>內部有大量階梯，3–4 歲幼童體力消耗大，可只逛<strong>外苑公園（免費）</strong></span>
+      </div>
+      <a class="map-btn" href="https://www.google.com/maps/dir/?api=1&origin=Nipponbashi+Station+Osaka&destination=Osaka+Castle+Park&travelmode=transit" target="_blank">📍 Google 路線（日本橋→大阪城）</a>
+    </div>
+
+    <div class="timetable">
+      <div class="timetable-header">📅 Day 4 行程時間表</div>
+      <div class="tt-row rest"><span class="tt-time">08:30</span><span class="tt-act">🌅 起床・早餐</span><span class="tt-tip">今天行程輕鬆，不用趕</span></div>
+      <div class="tt-row transit"><span class="tt-time">09:00</span><span class="tt-act">🚶 步行 5 分 → 日本橋駅（千日前線）</span><span class="tt-tip">飯店往北</span></div>
+      <div class="tt-row transit"><span class="tt-time">09:05</span><span class="tt-act">🚇 千日前線東行 → 谷町九丁目（1停 3分）</span><span class="tt-tip">¥180</span></div>
+      <div class="tt-row transit"><span class="tt-time">09:10</span><span class="tt-act">🚇 谷町線北行 → 谷町四丁目（1停 2分）</span><span class="tt-tip">転乗</span></div>
+      <div class="tt-row transit"><span class="tt-time">09:15</span><span class="tt-act">🚶 大阪城公園 步行 8 分</span><span class="tt-tip">路標清楚</span></div>
+      <div class="tt-row key"><span class="tt-time">09:25</span><span class="tt-act">🏯 大阪城公園（外苑散步・免費）</span><span class="tt-tip">護城河繞城走 40 分</span></div>
+      <div class="tt-row"><span class="tt-time">09:30–11:00</span><span class="tt-act">🌳 大阪城公園草坪・孩子放電（廣大草坪免費玩）</span><span class="tt-tip">帶球孩子最開心</span></div>
+      <div class="tt-row"><span class="tt-time">11:00</span><span class="tt-act">🏯 天守閣（可選）大人 ¥600，孩子在下面等更實際</span><span class="tt-tip">8層樓皆階梯</span></div>
+      <div class="tt-row transit"><span class="tt-time">11:45</span><span class="tt-act">🚇 原路返回飯店（20 分）</span><span class="tt-tip"></span></div>
+      <div class="tt-row meal"><span class="tt-time">12:30</span><span class="tt-act">🍜 飯店附近午餐（でんでんタウン 周邊餐廳多）</span><span class="tt-tip"></span></div>
+      <div class="tt-row rest"><span class="tt-time">13:15</span><span class="tt-act">💤 飯店午睡 1.5 小時（4 天行程最後的電池補充）</span><span class="tt-tip">務必補眠</span></div>
+      <div class="tt-row transit"><span class="tt-time">14:45</span><span class="tt-act">🚶 步行 10 分 → 黒門市場</span><span class="tt-tip">買海鮮串、零食</span></div>
+      <div class="tt-row"><span class="tt-time">14:55–15:45</span><span class="tt-act">🐟 黒門市場・邊走邊吃（草莓、海膽、蟹）</span><span class="tt-tip">孩子最愛吃串東西</span></div>
+      <div class="tt-row transit"><span class="tt-time">15:45</span><span class="tt-act">🚶 步行 5 分 → 心齋橋商店街</span><span class="tt-tip">有頂拱廊，推車OK</span></div>
+      <div class="tt-row"><span class="tt-time">16:00–17:30</span><span class="tt-act">🛍️ 心齋橋・藥妝最後採購（MATSUKIYO、DONKI）</span><span class="tt-tip">整理購物清單</span></div>
+      <div class="tt-row transit"><span class="tt-time">17:30</span><span class="tt-act">🚶 步行 5 分 → 道頓堀</span><span class="tt-tip"></span></div>
+      <div class="tt-row meal"><span class="tt-time">18:00</span><span class="tt-act">🦀 道頓堀・最後晚餐（告別難波）</span><span class="tt-tip">可吃蟹道樂 or 金龍拉麵</span></div>
+      <div class="tt-row transit"><span class="tt-time">19:30</span><span class="tt-act">🚶 步行 15 分 → 回飯店</span><span class="tt-tip"></span></div>
+      <div class="tt-row key"><span class="tt-time">20:00</span><span class="tt-act">🧳 整理行李（明天 Check-out → 移往梅田飯店）</span><span class="tt-tip">Day 5 換梅田</span></div>
+    </div>
+
+    <div class="attractions">
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1759203100463-00df1601d11c?auto=format&fit=crop&w=600&h=340&q=80" alt="大阪城" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪城-大阪城天守閣（Osaka Castle）</h3>
+          <div class="tags"><span class="tag t-culture">歷史</span><span class="tag t-child">外苑免費</span></div>
+          <p>大阪的標誌，外苑護城河+廣大公園全免費。帶 3–4 歲孩子建議只逛公園草坪，天守閣內全是樓梯，小孩難爬。</p>
+          <div class="ticket"><b>外苑：免費 ／ 天守閣：大人 ¥600（孩子 15 歲以下免費）</b></div>
+          <a class="alink" href="https://www.osakacastle.net" target="_blank">官方網站 →</a>
+        </div>
+      </div>
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?auto=format&fit=crop&w=600&h=340&q=80" alt="黒門市場" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪難波-黒門市場（Kuromon Ichiba）</h3>
+          <div class="tags"><span class="tag t-food">美食</span><span class="tag t-walk">步行10分</span></div>
+          <p>飯店步行10分，下午人潮比早上少。4天行程最後一次逛，把草莓、海膽、章魚燒等沒吃過的通通補齊。</p>
+          <div class="ticket">⏰ 09:00–18:00（部分攤位 19:00）</div>
+        </div>
+      </div>
+      <div class="acard">
+        <img src="https://images.unsplash.com/photo-1764069138714-bcc6783b8e48?auto=format&fit=crop&w=600&h=340&q=80" alt="心齋橋" loading="lazy">
+        <div class="acard-body">
+          <h3>大阪難波-心齋橋商店街（Shinsaibashi）</h3>
+          <div class="tags"><span class="tag t-indoor">室內</span><span class="tag t-food">採購</span></div>
+          <p>全遮頂拱廊，推車完全暢行無阻。藥妝、零食、伴手禮、DONKI 一條街搞定。出發前的最後採購衝刺。</p>
+          <div class="ticket">🛍️ DONKI 道頓堀店 24 小時營業</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="day-note">
+      <b>Day 4 結尾提醒：</b>
+      今晚整理行李，明天（Day 5）Check-out 後移往梅田飯店。ESLEAD 日本橋 退房時間通常為 11:00，
+      若梅田飯店無法提早 Check-in，可將行李寄存於梅田車站コインロッカー（¥500–700）再繼續遊玩。
+      <br><strong>4天感謝 ESLEAD 日本橋這個完美據點</strong>：道頓堀、新世界、USJ、海遊館全部高效覆蓋。
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══ SUMMARY ═══ -->
+<section style="background:linear-gradient(135deg,var(--red),var(--orange));color:#fff;padding:3em 0">
+  <div class="container">
+    <h2 class="sec-title" style="color:#fff">4天行程總結</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1em;text-align:center">
+      <div style="background:rgba(255,255,255,.15);border-radius:14px;padding:1.2em">
+        <div style="font-size:2em;font-weight:900">Day 1</div>
+        <div style="font-size:.85em;opacity:.9;margin-top:.3em">到達・道頓堀<br>黒門市場</div>
+      </div>
+      <div style="background:rgba(255,255,255,.15);border-radius:14px;padding:1.2em">
+        <div style="font-size:2em;font-weight:900">Day 2</div>
+        <div style="font-size:.85em;opacity:.9;margin-top:.3em">USJ 環球影城<br>新世界串炸</div>
+      </div>
+      <div style="background:rgba(255,255,255,.15);border-radius:14px;padding:1.2em">
+        <div style="font-size:2em;font-weight:900">Day 3</div>
+        <div style="font-size:.85em;opacity:.9;margin-top:.3em">海遊館・天保山<br>新世界</div>
+      </div>
+      <div style="background:rgba(255,255,255,.15);border-radius:14px;padding:1.2em">
+        <div style="font-size:2em;font-weight:900">Day 4</div>
+        <div style="font-size:.85em;opacity:.9;margin-top:.3em">大阪城・心齋橋<br>道頓堀告別</div>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:1.5em;font-size:.9em;opacity:.85">
+      ✅ 以 恵美須町 為據點，4天景點完全不重複 ・ 每天交通時間控制在 30 分以內 ・ 幼童節奏舒適
+    </p>
+  </div>
+</section>
+
+<footer>
+  大阪 Day 1–4 行程表 ｜ ESLEAD 日本橋 量身規劃版 ・ 3大3小 親子旅遊
+</footer>
+
+</body>
+</html>
