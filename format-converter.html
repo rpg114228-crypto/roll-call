@@ -13,78 +13,82 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: var(--base); color: var(--text);
+      background: var(--base); color: var(--text); font-size: 16px;
       font-family: '微軟正黑體','Microsoft JhengHei',-apple-system,sans-serif;
-      min-height: 100vh; max-width: 640px; margin: 0 auto; padding-bottom: 32px;
+      min-height: 100vh; max-width: 640px; margin: 0 auto; padding-bottom: 40px;
     }
     header {
-      background: var(--mantle); padding: 14px 18px;
+      background: var(--mantle); padding: 16px 20px;
       border-bottom: 1px solid var(--surface0);
       position: sticky; top: 0; z-index: 100;
     }
-    header h1 { font-size: 17px; color: var(--blue); }
+    header h1 { font-size: 22px; color: var(--blue); }
     .tabs {
       display: flex; background: var(--mantle);
       border-bottom: 1px solid var(--surface0);
       overflow-x: auto; scrollbar-width: none;
-      position: sticky; top: 49px; z-index: 99;
+      position: sticky; top: 57px; z-index: 99;
     }
     .tabs::-webkit-scrollbar { display: none; }
     .tab-btn {
-      flex: 1; min-width: 75px; padding: 11px 6px;
+      flex: 1; min-width: 82px; padding: 14px 6px;
       background: none; border: none; color: var(--subtext);
-      font-family: inherit; font-size: 13px; cursor: pointer;
+      font-family: inherit; font-size: 15px; cursor: pointer;
       border-bottom: 2px solid transparent; white-space: nowrap; transition: all .2s;
     }
     .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
-    .tab-content { display: none; padding: 14px; }
+    .tab-content { display: none; padding: 16px; }
     .tab-content.active { display: block; }
-    .card { background: var(--surface0); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-    .card-title { color: var(--blue); font-weight: bold; font-size: 14px; margin-bottom: 12px; }
+    .card { background: var(--surface0); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+    .card-title { color: var(--blue); font-weight: bold; font-size: 16px; margin-bottom: 14px; }
     .drop-zone {
-      border: 2px dashed var(--surface2); border-radius: 10px; padding: 22px;
-      text-align: center; cursor: pointer; transition: all .2s; margin-bottom: 12px;
+      border: 2px dashed var(--surface2); border-radius: 12px; padding: 28px 16px;
+      text-align: center; cursor: pointer; transition: all .2s; margin-bottom: 14px;
     }
     .drop-zone:hover, .drop-zone.dragover { border-color: var(--blue); background: var(--surface1); }
     .drop-zone input[type=file] { display: none; }
-    .drop-icon { font-size: 28px; margin-bottom: 6px; }
-    .drop-hint { color: var(--subtext); font-size: 13px; }
-    .drop-name { color: var(--green); font-size: 13px; margin-top: 6px; word-break: break-all; }
-    .form-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-    .form-label { color: var(--subtext); font-size: 13px; min-width: 68px; flex-shrink: 0; }
-    select {
+    .drop-icon { font-size: 44px; margin-bottom: 8px; }
+    .drop-hint { color: var(--subtext); font-size: 15px; }
+    .drop-name { color: var(--green); font-size: 14px; margin-top: 8px; word-break: break-all; }
+    .form-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .form-label { color: var(--subtext); font-size: 15px; min-width: 72px; flex-shrink: 0; }
+    select, input[type=password] {
       background: var(--surface1); border: none; border-radius: 8px;
-      padding: 8px 10px; color: var(--text); font-family: inherit; font-size: 13px; outline: none;
+      padding: 10px 12px; color: var(--text); font-family: inherit; font-size: 15px; outline: none;
     }
-    .format-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 12px; }
+    .format-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
     .fmt-chip {
-      background: var(--surface1); border: 2px solid transparent; border-radius: 8px;
-      padding: 8px 4px; text-align: center; font-size: 13px; cursor: pointer; transition: all .2s;
+      background: var(--surface1); border: 2px solid transparent; border-radius: 10px;
+      padding: 12px 4px; text-align: center; font-size: 15px; cursor: pointer; transition: all .2s;
     }
-    .fmt-chip.on { border-color: var(--blue); color: var(--blue); }
-    .quality-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    input[type=range] { accent-color: var(--blue); flex: 1; }
-    .q-val { color: var(--blue); font-weight: bold; min-width: 28px; text-align: right; }
+    .fmt-chip.on { border-color: var(--blue); color: var(--blue); background: var(--base); }
+    .quality-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    input[type=range] { accent-color: var(--blue); flex: 1; height: 6px; }
+    .q-val { color: var(--blue); font-weight: bold; min-width: 32px; text-align: right; font-size: 16px; }
     .btn {
-      border: none; border-radius: 10px; padding: 12px 20px; font-family: inherit;
-      font-size: 15px; font-weight: bold; cursor: pointer; transition: all .2s; width: 100%;
+      border: none; border-radius: 12px; padding: 15px 20px; font-family: inherit;
+      font-size: 17px; font-weight: bold; cursor: pointer; transition: all .2s; width: 100%;
+      margin-bottom: 8px;
     }
     .btn-p { background: var(--blue); color: var(--base); }
     .btn-p:hover { opacity: .9; }
     .btn-p:active { transform: scale(.98); }
-    .btn-p:disabled { opacity: .45; cursor: not-allowed; transform: none; }
-    .btn-s { background: var(--surface1); color: var(--text); }
-    .btn-sm { padding: 7px 14px; font-size: 13px; width: auto; border-radius: 8px; }
-    .status { text-align: center; padding: 7px; font-size: 13px; color: var(--green); min-height: 30px; }
+    .btn-p:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    .btn-s { background: var(--surface2); color: var(--text); }
+    .btn-s:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-unlock { background: #313244; border: 2px solid var(--blue); color: var(--blue); }
+    .btn-unlock:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-sm { padding: 9px 16px; font-size: 14px; width: auto; border-radius: 8px; margin-bottom: 0; }
+    .status { text-align: center; padding: 8px; font-size: 14px; color: var(--green); min-height: 32px; }
     .status.err { color: var(--red); }
     .status.busy { color: var(--yellow); }
     textarea {
-      width: 100%; background: var(--surface1); border: none; border-radius: 8px;
-      padding: 10px; color: var(--text); font-family: Consolas,monospace; font-size: 13px;
+      width: 100%; background: var(--surface1); border: none; border-radius: 10px;
+      padding: 12px; color: var(--text); font-family: Consolas,monospace; font-size: 14px;
       outline: none; resize: vertical; margin-top: 8px;
     }
-    #wordPreview { background: #fff; color: #000; padding: 14px; border-radius: 8px; font-size: 14px; max-height: 380px; overflow: auto; margin-top: 8px; }
-    .note { color: var(--subtext); font-size: 12px; margin-top: 6px; line-height: 1.5; }
+    #wordPreview { background: #fff; color: #000; padding: 16px; border-radius: 10px; font-size: 15px; max-height: 400px; overflow: auto; margin-top: 10px; }
+    .note { color: var(--subtext); font-size: 13px; margin-top: 4px; line-height: 1.6; }
   </style>
 </head>
 <body>
@@ -213,12 +217,10 @@
     </div>
     <div class="form-row">
       <span class="form-label">PDF 密碼</span>
-      <input type="password" id="pdf-pwd" placeholder="無密碼則留空" style="flex:1;background:var(--surface1);border:none;border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;">
+      <input type="password" id="pdf-pwd" placeholder="無密碼則留空" style="flex:1">
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:4px">
-      <button class="btn btn-p" id="btn-pdf" disabled onclick="extractPdf()" style="flex:1">擷取文字</button>
-      <button class="btn btn-s" id="btn-unlock" disabled onclick="unlockPdf()" style="flex:1">🔓 儲存無密碼 PDF</button>
-    </div>
+    <button class="btn btn-unlock" id="btn-unlock" disabled onclick="unlockPdf()">🔓 儲存為無密碼 PDF</button>
+    <button class="btn btn-p" id="btn-pdf" disabled onclick="extractPdf()">📋 擷取文字內容</button>
     <div class="status" id="st-pdf"></div>
     <textarea id="pdf-text" rows="8" placeholder="擷取的文字會顯示在這裡…" style="display:none"></textarea>
     <button id="btn-copy-pdf" class="btn btn-s btn-sm" style="display:none;margin-top:8px" onclick="copyPdf()">複製文字</button>
