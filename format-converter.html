@@ -107,9 +107,9 @@
   <div class="card">
     <div class="card-title">圖片格式轉換</div>
     <div class="drop-zone" id="dz-img">
-      <input type="file" id="f-img" accept="image/*" multiple>
+      <input type="file" id="f-img" accept="image/*">
       <div class="drop-icon">🖼️</div>
-      <div class="drop-hint">點擊或拖曳圖片（可多選）</div>
+      <div class="drop-hint">點擊或拖曳圖片</div>
       <div class="drop-name" id="n-img"></div>
     </div>
     <div class="card-title" style="margin-top:2px">輸出格式</div>
@@ -118,11 +118,7 @@
       <div class="fmt-chip" data-fmt="JPEG">JPG</div>
       <div class="fmt-chip" data-fmt="WEBP">WEBP</div>
       <div class="fmt-chip" data-fmt="BMP">BMP</div>
-      <div class="fmt-chip" data-fmt="GIF">GIF</div>
-      <div class="fmt-chip" data-fmt="TIFF">TIFF</div>
-      <div class="fmt-chip" data-fmt="ICO">ICO</div>
     </div>
-    <p class="note" style="margin-bottom:10px">* GIF/TIFF/ICO 支援度依瀏覽器而定</p>
     <div id="q-row" class="quality-row" style="display:none">
       <span class="form-label">品質</span>
       <input type="range" id="q-slider" min="1" max="100" value="90" oninput="document.getElementById('q-val').textContent=this.value">
@@ -212,6 +208,18 @@
     </div>
   </div>
   <div class="card">
+    <div class="card-title">PDF → PPT (.pptx)</div>
+    <div class="drop-zone" id="dz-pdf2ppt">
+      <input type="file" id="f-pdf2ppt" accept=".pdf">
+      <div class="drop-icon">📊</div>
+      <div class="drop-hint">點擊或拖曳 .pdf 檔案</div>
+      <div class="drop-name" id="n-pdf2ppt"></div>
+    </div>
+    <p class="note" style="margin-bottom:10px">每頁轉為一張投影片，自動符合原始頁面比例</p>
+    <button class="btn btn-p" id="btn-pdf2ppt" disabled onclick="pdfToPpt()">📊 轉換為 PPT</button>
+    <div class="status" id="st-pdf2ppt"></div>
+  </div>
+  <div class="card">
     <div class="card-title">PDF 解鎖 / 文字擷取</div>
     <div class="drop-zone" id="dz-pdf">
       <input type="file" id="f-pdf" accept=".pdf">
@@ -234,6 +242,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script>
 // ── Tabs ──────────────────────────────────────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -258,16 +267,14 @@ document.querySelectorAll('.drop-zone').forEach(dz => {
   dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
   dz.addEventListener('drop', e => {
     e.preventDefault(); dz.classList.remove('dragover');
-    const dropped = e.dataTransfer.files; if (!dropped.length) return;
-    const dt = new DataTransfer();
-    Array.from(dropped).forEach(f => dt.items.add(f));
-    input.files = dt.files;
+    const f = e.dataTransfer.files[0]; if (!f) return;
+    const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files;
     input.dispatchEvent(new Event('change'));
   });
   input.addEventListener('change', () => {
-    const files = input.files; if (!files.length) return;
-    fileMap[input.id] = files.length === 1 ? files[0] : Array.from(files);
-    nameEl.textContent = files.length === 1 ? files[0].name : `已選擇 ${files.length} 個檔案`;
+    const f = input.files[0]; if (!f) return;
+    fileMap[input.id] = f;
+    nameEl.textContent = f.name;
     document.getElementById(btnId).disabled = false;
     if (input.id === 'f-pdf') document.getElementById('btn-unlock').disabled = false;
   });
@@ -292,54 +299,31 @@ function st(id, msg, cls='') {
 
 // ── Image ─────────────────────────────────────────────────────
 function convertImage() {
-  const src = fileMap['f-img']; if (!src) return;
-  const files = Array.isArray(src) ? src : [src];
-  const btn = document.getElementById('btn-img');
-  btn.disabled = true;
-  st('img', files.length > 1 ? `轉換中… 0/${files.length}` : '轉換中…', 'busy');
-
-  const mimeMap = {PNG:'image/png',JPEG:'image/jpeg',WEBP:'image/webp',BMP:'image/bmp',GIF:'image/gif',TIFF:'image/tiff',ICO:'image/x-icon'};
-  const extMap  = {PNG:'png',JPEG:'jpg',WEBP:'webp',BMP:'bmp',GIF:'gif',TIFF:'tiff',ICO:'ico'};
-  const mime = mimeMap[imgFmt] || 'image/png';
-  const ext  = extMap[imgFmt]  || 'png';
-  const q = parseInt(document.getElementById('q-slider').value) / 100;
-  let done = 0;
-
-  function processFile(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const img = new Image();
-        img.onload = () => {
-          const c = document.createElement('canvas');
-          c.width = img.naturalWidth; c.height = img.naturalHeight;
-          const ctx = c.getContext('2d');
-          if (imgFmt === 'JPEG') { ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height); }
-          ctx.drawImage(img, 0, 0);
-          c.toBlob(blob => {
-            if (!blob) { reject(new Error(`${imgFmt} 格式不支援`)); return; }
-            download(URL.createObjectURL(blob), file.name.replace(/\.[^.]+$/, '') + '.' + ext);
-            done++;
-            if (files.length > 1) st('img', `轉換中… ${done}/${files.length}`, 'busy');
-            resolve();
-          }, mime, q);
-        };
-        img.onerror = () => reject(new Error('無法讀取：' + file.name));
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  Promise.all(files.map(processFile))
-    .then(() => {
-      st('img', files.length > 1 ? `✓ 完成，共 ${files.length} 個檔案` : `✓ 完成`);
-      btn.disabled = false;
-    })
-    .catch(err => {
-      st('img', '✗ ' + err.message, 'err');
-      btn.disabled = false;
-    });
+  const file = fileMap['f-img']; if (!file) return;
+  st('img','轉換中…','busy');
+  document.getElementById('btn-img').disabled = true;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      const ctx = c.getContext('2d');
+      if (imgFmt === 'JPEG') { ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height); }
+      ctx.drawImage(img, 0, 0);
+      const mime = {PNG:'image/png',JPEG:'image/jpeg',WEBP:'image/webp',BMP:'image/bmp'}[imgFmt]||'image/png';
+      const ext = imgFmt==='JPEG'?'jpg':imgFmt.toLowerCase();
+      const q = parseInt(document.getElementById('q-slider').value)/100;
+      c.toBlob(blob => {
+        download(URL.createObjectURL(blob), file.name.replace(/\.[^.]+$/,'')+'.'+ext);
+        st('img',`✓ 完成 (${(blob.size/1024).toFixed(1)} KB)`);
+        document.getElementById('btn-img').disabled = false;
+      }, mime, q);
+    };
+    img.onerror = () => { st('img','✗ 無法讀取圖片','err'); document.getElementById('btn-img').disabled=false; };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 // ── CSV → JSON ────────────────────────────────────────────────
@@ -448,6 +432,42 @@ function printDoc() {
     <style>body{font-family:serif;margin:2cm;line-height:1.6}img{max-width:100%}
     @media print{body{margin:0}}</style></head><body>${c}</body></html>`);
   w.document.close(); w.print();
+}
+
+// ── PDF → PPT ─────────────────────────────────────────────────
+async function pdfToPpt() {
+  const file = fileMap['f-pdf2ppt']; if (!file) return;
+  st('pdf2ppt','讀取 PDF…','busy');
+  document.getElementById('btn-pdf2ppt').disabled = true;
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+    const numPages = pdf.numPages;
+    const vp0 = (await pdf.getPage(1)).getViewport({ scale: 1 });
+    const W = parseFloat((vp0.width  / 72).toFixed(4));
+    const H = parseFloat((vp0.height / 72).toFixed(4));
+    const pptx = new PptxGenJS();
+    pptx.defineLayout({ name: 'PDF', width: W, height: H });
+    pptx.layout = 'PDF';
+    for (let i = 1; i <= numPages; i++) {
+      st('pdf2ppt',`轉換第 ${i}/${numPages} 頁…`,'busy');
+      const page = await pdf.getPage(i);
+      const vp = page.getViewport({ scale: 2.0 });
+      const canvas = document.createElement('canvas');
+      canvas.width = vp.width; canvas.height = vp.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      const slide = pptx.addSlide();
+      slide.addImage({ data: canvas.toDataURL('image/jpeg', 0.88), x: 0, y: 0, w: W, h: H });
+    }
+    const data = await pptx.write({ outputType: 'arraybuffer' });
+    download(URL.createObjectURL(new Blob([data],{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'})),
+      file.name.replace(/\.pdf$/i,'.pptx'));
+    st('pdf2ppt',`✓ 完成，共 ${numPages} 頁`);
+  } catch(err) {
+    st('pdf2ppt','✗ '+(err.message||String(err)),'err');
+  }
+  document.getElementById('btn-pdf2ppt').disabled = false;
 }
 
 // ── PDF helpers ───────────────────────────────────────────────
