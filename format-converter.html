@@ -208,6 +208,18 @@
     </div>
   </div>
   <div class="card">
+    <div class="card-title">PDF → PPT (.pptx)</div>
+    <div class="drop-zone" id="dz-pdf2ppt">
+      <input type="file" id="f-pdf2ppt" accept=".pdf">
+      <div class="drop-icon">📊</div>
+      <div class="drop-hint">點擊或拖曳 .pdf 檔案</div>
+      <div class="drop-name" id="n-pdf2ppt"></div>
+    </div>
+    <p class="note" style="margin-bottom:10px">每頁轉為一張投影片，自動符合原始頁面比例</p>
+    <button class="btn btn-p" id="btn-pdf2ppt" disabled onclick="pdfToPpt()">📊 轉換為 PPT</button>
+    <div class="status" id="st-pdf2ppt"></div>
+  </div>
+  <div class="card">
     <div class="card-title">PDF 解鎖 / 文字擷取</div>
     <div class="drop-zone" id="dz-pdf">
       <input type="file" id="f-pdf" accept=".pdf">
@@ -230,6 +242,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script>
 // ── Tabs ──────────────────────────────────────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -419,6 +432,42 @@ function printDoc() {
     <style>body{font-family:serif;margin:2cm;line-height:1.6}img{max-width:100%}
     @media print{body{margin:0}}</style></head><body>${c}</body></html>`);
   w.document.close(); w.print();
+}
+
+// ── PDF → PPT ─────────────────────────────────────────────────
+async function pdfToPpt() {
+  const file = fileMap['f-pdf2ppt']; if (!file) return;
+  st('pdf2ppt','讀取 PDF…','busy');
+  document.getElementById('btn-pdf2ppt').disabled = true;
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(buf) }).promise;
+    const numPages = pdf.numPages;
+    const vp0 = (await pdf.getPage(1)).getViewport({ scale: 1 });
+    const W = parseFloat((vp0.width  / 72).toFixed(4));
+    const H = parseFloat((vp0.height / 72).toFixed(4));
+    const pptx = new PptxGenJS();
+    pptx.defineLayout({ name: 'PDF', width: W, height: H });
+    pptx.layout = 'PDF';
+    for (let i = 1; i <= numPages; i++) {
+      st('pdf2ppt',`轉換第 ${i}/${numPages} 頁…`,'busy');
+      const page = await pdf.getPage(i);
+      const vp = page.getViewport({ scale: 2.0 });
+      const canvas = document.createElement('canvas');
+      canvas.width = vp.width; canvas.height = vp.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      const slide = pptx.addSlide();
+      slide.addImage({ data: canvas.toDataURL('image/jpeg', 0.88), x: 0, y: 0, w: W, h: H });
+    }
+    const data = await pptx.write({ outputType: 'arraybuffer' });
+    download(URL.createObjectURL(new Blob([data],{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'})),
+      file.name.replace(/\.pdf$/i,'.pptx'));
+    st('pdf2ppt',`✓ 完成，共 ${numPages} 頁`);
+  } catch(err) {
+    st('pdf2ppt','✗ '+(err.message||String(err)),'err');
+  }
+  document.getElementById('btn-pdf2ppt').disabled = false;
 }
 
 // ── PDF helpers ───────────────────────────────────────────────
