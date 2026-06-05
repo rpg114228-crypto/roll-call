@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資訊安全即測即評</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Microsoft JhengHei",sans-serif;background:#f0f4f8;color:#222;min-height:100vh}
+header{background:linear-gradient(135deg,#1a3c5e,#2d6a9f);color:#fff;padding:16px 20px;text-align:center}
+header h1{font-size:1.4rem;margin-bottom:4px}
+header p{font-size:.85rem;opacity:.85}
+.tabs{display:flex;background:#1a3c5e;position:sticky;top:0;z-index:100}
+.tab{flex:1;padding:12px;text-align:center;cursor:pointer;color:#aac4e0;font-size:.9rem;border-bottom:3px solid transparent;transition:.2s}
+.tab.active{color:#fff;border-bottom-color:#4db8ff;background:#2d6a9f}
+.scorebar{background:#fff;padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #ddd;position:sticky;top:45px;z-index:99;flex-wrap:wrap}
+.scorebar span{font-size:.85rem;color:#555}
+.scorebar strong{color:#1a3c5e;font-size:1rem}
+.progress-wrap{flex:1;background:#e0e8f0;border-radius:8px;height:8px;min-width:80px}
+.progress-bar{height:8px;border-radius:8px;background:linear-gradient(90deg,#2d9e4f,#4db84d);transition:width .3s}
+.btn-reset{margin-left:auto;background:#e74c3c;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.8rem}
+.btn-reset:hover{background:#c0392b}
+.section{display:none;padding:12px}
+.section.active{display:block}
+.question-card{background:#fff;border-radius:10px;padding:16px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.08);transition:.2s}
+.question-card.answered-correct{border-left:4px solid #2ecc71}
+.question-card.answered-wrong{border-left:4px solid #e74c3c}
+.question-card.answered-partial{border-left:4px solid #f39c12}
+.qhead{display:flex;gap:8px;margin-bottom:12px}
+.qnum{background:#1a3c5e;color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0}
+.qtitle{font-size:.92rem;line-height:1.5;font-weight:600}
+.multi-badge{background:#f39c12;color:#fff;font-size:.65rem;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.options{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:7px;cursor:pointer;border:1.5px solid #ddd;transition:.15s;font-size:.88rem;line-height:1.4}
+.opt:hover:not(.disabled){background:#eaf2ff;border-color:#4db8ff}
+.opt.disabled{cursor:default}
+.opt.correct{background:#d5f5e3;border-color:#2ecc71}
+.opt.wrong{background:#fde8e8;border-color:#e74c3c}
+.opt.missed{background:#fff3cd;border-color:#f39c12}
+.opt input[type=radio],.opt input[type=checkbox]{margin-top:2px;flex-shrink:0;accent-color:#1a3c5e}
+.opt-label{flex:1}
+.opt-key{font-weight:700;color:#1a3c5e;margin-right:4px;flex-shrink:0}
+.check-btn{margin-top:10px;background:#1a3c5e;color:#fff;border:none;padding:8px 18px;border-radius:7px;cursor:pointer;font-size:.85rem}
+.check-btn:hover{background:#2d6a9f}
+.check-btn:disabled{background:#aaa;cursor:default}
+.feedback{margin-top:8px;font-size:.83rem;padding:6px 10px;border-radius:6px}
+.feedback.correct{background:#d5f5e3;color:#1a7a3c}
+.feedback.wrong{background:#fde8e8;color:#922b21}
+.feedback.partial{background:#fef9e7;color:#7d6608}
+@media(max-width:480px){.qnum{width:24px;height:24px;font-size:.7rem}.qtitle{font-size:.85rem}.opt{font-size:.82rem}}
+</style>
+</head>
+<body>
+<header>
+  <h1>資訊安全即測即評</h1>
+  <p>第十四週・第十五週 網路與通信安全練習</p>
+</header>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(0)">第十五週（HW4）86題</div>
+  <div class="tab" onclick="switchTab(1)">第十四週（HW5）87題</div>
+</div>
+<div class="scorebar">
+  <span>得分：<strong id="score-display">0 / 0</strong></span>
+  <span id="pct-display">答對率 0%</span>
+  <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
+  <button class="btn-reset" onclick="resetAll()">重置</button>
+</div>
+
+<div id="sec0" class="section active"></div>
+<div id="sec1" class="section"></div>
+
+<script>
+const hw4=[
+{q:"資安健診的主要目的不包括下列哪一項？",o:{A:"找出系統中潛在的安全弱點",B:"評估網路設備與系統配置",C:"完全杜絕所有外部攻擊",D:"提供修補建議以提升整體安全性"},a:["C"]},
+{q:"下列哪一項屬於資安健診時需檢查的項目？",o:{A:"系統效能監控",B:"網路惡意活動檢視",C:"使用者行為分析",D:"業務流程改善"},a:["B"]},
+{q:"關於 SOC 服務，下列哪一項不屬於其主要工作流程？",o:{A:"監控系統日誌",B:"建立事件通報單",C:"主動攻擊外部威脅",D:"分派事件處理任務"},a:["C"]},
+{q:"日誌管理的基本原則中，下列哪項描述最不正確？",o:{A:"異地備份日誌資料",B:"即時監控與分析",C:"完整記錄必要資訊",D:"只在安全事件發生後才進行記錄"},a:["D"]},
+{q:"關於原始碼掃描，下列敘述何者正確？",o:{A:"能夠全面檢測業務邏輯漏洞",B:"適用於系統上線後的安全檢查",C:"可在軟體開發階段早期發現安全問題",D:"僅支援單一程式語言分析"},a:["C"]},
+{q:"弱點掃描主要目的在於：",o:{A:"自動化檢測已知漏洞",B:"模擬駭客入侵實際攻擊",C:"分析程式碼中的邏輯錯誤",D:"執行社交工程演練"},a:["A"]},
+{q:"關於滲透測試的測試類型，下列哪一項正確描述了黑箱測試的特性？",o:{A:"測試者具備完整的系統內部資訊",B:"測試者僅依賴公開資訊進行攻擊",C:"測試者擁有部分內部資訊",D:"測試者與企業內部人員共同協作"},a:["B"]},
+{q:"社交工程演練主要在於：",o:{A:"測試系統漏洞",B:"模擬釣魚攻擊以檢驗員工安全意識",C:"分析網路流量異常",D:"測試防火牆效能"},a:["B"]},
+{q:"軟體組成分析(SCA)中所產生的 SBOM 主要用於：",o:{A:"列出軟體中的所有程式語法錯誤",B:"詳細記錄軟體中所有第三方元件及其版本資訊",C:"分析網路流量與安全事件",D:"記錄使用者操作歷史"},a:["B"]},
+{q:"在 OWASP Top 10 中，哪一項與加密機制失效直接相關？",o:{A:"A01：權限控制失效",B:"A02：加密機制失效",C:"A03：注入式攻擊",D:"A04：不安全設計"},a:["B"]},
+{q:"下列關於原始碼掃描與弱點掃描的比較，何者敘述較為正確？",o:{A:"原始碼掃描可以發現所有已知漏洞",B:"弱點掃描主要用於檢測上線後的系統漏洞",C:"兩者皆無法發現硬編碼密碼問題",D:"弱點掃描在開發階段比原始碼掃描更有效"},a:["B"]},
+{q:"在日誌管理中，下列哪項措施有助於防止日誌資料遭竄改？",o:{A:"將日誌儲存在本機",B:"傳輸日誌資料時不進行加密",C:"採用異地備份並使用加密傳輸",D:"只保留最近一天的日誌"},a:["C"]},
+{q:"以下關於滲透測試常用工具的敘述，哪一項是不正確的？（哪項不是滲透測試工具）",o:{A:"Metasploit",B:"Nmap",C:"SQLmap",D:"Wireshark"},a:["D"]},
+{q:"下列哪項措施不關於提升系統安全性的方法？",o:{A:"定期更新軟體與系統",B:"使用預設密碼及管理員帳號",C:"啟用加密通訊",D:"實施多重身份驗證"},a:["B"]},
+{q:"針對資安健診案例，若發現因系統版本未更新而導致安全漏洞，正確的改善措施應包括：",o:{A:"升級系統並加強防火牆設定",B:"忽略該弱點，因為無法立即修補",C:"僅進行日誌分析，不做系統更新",D:"只依賴弱點掃描結果，不進行其他檢查"},a:["A"]},
+{q:"【複選】下列哪幾種方式是檢測人員執行紅隊演練過程中可能會使用的攻擊手法？",o:{A:"在 DMZ 網頁伺服器找到 RCE 漏洞並取得系統控制權，在內網橫向移動取得 AD 控制權",B:"透過釣魚信件對企業的海外分公司員工進行社交工程，取得員工電腦控制權並讀取電子郵件信箱",C:"移動到企業所在樓層，側錄 Wi-Fi 然後嘗試破解密碼，取得企業 Wi-Fi 的存取方式",D:"註冊成為企業的供應商，利用供應商網站造假，竄改商品金額"},a:["A","B","C"],multi:true},
+{q:"為何應以自動化漏洞評估系統(AVAS)作為驗收基礎，而不是根據 OWASP Top 10 作為驗收要件？",o:{A:"OWASP Top 10 僅涵蓋最常見的安全漏洞，而不是所有可能的安全問題",B:"OWASP Top 10 較易於實施且成本更低",C:"AVAS 獲得領導者向象中的指標意義",D:"AVAS 僅針對網站應用程式，而 OWASP Top 10 適用於所有類型的軟體"},a:["A"]},
+{q:"【複選】網路安全滲透測試的目標包含網路裝置、作業系統、實體安全、應用程式、管理制度等。下列敘述哪些錯誤？",o:{A:"網路裝置包含所有能夠連接到網路的各種實體，像是路由器、交換機、防火牆、個人電腦等",B:"實體安全主要指的是機房環境、通訊設備等，是資訊安全中最重要的目標",C:"應用程式是管理與控制電腦軟硬體資源的電腦程式",D:"管理制度指的是為了保障網路安全對使用者提出的要求與限制"},a:["B","C"],multi:true},
+{q:"關於滲透測試工具的敘述，下列何者正確？",o:{A:"John the Ripper 和 Hashcat，主要用在社交工程",B:"Aircrack-ng 和 Kismet 用在有線網路刺探分析",C:"Nmap 和 Wireshark 用於識別網路中的設備，以及他們開放的端口和服務",D:"OWASP ZAP 和 Burp Suite 用在作業系統漏洞分析"},a:["C"]},
+{q:"Metasploit 框架最主要是用於下列何種情境？",o:{A:"防火牆配置",B:"網路封包分析",C:"漏洞利用和測試",D:"垃圾郵件過濾"},a:["C"]},
+{q:"有關防止 OWASP Top 10 的 A02:2021-Cryptographic Failures 漏洞之敘述，下列何者錯誤？",o:{A:"確保將所有的機敏資料加密",B:"使用最新版且標準的強加密演算法",C:"使用適當的金鑰管理",D:"使用 HTTP 的協定加密傳輸中的資料"},a:["D"]},
+{q:"下列何項行為最容易導致 OWASP Top 10 的 A01:2021-Broken Access Control 漏洞發生？",o:{A:"使用強密碼進行身份驗證",B:"未在頁面上實施權限控制",C:"在密碼重置流程中使用多重身份驗證",D:"定期進行安全漏洞掃描與修復"},a:["B"]},
+{q:"關於弱點掃描，下列敘述何者錯誤？",o:{A:"網路弱點掃描用在尋找網路環境中的脆弱點",B:"應用程式弱點掃描主要針對特定應用程式（如 SQL 注入、XSS、敏感目錄外洩等漏洞）",C:"主機弱點掃描用在檢查個別主機的脆弱點，例如主機效能負載對外服務能力，或是識別主機防毒系統是否更新",D:"常見工具有 OWASP ZAP, OpenVAS, Nessus...等"},a:["C"]},
+{q:"依據 OWASP Top 10 有關安全配置錯誤風險之敘述，當應用程式處於以下何種狀態時，該應用程式可能容易受到攻擊？",o:{A:"啟用或安裝了必要的功能",B:"預設帳號及密碼仍處於啟用狀態",C:"系統最新的安全功能被啟用",D:"伺服器發送安全標頭或指令"},a:["B"]},
+{q:"依據 OWASP Top 10 有關應用程式未驗證或過濾使用者所提供資料而產生風險之敘述，下列何者有誤？",o:{A:"常見的攻擊手法包含 Cross-site Scripting 攻擊",B:"常見的攻擊手法包含 SQL Injection 攻擊",C:"需要將命令與查詢資料合併，以防止注入式攻擊",D:"OWASP Top 10 的 Injection 風險"},a:["C"]},
+{q:"下列何項「不」是程式碼開發所使用的原始碼檢測工具(Static Code Analysis SCA)？",o:{A:"Fortify",B:"Checkmarx",C:"Nessus",D:"SonarQube"},a:["C"]},
+{q:"關於滲透測試的敘述，下列何者錯誤？",o:{A:"模擬駭客手法，在不需要系統管理者或公司同意下，進行漏洞驗證",B:"模擬駭客手法或惡意使用者的行為，試圖找出和利用系統的弱點",C:"滲透測試要確保不會影響正常的業務運作和資料的完整性",D:"滲透測試(Pen Testing)是一種安全測試方法"},a:["A"]},
+{q:"在進行資安健診時，檢測作業最關鍵的活動是下列何項？",o:{A:"更新所有辦公軟體至最新版本",B:"監控社交媒體上員工的活動",C:"評估和識別系統中的潛在安全漏洞",D:"部署最新的防毒軟體"},a:["C"]},
+{q:"【複選】關於源碼檢測，下列哪些正確描述了 DLL Side Loading？",o:{A:"DLL Side Loading 涉及到替換正常的 DLL 文件",B:"通常被用來繞過安全措施並執行惡意程式碼",C:"此技術概念僅可以在 Linux 系統上實現",D:"DLL Side Loading 可以利用合法軟體的加載行為來隱藏惡意活動"},a:["A","B","D"],multi:true},
+{q:"【複選】關於資安測試工具用途的敘述，下列哪些正確？",o:{A:"Acunetix - Web 漏洞掃描程式",B:"Wireshark - 提供網路協定、封包等資訊",C:"Sqlmap - 用於檢測和利用應用程式 SQL 注入及對資料庫的攻擊",D:"Canvas - 社交攻擊用工具"},a:["A","C"],multi:true},
+{q:"有關 OWASP Top 10 之敘述，下列何者正確？",o:{A:"為網路安全的法律規範",B:"為網路攻擊的報告",C:"為 ISO 發布的網路安全標準",D:"為網路應用程式漏洞的指南"},a:["D"]},
+{q:"有關 OWASP Top 10 A03:2021-Injection 漏洞之敘述，下列何者錯誤？",o:{A:"將命令與查詢資料分開防止注入攻擊漏洞的發生",B:"使用安全的應用程式界面(API)防止注入攻擊漏洞的發生",C:"應用程式相互驗證時容易發生",D:"使用正向表列或白名單可有效避免此注入攻擊"},a:["C"]},
+{q:"下列何項 nmap 指令可以跳過 ping 功能直接開始掃 port？",o:{A:"-sL",B:"-Pn",C:"-p-",D:"-sn"},a:["B"]},
+{q:"關於滲透測試(Penetration Test)的敘述，下列何者錯誤？",o:{A:"滲透測試的工作由一群對網路及系統安全有完整知識與豐富經驗的成員組成，為確保組織資訊安全，不可能委託由第三方負責",B:"滲透測試是藉由對企業網路採取各種攻擊的手段以便找出系統可能存在的漏洞",C:"雙黑箱滲透測試主要對內部人員保密下進行",D:"滲透測試主要考驗系統的安全防護能力"},a:["A"]},
+{q:"網站應用程式伺服器允許顯示錯誤訊息(如 Stack traces)給使用者，關於此應用程式缺陷的描述，下列何者較正確？",o:{A:"跨站請求偽造(Cross-Site Request Forgery)",B:"安全設定錯誤(Security Misconfiguration)",C:"認證和驗證失效(Identification and Authentication Failures)",D:"伺服器端請求偽造(Server-Side Request Forgery)"},a:["B"]},
+{q:"關於應用程式軟體與資料完整性的敘述，下列何者錯誤？",o:{A:"使用數位簽章(Digital Signature)來驗證軟體未被竄改",B:"僅於信任的儲存庫(Repository)取得應用程式套件",C:"整合測試流程(CI/CD)應適當隔離與存取控制以確保安全",D:"源碼掃描可有效檢查是否遭植入惡意程式碼（如：後門程式）"},a:["D"]},
+{q:"與滲透測試及弱點掃描相關議題的敘述，下列何者較為正確？",o:{A:"若使用滲透測試工具來測試系統安全性，測試期間宜謹慎規劃不要危及系統運作",B:"滲透測試會影響系統可用性之稽核測試，宜於正常營運時間執行。可確認實際結果",C:"ISO 27005 為提供關於技術遵循性審查之特定國際指引",D:"滲透測試或源碼檢測之結果，若有風險需判斷修補，可於下次再檢測時，確認實施結果"},a:["A"]},
+{q:"關於網路安全滲透測試的敘述，下列何者錯誤？",o:{A:"網路安全滲透測試是找出駭客實現攻擊目的的所有途徑，而駭客入侵只是要實現某一特定目的",B:"逆向工程是網路安全滲透測試的一部分，目的是發掘系統的漏洞",C:"網路安全滲透測試就是一般普遍認知的漏洞掃描",D:"網路安全滲透測試方法可以分成黑盒測試、灰盒測試、白盒測試等三種"},a:["C"]},
+{q:"關於源碼檢測的敘述，下列何者錯誤？",o:{A:"又稱靜態應用程式安全測試(SAST)",B:"在安全系統發展生命週期(SSDLC)中，源碼檢測也是其中一項重要安全設計流程之一",C:"主要目的是找出軟體程式碼中的安全問題或漏洞，通常在軟體的開發和維護階段進行",D:"OWASP ZAP 是常見源碼檢測工具之一"},a:["D"]},
+{q:"關於資安健診的敘述，下列何者較「不」正確？",o:{A:"一種對組織的資訊系統與網路環境進行全面普查的過程，以評估其對各種威脅的抵禦能力",B:"可以幫助企業或組織發現安全漏洞，增強企業對內外部威脅的抵禦能力",C:"Security Scorecard 公司通過對網路威脅情報探測的評分分析來評估公司實體的網絡安全狀況也是一種資安健診",D:"僅透過弱點掃描手法完成資安健檢"},a:["D"]},
+{q:"下列何項「不」是常見的弱點掃描工具？",o:{A:"OSV-Scanner",B:"Nessus",C:"OpenVAS",D:"Masscan"},a:["D"]},
+{q:"以下何者為通用型的弱點掃描工具(Vulnerability Scanner)？",o:{A:"Nmap",B:"OpenVAS",C:"OWASP",D:"SCAP"},a:["B"]},
+{q:"【複選】下列哪些是目前 2025 版 OWASP Top 10 中所包含的前 10 種常見風險類別？",o:{A:"權限控制失效(Broken Access Control)",B:"跨站請求偽造(Cross-Site Request Forgery)",C:"注入式攻擊(Injection)",D:"加密機制失效(Cryptographic Failures)"},a:["A","C","D"],multi:true},
+{q:"請問 Metasploit 是下列何種用途的工具或平台？",o:{A:"SQL Injection 工具",B:"XSS 工具",C:"滲透測試平台",D:"原始碼掃描工具"},a:["C"]},
+{q:"關於程式原碼檢測(Code review)的敘述，下列何者錯誤？",o:{A:"通過檢查軟件程式的源代碼，發現和解決其中存在的潛在問題和漏洞",B:"無助於開發人員在軟體開發及時發現並修復問題，從而提高軟體的質量和可靠性",C:"可以查找內存泄漏、緩衝區溢出、程式碼注入等問題",D:"代碼審查一般會分為三類：正式的代碼審查、結對程式，以及輕量型的非正式代碼審查"},a:["B"]},
+{q:"請問 CVSS(The Common Vulnerability Scoring System)是指下列何項？",o:{A:"常見漏洞和風險編號",B:"弱點種類",C:"弱點計分系統",D:"漏洞修補建議"},a:["C"]},
+{q:"下面何項「不」是源碼檢測工具？",o:{A:"SonarQube",B:"Checkmarx",C:"Fortify",D:"Nexpose"},a:["D"]},
+{q:"關於「弱點掃描」的描述，下列何者最「不」正確？",o:{A:"此作業可能會觸發入侵偵測系統的警告",B:"可部署 Web 應用程式防火牆，來避免弱點掃描的探測",C:"是滲透測試(Penetration Test)常見的前置作業之一",D:"Ping 工具的使用，是弱點掃描常用前置作業之一"},a:["B"]},
+{q:"下列何者「不」是攻擊者常見用來下載外部後門的指令？",o:{A:"WGET",B:"CURL",C:"FTP",D:"PING"},a:["D"]},
+{q:"下列何項駭客工具可以傾倒(dump)記憶體裡登入過的帳號密碼？",o:{A:"mimikatz",B:"SQLmap",C:"Burp Suite",D:"AppScan"},a:["A"]},
+{q:"規劃端點安全架構時，納入端點偵測及應變機制(EDR)的最主要目的之敘述，下列何者正確？",o:{A:"防禦網路入侵行為",B:"監控端點入侵行為",C:"管理端點網路流量",D:"管理端點資料傳輸"},a:["B"]},
+{q:"請問下列哪一項防護措施是主要針對惡意程式的防護方法？",o:{A:"將所有電腦系統與網路斷開連接，避免受到外部攻擊",B:"定期備份重要資料，防止資料遺失",C:"安裝防毒軟體，並定期更新病毒碼",D:"僅下載來自知名網站的檔案，避免受到釣魚攻擊"},a:["C"]},
+{q:"組織內員工使用個人智慧型手機或平板等行動裝置執行組織業務，其優點非常多，但不包括下列何項？",o:{A:"使用個人的行動裝置可以提高工作效率",B:"個人裝置由個人保管，減少資料外洩的風險",C:"減少組織購買設備的費用",D:"組織透過行動裝置管理系統(MDM)管理組織內的行動裝置，主要目的在於限制行動裝置可以從事的行為"},a:["B"]},
+{q:"下列何項是正確的防火牆策略設定機制？",o:{A:"經適當的申請流程後即可無限期使用",B:"保護服務主機的防火牆，可預設允許由主機連出 internet 的連接",C:"防火牆策略應由受過專業訓練的人員審核及設定",D:"「黑名單」的設定方式優於「白名單」"},a:["C"]},
+{q:"【複選】某公司建置的測試區域遭受駭客入侵，導致重要客戶資料外流。以下哪些選項可作為前述資安問題的改善措施？",o:{A:"避免使用真實資料做為測試資料",B:"強化防火測試區防火牆管理",C:"在公司測試系統輸入重要客戶資料",D:"將測試區與公司正式區實施安全、明確之區隔"},a:["A","B","D"],multi:true},
+{q:"建置虛擬私有網路(VPN)的主要目的是下列何項？",o:{A:"加速網路連接，增加下載檔案的速度",B:"增加網站流量，創造瀏覽次數",C:"保護網路傳輸的資料安全",D:"阻擋廣告，避免廣告消耗網路頻寬"},a:["C"]},
+{q:"有關防火牆進行封包過濾時所考慮之因素，下列描述何者最「不」適切？",o:{A:"僅考慮封包的目的位址",B:"封包的協定",C:"封包的連接埠編號",D:"封包的網路界面"},a:["A"]},
+{q:"關於端點偵測及回應(EDR)的作用敘述，下列何者較「不」正確？",o:{A:"記錄所有端點上發生的活動和事件",B:"分析事件以偵測可疑行為",C:"可協助使用者快速回應安全事件",D:"能夠完全防止所有端點安全事件發生"},a:["D"]},
+{q:"網站應用程式中的元件存在弱點，若要有效避免遭受攻擊者利用的改善措施，下列何者錯誤？",o:{A:"移除不必要的元件、功能或檔案",B:"持續盤點用戶端與伺服器端元件的版本，並確認是否含有漏洞",C:"僅從官方網站與知名論壇取得相關元件",D:"監控已無維護的元件，可透過虛擬修補(Virtual Patch)降低受駭風險"},a:["C"]},
+{q:"SOC 服務主要分成 3 個階段：事前預防、事中監看、事後處理。下列敘述何者錯誤？",o:{A:"蒐集資安情資屬於事前預防階段",B:"控管網路進出流量的設備屬於事前預防階段",C:"SOC 平台的自動過濾功能回報資安事件讓資安人員便於分析與判斷是屬於事中監看階段",D:"識別威脅種類與來源以防止災害的擴大，並防止再度發生類似事故是屬於事後處理階段"},a:["D"]},
+{q:"關於安全性資訊與事件管理(SIEM)的敘述，下列何者較「不」適切？",o:{A:"SIEM 結合了安全相關的資訊管理及事件管理",B:"SIEM 用途包含偵測攻擊",C:"SIEM 不會有誤報與誤判的問題",D:"SIEM 側重於日誌的集中式管理和審計"},a:["C"]},
+{q:"入侵偵測與防禦系統(IDPS)可以主動反應偵測到的威脅，下列敘述何項最「不」適切？",o:{A:"發出入侵警告訊息",B:"記錄入侵事件",C:"可即時阻擋所偵測到的威脅",D:"將入侵者引導到 DMZ 區"},a:["D"]},
+{q:"關於行動裝置的安全保護措施，下列敘述何者錯誤？",o:{A:"軟體下載與使用應該檢視權限的要求，確保沒有資料外洩的風險",B:"軟體應自動或定期手動安裝更新修補程式",C:"資安威脅不會影響行動裝置的電池壽命",D:"行動裝置管理系統(MDM)會限制行動裝置的行為，甚至可以遠端變更與清除行動裝置的內容"},a:["C"]},
+{q:"在系統或網路之間建立一條虛擬的專屬通道，屬於下列何種網路安全技術？",o:{A:"DMZ",B:"Tunneling",C:"VLAN",D:"NAT"},a:["B"]},
+{q:"有關防火牆之敘述，下列何者錯誤？",o:{A:"防火牆是安裝在多個網路之間的網路安全防護裝置，主要目的係用來過濾資料封包",B:"防火牆是提供控制存取網路資源等服務",C:"封包是輸入向的(Inbound)都應先經過防火牆的檢查，輸出向的(Outbound)封包則無需檢查",D:"封包必須符合管理者制定之規則才能予以放行，以防止內部網路受到攻擊"},a:["C"]},
+{q:"關於進行網路架構設計的敘述，下列何者較「不」適當？",o:{A:"應區分內外網",B:"網站跟資料庫最好在不同網段",C:"目錄伺服器 AD 應該放在辦公網段",D:"可以透過 VLAN 切割網段"},a:["C"]},
+{q:"關於網路規劃的敘述，下列何項較「不」安全？",o:{A:"對外服務的伺服器，設置於防火牆的 DMZ 區",B:"外部分支機構須以 VPN 連入公司內網",C:"將所有使用者與伺服器置於同一網段（不同保護的等級伺服器須放置不同網段）",D:"使用入侵防護系統(IPS)協助維護內部網路安全"},a:["C"]},
+{q:"某廠商其日誌服務採用 syslog，伺服器 A 另有透過防火牆強化保護，伺服器 B 要傳輸日誌給伺服器 A 時，發現無法正常傳輸，但 ping 確認可以正常連線，請問下列那項方案最合適解決此項狀況？",o:{A:"重新安裝伺服器 A 的 syslog",B:"於該防火牆放行目的埠號 514 的 UDP 流量",C:"移除保護伺服器 A 的防火牆設備",D:"將伺服器 B 移至與伺服器 A 相同的網段"},a:["B"]},
+{q:"【複選】關於 EDR 所提供的主要功能的敘述，下列哪些正確？",o:{A:"主動監控端點，並針對具有威脅跡象的活動收集資料",B:"對蒐集的主機弱點執行分析，以識別是否有任何未知的威脅模式（弱點掃描工具）",C:"針對所有已識別威脅產生自動回應，以移除或過止威脅",D:"利用分析和鑑識工具，針對可能導致其他可疑活動的已識別威脅執行研究"},a:["A","C","D"],multi:true},
+{q:"【複選】關於「安全性資訊與事件管理」(SIEM)的描述，下列哪些較正確？",o:{A:"可協助組織在威脅傷害企業營運之前，先進行偵測、分析和回應安全性威脅",B:"缺乏記錄管理的功能",C:"讓組織就可以迅速回應潛在的網路攻擊，並滿足合規性要求",D:"結合了安全性資訊管理(SIM)和安全性事件管理(SEM)"},a:["A","C","D"],multi:true},
+{q:"對於各式網路攻擊之防禦措施，以下敘述何者最正確？",o:{A:"入侵防禦系統(IPS)無法偵測網路攻擊，僅能進行阻擋",B:"使用防火牆能有效阻擋分散式阻斷服務(DDoS)攻擊",C:"透過佈署密罐(Honeypot)服務可偵測異常網路活動",D:"入侵偵測系統(IDS)可偵測網路攻擊，並進行阻擋"},a:["A"]},
+{q:"可以使用下列何者，降低廣播領域(Broadcast Domain)範圍？",o:{A:"Virtual Local Area Network (VLAN)",B:"Network Address Translate (NAT)",C:"Dynamic Trunking Protocol (DTP)",D:"Inter-Switch Link (ISL)"},a:["A"]},
+{q:"有關防火牆功能之敘述，下列何者錯誤？",o:{A:"過濾一般用戶所禁止的網路服務，許可之網路服務則無須過濾",B:"具有應用代理閘道防火牆(Application-Proxy Gateway Firewalls)功能",C:"可以隱藏內部 IP 位址的網路位址轉譯(NAT)模式",D:"可以在不修改網路設備的設定下，提供動態封包過濾功能的透通橋接模式(Transparent Mode)"},a:["A"]},
+{q:"當網路防火牆受到偵測攻擊時，下列何者最「不」適宜？",o:{A:"對外管理 Port 應該關閉",B:"最高權限應該提供給維護廠商",C:"定期檢視規則是否過期",D:"告警應該有專人確認與處置"},a:["B"]},
+{q:"企業外部網路組織的內部網路與外部夥伴組織之間的連結，為了讓互相信任的組織進行連線可以透過專線或架設虛擬私有網路來完成，其技術名稱為下列何項？",o:{A:"VPN",B:"LAN",C:"DMZ",D:"NAT"},a:["A"]},
+{q:"疫情期間居家上班，某 IC 設計公司擔心員工在家使用 Smartphone 或 Laptop 收發公司郵件，恐有附件機密資料外洩疑慮，下列哪一個選項「最不具備」資料保密措施？",o:{A:"手機透過 VPN 登入公司網路，在虛擬化桌面環境(VDI)中收取電子郵件，無法讓附件儲存在個人手機中",B:"讓公司員工直接遠端(RDP)登入到公司配發個人電腦，收發電子郵件",C:"公司配發專用手機，手機充電孔已不具備資料傳輸能力，NFC 也被禁用，必須透過 VPN 才能連線公司郵件伺服器",D:"公司配發專用 Laptop，且安裝資料外洩防護 DLP 進行管控，必須透過 VPN 連上公司郵件伺服器"},a:["B"]},
+{q:"關於行動裝置安全的方案，下列何者較「不」適當？",o:{A:"利用端點安全方案，監控公司每部存取網路行動裝置檔案與程式，透過持續掃描惡意行為，來及早識別威脅",B:"透過 VPN 讓裝置到公司網路加密連線，確保安全傳輸資料，防止未經授權人員竊聽",C:"員工在公司電腦安裝隱匿通道(Tunnel)保護家裡到公司的連線，確保只有自己可以使用，來安全傳輸資料",D:"提升電子郵件安全，透過檔案內容淨化與重組(CDR)進行郵件檔案清洗，阻絕勒索病毒或是惡意檔案"},a:["C"]},
+{q:"請問下列何者為常見的 SNMP (Simple Network Management Protocol)安全問題？",o:{A:"使用 public community string",B:"使用 SNMP v3",C:"使用 UDP",D:"使用 161 作為服務 Port"},a:["A"]},
+{q:"面對組織化、多變化的駭客攻擊，建立資訊安全監控維運中心(SOC)以加強資訊安全系統安全，下列何者是 SOC 的較主要運作功能？",o:{A:"決定風險處理方法",B:"進行資安弱點管理",C:"即時監看資安事件",D:"處理資安事故原因"},a:["C"]},
+{q:"防毒軟體使用「啟發/探索方法(Heuristic Method)」最主要優點為下列何項？",o:{A:"偵測全新病毒",B:"偵測已知病毒",C:"避免誤隔離",D:"可更快速偵測已知惡意程式"},a:["A"]},
+{q:"下列何種資訊設備較「無法」從網路層進行存取控制以限制合法的來源？",o:{A:"DLP (Data Loss Prevention)",B:"DNS (Domain Name Service)",C:"Firewall",D:"Switch"},a:["A"]},
+{q:"下列何者為 L7 layer Firewall？",o:{A:"Antivirus",B:"WAF",C:"IPS",D:"IDS"},a:["B"]},
+{q:"欲將外部網路建立連線至內部網路，採用下列何種連線方式，單一使用者可以較安全連接至某個私人網路？",o:{A:"WAF",B:"SSD",C:"VPN",D:"PBX"},a:["C"]},
+{q:"某公司管理人員正在診斷 VPN 的安全性問題，附圖為其截取到的部份 VPN 封包（請參考原考卷附圖），請問這家公司使用下列何種 VPN 通道協定？",o:{A:"OpenVPN",B:"IPSec VPN",C:"SSL VPN",D:"PPTP VPN"},a:["D"]},
+{q:"【複選】關於虛擬修補(Virtual patch)，下列敘述哪些正確？",o:{A:"透過分析與攔截惡意網路封包內容，而達成防護效果",B:"虛擬修補對網路攻擊防護極為有效，可取代弱點修正與更新",C:"針對已知攻擊特徵，亦可於入侵防禦系統(IPS)或網站應用程式防火牆(WAF)上設定規則阻擋",D:"常於零時弱點(Zero day)、老舊系統無法修復、人力不足無法更新程式等情境應用"},a:["A","C","D"],multi:true},
+{q:"關於入侵檢測系統(IDS)，下列敘述何者「不」正確？",o:{A:"需定期更新特徵碼",B:"可阻擋偽造 IP 之攻擊",C:"不會因設備異常導致網路環境異常",D:"可完整紀錄流量特徵"},a:["B"]}
+];
+
+const hw5=[
+{q:"下列何者是微軟網路芳鄰常用的連接埠？",o:{A:"TCP 248",B:"TCP 445",C:"TCP 80",D:"TCP 20"},a:["B"]},
+{q:"下列何項技術可讓組織在公開網路上共用單一外部 IP，並有效隱藏內部網路？",o:{A:"NAT",B:"DMZ",C:"VPN",D:"VLAN"},a:["A"]},
+{q:"關於位址解析協定(ARP)的功能，下列何者正確？",o:{A:"以 IP 位址查詢其相對應之 MAC 位址",B:"管理網路流量並決定封包路徑",C:"對網路流量進行加密與解密",D:"控制網路流量以防止分段與碎片產生"},a:["A"]},
+{q:"TCP 三向交握(Three-way Handshake)的正確順序為何？",o:{A:"SYN - SYN/ACK - ACK",B:"SYNACK - SYN",C:"SYN - SYN - SYN",D:"ACK - SYN - SYN"},a:["A"]},
+{q:"在 OSI 模型中，IPSec 協定主要定義於哪一層？",o:{A:"資料連結層",B:"傳輸層",C:"會議層",D:"網路層"},a:["D"]},
+{q:"有關 OSI 模型中會議層(Session Layer)之敘述，下列何者正確？",o:{A:"主要的功能是負責管理和控制不同應用程式之間的對話",B:"確保資料傳輸的可靠，並處理錯誤復原",C:"處理封包的路由與轉發",D:"將資料進行壓縮與解壓縮以提高傳輸效率"},a:["A"]},
+{q:"下列哪一種攻擊行為屬於 OSI 第七層(應用層)的 DDoS 攻擊手法？",o:{A:"SYN Flood Attack",B:"Fragmentation Attack",C:"HTTP Flood Attack",D:"UDP Flood Attack"},a:["C"]},
+{q:"當電腦 A 位於防火牆 B 後面，只想要開放電腦 A 上的遠端桌面服務，供外部使用者可以從網際網路連線進入時，防火牆 B 應該設定下列何種功能最合適？",o:{A:"Port Mapping",B:"Virtual Server",C:"DHCP",D:"DNS"},a:["A"]},
+{q:"在網路中，路由器(Router)的主要功能是？",o:{A:"分配 IP 位址給網路中的裝置",B:"在區域網路(LAN)中將資料封包轉送到正確的裝置",C:"為網路中的所有資料封包加密",D:"負責將資料封包從一個網路轉送到另一個網路"},a:["D"]},
+{q:"在 OSI 參考模型中，Chrome、Firefox 等瀏覽器軟體應該屬於下列何項層次？",o:{A:"應用層(Application Layer)",B:"網路層(Network Layer)",C:"資料連結層(Data Link Layer)",D:"傳輸層(Transport Layer)"},a:["A"]},
+{q:"OSI 模型中會議層(Session Layer)的主要功能為何？",o:{A:"主要的功能是負責管理和控制不同應用程式之間的對話",B:"確保資料傳輸的可靠，並處理錯誤復原",C:"處理封包的路由與轉發",D:"將資料進行壓縮與解壓縮以提高傳輸效率"},a:["A"]},
+{q:"下列哪一種攻擊手法屬於 OSI 第七層(應用層)的 DDoS 攻擊？",o:{A:"SYN Flood Attack",B:"Fragmentation Attack",C:"HTTP Flood Attack",D:"UDP Flood Attack"},a:["C"]},
+{q:"當電腦 A 位於防火牆 B 後面，僅開放遠端桌面服務供外部連線時，防火牆應設定哪種功能最合適？",o:{A:"Port Mapping",B:"Virtual Server",C:"DHCP",D:"DNS"},a:["A"]},
+{q:"下列何項是路由器(Router)的主要功能？",o:{A:"分配 IP 位址給網路中的裝置",B:"在區域網內將資料封包轉送到正確裝置",C:"為網路中的所有資料封包加密",D:"將資料封包從一個網路轉送到另一個網路"},a:["D"]},
+{q:"在 OSI 參考模型中，像 Chrome、Firefox 這類瀏覽器屬於哪一層？",o:{A:"應用層",B:"網路層",C:"資料連結層",D:"傳輸層"},a:["A"]},
+{q:"下列哪一項網路設備可以找出傳送封包的最佳路徑？",o:{A:"中繼器",B:"橋接器",C:"路由器",D:"集線器"},a:["C"]},
+{q:"關於預設通訊埠的敘述，哪一選項描述錯誤？",o:{A:"SFTP，通訊埠 21",B:"RDP 為遠端桌面，通訊埠 3389",C:"HTTP，通訊埠 80",D:"DNS，通訊埠 53"},a:["A"]},
+{q:"下列哪一項敘述為 TCP/IP 模型中不存在的層次？",o:{A:"應用層",B:"會話層",C:"傳輸層",D:"網際網路層"},a:["B"]},
+{q:"某企業的 DNS 伺服器若允許無限制的 DNS 區域傳輸(Zone Transfer)，可能導致什麼安全風險？",o:{A:"DNS Tunneling",B:"DNS Amplification",C:"DNS Zone Transfer",D:"DNS Spoofing"},a:["C"]},
+{q:"下列哪一個通訊協定採用明文傳輸，容易被竊聽？",o:{A:"TELNET",B:"FTPS",C:"HTTPS",D:"SSH"},a:["A"]},
+{q:"關於 Linux 日誌的相關描述，下列何者錯誤？",o:{A:"/var/log/boot.log 記錄開機時系統核心偵測與啟動硬體，只存放當次開機的資訊",B:"/var/log/cron 記錄 crontab 排程有沒有實際被進行",C:"/var/log/dmesg 記錄系統在開機的時候核心偵測過程所產生的各項資訊",D:"/var/log/messages 記錄系統上面所有的帳號最近一次登入系統時的相關資訊"},a:["D"]},
+{q:"關於日誌管理會收攏許多 Log 記錄的敘述，下列何者正確？",o:{A:"Web 網站日誌只收集網站流量和使用者活動的資訊，無法用在效能調教或是駭客入侵鑑識",B:"網頁應用程式防火牆安全日誌，可以收到駭客惡意攻擊的訊息，無法採測潛在的漏洞攻擊活動",C:"應用程式日誌，除可以記錄應用程式的錯誤訊息，也有機會用於除錯與效能的調校",D:"作業系統日誌，以 Windows Event Log 類型來說，只可以收集安全、應用程式、系統等三類型記錄，無法自定義相關日誌"},a:["C"]},
+{q:"有效管理來自伺服器、網路設備及應用程式等各種來源的日誌資訊。請問下列有關日誌管理的描述何者有誤？",o:{A:"不同網路設備的日誌格式不同，Windows Event Viewer 就沒辦法直接開啟 Linux 系統的日誌",B:"依據「資通系統防護基準驗證實務」規定，日誌的保存期限至少為 3 個月",C:"任何發生在機關資通系統中可觀察到行為之結果稱為資通系統事件，應當具備有記錄特定事件之功能",D:"日誌應記錄資通系統管理者帳號所執行之各項功能"},a:["B"]},
+{q:"最近某工程師發現他的電腦十分緩慢，當其查看事件檢視器（附圖見原考卷），請問從附圖中的資料，可以確認的結論為下列何項？",o:{A:"該電腦已經被入侵成功",B:"有人嘗試登入該電腦，但都失敗",C:"該電腦應該沒有問題",D:"電腦中了木馬"},a:["B"]},
+{q:"在日誌管理中，為了確保操作行為能被追蹤並歸責到特定使用者，下列哪一項做法較「不」適當？",o:{A:"使用唯一識別符碼，以確保使用者身份唯一",B:"記錄每次操作的時間、使用者 ID 和具體動作",C:"對所有事件，包括正常與異常行為，均進行詳細記錄",D:"系統日誌的存取應妥善保護，並由最高權限的管理員帳戶維護管理"},a:["D"]},
+{q:"【複選】在勒索軟體事件中，下列哪些日誌的來源可能找到入侵的紀錄或警訊？",o:{A:"網路面資安防護設備",B:"重要主機之作業系統事件",C:"防毒軟體告警",D:"門禁進出紀錄"},a:["A","B","C"],multi:true},
+{q:"公司的官網受到駭客入侵，必須從官網 IIS Log File 來追蹤駭客來源以及手法，關於 IIS Log File 的敘述，下列何者錯誤？",o:{A:"IIS 預設 log 路徑為 %SystemDrive%\\inetpub\\logs\\LogFiles",B:"IIS 如果有多個網站，網站的 log 會在資料夾中以 u_exyymmdd.log 的 log 檔呈現",C:"在預設狀態下，IIS 預設的日誌時間與台灣時間是一致的",D:"IIS 提供了 4 種日誌檔格式：IIS 紀錄檔格式、NCSA 紀錄檔案格式、W3C 紀錄檔格式、自定義日誌檔案格式"},a:["C"]},
+{q:"下列何項為應用系統日誌管理的主要目的？",o:{A:"加速系統的運作",B:"用於故障排除、合規性記錄、支援威脅檢測、安全性問題確認等目的",C:"監控系統用戶的操作",D:"監督系統運用的效能"},a:["B"]},
+{q:"關於系統稽核日誌的保護機制敘述，下列何者正確？",o:{A:"稽核日誌紀錄留存的時間，應以設備硬體空間能儲存多久的時間而制定",B:"系統管理與使用者，需要參考稽核日誌的結果，所以存取權限設定可予以開放",C:"因應系統稽核日誌也是資訊安全事故的有效證據，所以控管存取權限是最重要的議題",D:"當保留稽核日誌紀錄受到防毒軟體的限制時，可考量不予以留存"},a:["C"]},
+{q:"請問 Windows 作業系統中，若需記錄使用者於本機登入失敗的相關記錄，下項描述何者正確？",o:{A:"無需設定可以直接透過事件檢視器(Windows Event Viewer)查看",B:"需要事先透過稽核原則（登出/登入）設定確認啟用",C:"當使用者輸入不正確的密碼時，會在金鑰發佈中心(KDC)上產生 672 事件",D:"可以透用事件 4634 來查看登入失敗的事件"},a:["B"]},
+{q:"以下關於 TCP 與 UDP 協定的特性，下列敘述何者較「不」正確？",o:{A:"兩者均屬於 OSI 模型中的傳輸層",B:"兩者皆需進行三向式的握手程序",C:"TCP 速度較慢、UDP 速度較快",D:"TCP 穩定性高、UDP 穩定性低"},a:["B"]},
+{q:"關於通訊安全的敘述，下列何者錯誤？",o:{A:"當兩個系統進行通訊時，務必確保系統透過安全通道進行通訊，獲授權存取雙方使用共用資源",B:"安全通訊端層(SSL)是對網際網路通訊提供隱私、驗證和整合性的安全性通訊協定",C:"SSL 是通道加密，資料也加密保護",D:"傳輸層安全標準(TLS)是標準網際網路通訊協定可以加密處理電子郵件，確保郵件在傳輸過程中安全不外洩"},a:["C"]},
+{q:"當某 Windows 電腦，想要開放遠端桌面服務供其他電腦連入時，而該服務採用預設設定，請問防火牆應該開放下列哪一個通訊埠(Port)？",o:{A:"53",B:"23",C:"443",D:"3389"},a:["D"]},
+{q:"請問 DNS 快取污染(DNS Cache Poisoning)是針對 OSI Model 的哪一層的攻擊？",o:{A:"Layer 2 資料連接層(Data-Link Layer)",B:"Layer 3 網路層(Network Layer)",C:"Layer 4 傳送層(Transport Layer)",D:"Layer 7 應用層(Application Layer)"},a:["D"]},
+{q:"下列何者為遠端使用者撥入驗證服務(RADIUS)常使用之通訊埠(Port)？",o:{A:"1812",B:"123",C:"389",D:"390"},a:["A"]},
+{q:"請問下列哪一個 IP 位址為公用 IP 位址（非私人 IP）？",o:{A:"10.10.10.10",B:"100.100.100.100",C:"172.16.172.16",D:"192.168.192.168"},a:["B"]},
+{q:"【複選】關於通訊埠用途的敘述，下列何項錯誤？",o:{A:"Port:53/TCP 用途：DNS 域名解析服務",B:"Port:123/UDP 用途：LDAP 輕型目錄存取協定",C:"Port:445/UDP 用途：Microsoft-DS SMB 檔案分享",D:"Port:995/TCP 用途：基於 SSL 的 POP3 收發電子郵件加密傳輸"},a:["B","C"],multi:true},
+{q:"請問可以將網際網路封包加密的是下列何項通訊協定？",o:{A:"SMTP",B:"HTTP",C:"HTTPS",D:"FTP"},a:["C"]},
+{q:"TCP 三向交握(Three-way Handshake)的順序為下列何項？",o:{A:"SYN, SYN/ACK, ACK",B:"SYN, ACK, SYN",C:"SYN, SYN, SYN",D:"ACK, SYN, SYN"},a:["A"]},
+{q:"下列 OSI 模型層次，何者定義 IPSec 協定？",o:{A:"資料鏈結層(Data Link Layer)",B:"傳輸層(Transport Layer)",C:"會議層(Session Layer)",D:"網路層(Network Layer)"},a:["D"]},
+{q:"攻擊者利用網站的漏洞把惡意程式腳本注入到網頁內，當使用者瀏覽其網頁時，將會執行網頁內注入的惡意程式碼，可能造成 Cookie 資料被竊取、Session 連線被劫持或釣魚欺騙等攻擊，請問上述屬於下列何種攻擊方法？",o:{A:"安全性設定疏失(Security Misconfiguration)",B:"身分驗證功能缺失(Broken Authentication and Session Management)",C:"跨網站偽造請求(Cross-Site Request Forgery, CSRF)",D:"跨站指令碼攻擊(Cross-Site Scripting, XSS)"},a:["D"]},
+{q:"下列何者為輕型目錄存取協定(LDAP)較常使用之通訊埠(Port)？",o:{A:"311",B:"123",C:"389",D:"390"},a:["C"]},
+{q:"有心人士將電腦網卡設定為混雜模式，再加上由網路上下載網路監看(Sniffing)工具(如 Wireshark)，就可以側錄到下列何種應用協定的密碼封包？",o:{A:"IPSec",B:"PGP",C:"HTTPS",D:"Telnet"},a:["D"]},
+{q:"【複選】開放式系統互聯模型(OSI)中，下列哪些「不」是在傳輸層(Transport Layer)的攻擊手法？",o:{A:"Smurf Attack",B:"DNS Poisoning",C:"SYN Flood",D:"Ping of Death"},a:["A","B","D"],multi:true},
+{q:"下列何者攻擊「不」屬於第七層攻擊？",o:{A:"SQL Injection",B:"Command Injection",C:"Cross Site Scripting",D:"SSL Hijacking"},a:["D"]},
+{q:"下列何者為超文本傳輸安全協定(HTTPS)較常使用之通訊埠(Port)？",o:{A:"22",B:"25",C:"80",D:"443"},a:["D"]},
+{q:"下列何項「不」是過濾型網路防火牆所過濾的網路封包參數？",o:{A:"來源端 IP Address",B:"目的端 IP Address",C:"來源端 TCP/UDP Port",D:"目的端 MAC Address"},a:["D"]},
+{q:"附圖為防火牆的過濾規則表及封包資訊（請參考原考卷附圖），請問該封包依據防火牆規則是否通過，以及符合哪條規則？",o:{A:"通過，符合規則 1",B:"通過，符合規則 3",C:"通過，符合規則 4",D:"被拒絕，符合規則 5"},a:["D"]},
+{q:"某公司新增了一業務型態，員工（20員，每員配置筆電乙部以及隨身硬碟乙顆）必須至客戶端長期駐點，透過網際網路連線回公司內部網路，為了降低此一新增業務型態所衍伸出來的資安風險，請問下列控制措施何項較無法降低此風險？",o:{A:"網站應用防火牆(Web Application Firewall WAF)",B:"端點偵測及應變機制(Endpoint Detection and Response EDR)",C:"虛擬私有網路(Virtual Private Network VPN)",D:"防毒軟體(Antivirus Software)"},a:["A"]},
+{q:"關於網路安全架構中的基本要素，下列何項敘述「有誤」？",o:{A:"包含雲端儲存設備",B:"包含防火牆設備",C:"包含惡意軟體偵測設備",D:"包含虛擬私人網路(VPN)設備"},a:["A"]},
+{q:"請問 CWE(Common Weakness Enumeration)是指下列何項？",o:{A:"常見漏洞和風險編號",B:"弱點種類",C:"Exploit Code",D:"漏洞修補建議"},a:["B"]},
+{q:"資安管理人員可以利用下列何種資訊來源來尋找設備裝置、作業系統與應用程式的弱點(Vulnerabilities)相關資訊？",o:{A:"OWASP (Open Web Application Security Project)",B:"Bugtraq",C:"Global Vulnerabilities List (GVL)",D:"Common Vulnerabilities and Exposures (CVE)"},a:["D"]},
+{q:"關於 Nmap 工具之指令操作，下列敘述何者正確？",o:{A:"Nmap 的 SYN 掃描可以掃描 UDP 埠",B:"Nmap 使用 -T1 參數較 -T4 參數的掃描速度快",C:"Nmap 使用 -sO 參數可檢測標的主機的作業系統版本",D:"Nmap 使用 -D 參數為誘騙掃描(decoy scan)"},a:["D"]},
+{q:"下列何者為探測通訊埠(Port)的軟體？",o:{A:"Appscan",B:"Nmap",C:"Burp Suite",D:"Telnet"},a:["B"]},
+{q:"請問下列何種工具常被用來建立 Backdoor？",o:{A:"telnet",B:"ipconfig",C:"NC",D:"cat"},a:["C"]},
+{q:"在網站平台開發時弱點管理的範疇中，進行弱點掃描的目的為何？",o:{A:"驗證所知弱點的可行性",B:"以駭客或惡意使用者的角度對目標進行驗證",C:"檢測程式中的商業邏輯問題",D:"檢測在環境與系統上的錯誤"},a:["D"]},
+{q:"關於軟體組成分析(Software Composition Analysis)，下列敘述何者「不」正確？",o:{A:"可透過分析來識別所使用第三方/開源軟體，其所存在的風險或威脅",B:"「軟體組成分析」為源碼檢測其一類型，主要分析軟體是否存在開發語法缺陷",C:"所分析的風險因子包括如：元件過期、已知弱點、程式庫信任、軟體授權等",D:"「軟體透明度」能提升分析準確性，可透過如 SBOM 標準來發佈與交換資訊"},a:["B"]},
+{q:"在 OWASP Top 10 2021 中，其 A6 項目說明使用含有已知漏洞的元件，在軟體開發時，為減少 A6 項目的發生，下列何種作法較佳？",o:{A:"限制可以使用的元件",B:"使用強的加密演算法",C:"使用入侵防禦系統",D:"限制使用的網路埠"},a:["A"]},
+{q:"下列何者「不」屬於滲透測試之手段？",o:{A:"社交攻擊",B:"密碼破解",C:"弱點掃描",D:"分散式服務阻斷攻擊"},a:["D"]},
+{q:"關於 Linux 檔案的敘述，下列何者錯誤？",o:{A:"/etc/shadow：儲存使用者密碼的 Hash 值",B:"/bash_history：使用者登入的歷史紀錄",C:"/var/log/secure：檔案用於記錄與安全相關的所有事件，包含使用者登入紀錄",D:"~/.ssh/known_hosts：記錄對方連線主機的指紋資訊"},a:["B"]},
+{q:"下列何項網路設備可以找出傳送封包的最佳路徑？",o:{A:"中繼器",B:"橋接器",C:"路由器",D:"集線器"},a:["C"]},
+{q:"關於通訊埠(Port)預設端口的敘述，下列何項錯誤？",o:{A:"SFTP，通訊埠 21",B:"RDP 為遠端桌面，通訊埠 3389",C:"HTTP，通訊埠 80",D:"DNS，通訊埠 53"},a:["A"]},
+{q:"有關 TCP/IP (DoD)模型之敘述，下列何者有誤？",o:{A:"包含應用層(Application Layer)",B:"包含會談層(Session Layer)",C:"包含網際網路層(Internet Layer)",D:"包含網路存取層(Network Access Layer)"},a:["B"]},
+{q:"當企業有大量的內部網址時，會自行架設 DNS Server，並且使用一個特定功能來傳輸各台 DNS Server 彼此的 DNS Record。但是如果該功能沒有限制存取來源，可能會導致任意使用者都可以直接取得該企業全部的 DNS Record，造成內部的網址外流。請問下列何項就是上述的特定功能？",o:{A:"DNS Tunneling",B:"DNS Amplification",C:"DNS Zone Transfer",D:"DNS Spoofing"},a:["C"]},
+{q:"下列哪一個通訊協定沒有經過加密傳輸，直接採用明文的方式傳輸，有機會被攻擊者竊聽？",o:{A:"TELNET",B:"FTPS",C:"HTTPS",D:"SSH"},a:["A"]},
+{q:"下列何者是微軟網路芳鄰會使用到的 port？",o:{A:"TCP 248",B:"TCP 445",C:"TCP 80",D:"TCP 20"},a:["B"]},
+{q:"下列何項技術可以讓組織在公開網路上共用一個外部 IP 位址，與外部只有一個接點有效隱藏內部網路，並能監控進入組織的資料兼具防火牆過濾功能？",o:{A:"NAT",B:"DMZ",C:"VPN",D:"VLAN"},a:["A"]},
+{q:"有關位址解析協定(ARP)功能之敘述，下列何者正確？",o:{A:"以 IP 位址查詢其相對應之媒體存取控制(MAC)位址",B:"管理網路流量並決定封包路徑",C:"對網路流量進行加密與解密，確保安全的通訊",D:"控制網路流量以防止分段與碎片產生"},a:["A"]},
+{q:"中間人攻擊(MITM Attack)是一種用來竊聽、竄改流量的攻擊行為。以下列舉了幾種用來防範中間人攻擊的防禦機制，請問哪一種防範機制已經被驗證有明顯的弱點並且已被建議棄用？",o:{A:"將位址解析協定設定為靜態(Static ARP)，避免 ARP 位址被污染",B:"在 HTTPS 或 SMTPS 使用 SSLv2 協定來保護傳輸資料，避免被看到明文內容",C:"使用 DNSSEC 來驗證 DNS 的安全性，避免存取假冒的網域名稱",D:"只使用家中自行設定的 Wi-Fi 或 4G 網路，並且連上網路之後全程使用公司 VPN"},a:["B"]},
+{q:"在關於 OSI 中，下列哪一層負責 IP 之間的傳輸？",o:{A:"應用層(Application Layer)",B:"表達層(Presentation Layer)",C:"傳輸層(Transport Layer)",D:"網路層(Network Layer)"},a:["D"]},
+{q:"關於日誌管理的敘述，下列何者錯誤？",o:{A:"可用於事件取證，日誌資訊對於原因的判別是關鍵點，而在還不確定原因之前，則需要全面性的收集日誌資訊",B:"為了滿足不同的法規規範，日誌成為稽核重要的參考資料",C:"日誌管理，可以用在事件警示，卻不適用在 SOC(Security Operation Center)管理",D:"沙賓法案(SOX)或是醫療保險相關法案(HIPAA)這一類的法遵，都會要求讓日誌成為重要稽核軌跡(audit trail)"},a:["C"]},
+{q:"關於 Linux 系統日誌資料的敘述，下列何者正確？",o:{A:"/var/log/lastlog 記錄系統中所有用戶最後一次的登錄時間，可直接用 vi 查閱，但需搭配使用 lastlog 命令進行",B:"/var/log/cron 記錄與系統設定任務相關的日誌",C:"/var/log/dmesg 記錄系統關機時，內核自我檢查資訊，也可以使用 dmesg 命令直接查看內核自檢資訊",D:"/var/log/secure 記錄郵件資訊的日誌"},a:["B"]},
+{q:"關於 Windows Event Log 的敘述，下列何者錯誤？",o:{A:"windows event log 預設位置為：%SystemRoot%\\System32\\winevt\\Logs",B:"關於 windows event log 相關設定與調整在：HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\Eventlog",C:"windows event log 只有三類，無法再擴充其他類型 event log",D:"以 Security.evtx 為例，包含主機的 Login/Logout 資訊，還有其他安全事件相關的 log"},a:["C"]},
+{q:"關於此筆 Apache 記錄的敘述（附圖請參考原考卷），下列何者錯誤？",o:{A:"218.19.140.242 這是一個 apache 伺服器的 local 端 IP",B:"[10/Dec/2010:09:31:17+0800] 格式中，最後的 +0800 表示伺服器所處的時區",C:"1933 表示伺服器向客戶端傳送多少位元組",D:"Mozilla/5.0... 這項主要記錄客戶端的瀏覽器資訊"},a:["A"]},
+{q:"關於「日誌管理」的敘述，下列何者錯誤？",o:{A:"日誌管理不會與法律合規性有任何關連性",B:"日誌未安全存放，很有可能被駭客或惡意破壞者刪除或修改",C:"安全資訊和事件管理(SIEM)其中功能是達成降低資安威脅",D:"透過日誌管理系統統一分析，可以用在鑑識攻擊事件追蹤分析"},a:["A"]},
+{q:"關於應用程式日誌管理保存的敘述，下列何者最「不」適當？",o:{A:"日誌必須儲存於本機以避免資料外流",B:"日誌格式須確保被能被所使用之日誌管理方案支援",C:"日誌須定期分析與監控，以即時發現可疑活動",D:"日誌須留存足夠資訊以有效識別，如：時間、來源/目的、動作等"},a:["A"]},
+{q:"為避免人員舞弊 與資訊安全系統監控相關議題的敘述，下列何項「不」正確？",o:{A:"資訊安全監控時，系統留存稽核日誌應保存完整，以防止未經授權的存取",B:"資訊安全事故發生時，應由責任負責同仁盡速通報",C:"資訊系統日誌都會包含大量資訊，且內容多數與資訊安全監視無關，宜考量以工具識別重要事件作為審查資訊",D:"由系統或網路管理者管理稽核日誌"},a:["D"]},
+{q:"若某公司以 UDP port 514 的方式、遠端蒐集 Syslog 進行日誌留存，請問下列敘述何者最正確？",o:{A:"遠端蒐集之日誌，無法作為有效證據",B:"網路流量大時，有可能遺失封包（資料）",C:"Syslog 無須考量加密即可保護資料傳輸之安全",D:"遠端蒐集之日誌，存放時不應加密，以免破壞資料的正確性"},a:["B"]},
+{q:"下列何項為應用系統日誌管理的主要目的？",o:{A:"加速系統的運作",B:"用於故障排除、合規性記錄、支援威脅檢測、安全性問題確認等目的",C:"監控系統用戶的操作",D:"監督系統運用的效能"},a:["B"]},
+{q:"日誌的功能是幫助資訊安全維運人員進行系統除錯，稽核取證與行為歸責的重要依據。請問下列描述何者錯誤？",o:{A:"記錄的內容包括設備的作業系統、發生的日期與時間、資料流量、使用者身份資料等",B:"不同的資安設備可能產生不同的日誌格式，增加即時追蹤的困難度",C:"將日誌存放在公開的儲存空間，可以提高判讀的速度",D:"透過系統設定，系統可以根據日誌得到的資訊向監控者傳送警報訊息"},a:["C"]},
+{q:"在現行 Fedora/CentOS/RHEL Linux 中記錄登入系統如 SSH(Secure Shell)等遠端連線登入紀錄為下列何者？",o:{A:"/var/log/secure",B:"/var/log/messages",C:"/var/log/wtmp",D:"/var/log/null"},a:["A"]},
+{q:"關於 Syslog 的敘述，下列何者錯誤？",o:{A:"可以被以 UDP 協定及 TCP 協定來傳送",B:"通常被用於資訊系統管理及資安稽核",C:"無法透過 SSL 或 TLS 方式加密",D:"是一種用來在 TCP/IP 網路中傳遞記錄檔訊息的標準"},a:["C"]},
+{q:"關於「系統日誌」的敘述，下列何者錯誤？（註：本題依業界實務，若須留存日誌常需考量去識別化）",o:{A:"防止系統日誌被未經授權的存取",B:"防止侵害個人隱私，不儲存可識別使用者的資訊",C:"需防範日誌記錄檔被修改或刪除",D:"需留意不超過儲存媒體的最大容量"},a:["B"]},
+{q:"關於日誌與監控作業，下列敘述何者較「不」正確？",o:{A:"日誌應記錄使用者活動、異常，並且依法定要求的時間保存",B:"系統日誌為避免外洩，應在發生資安事件時才查詢，平日不應存取",C:"日誌應避免可被該系統管理人員修改",D:"資訊處理系統、網路設備的鐘訊，應與議定的準確時間來源同步"},a:["B"]},
+{q:"請問若某公司，將存有機密性資料系統的日誌，以 Syslog 的方式透過網際網路傳輸到 30 公里之外的異地備援機房，請問就安全的考量上來說，下列議題，何者最需優先處理？",o:{A:"備援機房的進出管理",B:"日誌審查(Log Review)的頻率",C:"傳輸過程的加密/保護",D:"30 公里的距離過遠"},a:["C"]},
+{q:"「系統管理員將所有稽核日誌存放於另一台獨立的日誌伺服器(Log Server)，並由非管理系統之人具管理該伺服器。」下列何者為其最重要的目的？",o:{A:"強化機密性",B:"保護日誌",C:"避免 SQL Injection 攻擊",D:"降低分析資安事故的時間"},a:["B"]},
+{q:"在 Linux 系統中，下列何檔案存放了「使用者的登入歷史紀錄」？",o:{A:"/var/log/wtmp",B:"/var/log/messages",C:"/etc/login.defs",D:"/var/log/dmesg"},a:["A"]}
+];
+
+let state={cur:0,scores:[{done:0,correct:0},{done:0,correct:0}],answered:[[],[]]};
+
+function init(){
+  renderSection(0,hw4,'sec0');
+  renderSection(1,hw5,'sec1');
+  updateScore();
+}
+
+function renderSection(si,qs,id){
+  const el=document.getElementById(id);
+  el.innerHTML='';
+  qs.forEach((q,i)=>{
+    const multi=!!q.multi;
+    const card=document.createElement('div');
+    card.className='question-card';
+    card.id=`card-${si}-${i}`;
+    const keys=Object.keys(q.o);
+    const opts=keys.map(k=>{
+      const inp=multi
+        ?`<input type="checkbox" name="q${si}_${i}" value="${k}" id="opt${si}_${i}_${k}">`
+        :`<input type="radio" name="q${si}_${i}" value="${k}" id="opt${si}_${i}_${k}">`;
+      return`<label class="opt" id="optlbl${si}_${i}_${k}" for="opt${si}_${i}_${k}"><span class="opt-key">${k}.</span><span class="opt-label">${q.o[k]}</span>${inp}</label>`;
+    }).join('');
+    const multiBadge=multi?`<span class="multi-badge">複選</span>`:'';
+    card.innerHTML=`
+      <div class="qhead"><div class="qnum">${i+1}</div><div class="qtitle">${q.q}${multiBadge}</div></div>
+      <div class="options" id="opts${si}_${i}">${opts}</div>
+      ${multi?`<button class="check-btn" onclick="checkMulti(${si},${i})">確認答案</button>`:''}
+      <div class="feedback" id="fb${si}_${i}" style="display:none"></div>`;
+    el.appendChild(card);
+    if(!multi){
+      keys.forEach(k=>{
+        document.getElementById(`opt${si}_${i}_${k}`).addEventListener('change',()=>checkSingle(si,i,k));
+      });
+    }
+  });
+}
+
+function checkSingle(si,qi,chosen){
+  const qs=si===0?hw4:hw5;
+  const q=qs[qi];
+  if(state.answered[si][qi]!==undefined) return;
+  state.answered[si][qi]=chosen;
+  const correct=q.a[0]===chosen;
+  Object.keys(q.o).forEach(k=>{
+    const lbl=document.getElementById(`optlbl${si}_${qi}_${k}`);
+    const inp=document.getElementById(`opt${si}_${qi}_${k}`);
+    lbl.classList.add('disabled');
+    inp.disabled=true;
+    if(k===q.a[0]) lbl.classList.add('correct');
+    else if(k===chosen && !correct) lbl.classList.add('wrong');
+  });
+  const card=document.getElementById(`card-${si}-${qi}`);
+  card.classList.add(correct?'answered-correct':'answered-wrong');
+  const fb=document.getElementById(`fb${si}_${qi}`);
+  fb.style.display='block';
+  fb.className=`feedback ${correct?'correct':'wrong'}`;
+  fb.textContent=correct?'✓ 正確！':'✗ 錯誤！正確答案：'+q.a[0]+'（'+q.o[q.a[0]]+'）';
+  state.scores[si].done++;
+  if(correct) state.scores[si].correct++;
+  updateScore();
+}
+
+function checkMulti(si,qi){
+  const qs=si===0?hw4:hw5;
+  const q=qs[qi];
+  if(state.answered[si][qi]!==undefined) return;
+  const keys=Object.keys(q.o);
+  const chosen=keys.filter(k=>document.getElementById(`opt${si}_${qi}_${k}`).checked).sort();
+  const ans=[...q.a].sort();
+  if(chosen.length===0) return;
+  state.answered[si][qi]=chosen;
+  const correct=JSON.stringify(chosen)===JSON.stringify(ans);
+  const missed=ans.filter(k=>!chosen.includes(k));
+  keys.forEach(k=>{
+    const lbl=document.getElementById(`optlbl${si}_${qi}_${k}`);
+    const inp=document.getElementById(`opt${si}_${qi}_${k}`);
+    inp.disabled=true;
+    lbl.classList.add('disabled');
+    if(ans.includes(k)&&chosen.includes(k)) lbl.classList.add('correct');
+    else if(chosen.includes(k)&&!ans.includes(k)) lbl.classList.add('wrong');
+    else if(ans.includes(k)&&!chosen.includes(k)) lbl.classList.add('missed');
+  });
+  const btn=document.querySelector(`#card-${si}-${qi} .check-btn`);
+  if(btn) btn.disabled=true;
+  const card=document.getElementById(`card-${si}-${qi}`);
+  card.classList.add(correct?'answered-correct':(missed.length>0&&chosen.length>0?'answered-partial':'answered-wrong'));
+  const fb=document.getElementById(`fb${si}_${qi}`);
+  fb.style.display='block';
+  if(correct){
+    fb.className='feedback correct';
+    fb.textContent='✓ 正確！';
+  } else {
+    fb.className='feedback wrong';
+    fb.textContent='✗ 正確答案：'+ans.join('、')+`（${ans.map(k=>k+'='+q.o[k]).join('；')}）`;
+  }
+  state.scores[si].done++;
+  if(correct) state.scores[si].correct++;
+  updateScore();
+}
+
+function switchTab(idx){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===idx));
+  state.cur=idx;
+  updateScore();
+}
+
+function updateScore(){
+  const si=state.cur;
+  const {done,correct}=state.scores[si];
+  const total=si===0?hw4.length:hw5.length;
+  document.getElementById('score-display').textContent=`${correct} / ${done}`;
+  document.getElementById('pct-display').textContent=done?`答對率 ${Math.round(correct/done*100)}%`:'答對率 0%';
+  document.getElementById('pbar').style.width=`${Math.round(done/total*100)}%`;
+}
+
+function resetAll(){
+  state={cur:state.cur,scores:[{done:0,correct:0},{done:0,correct:0}],answered:[[],[]]};
+  renderSection(0,hw4,'sec0');
+  renderSection(1,hw5,'sec1');
+  updateScore();
+}
+
+init();
+</script>
+</body>
+</html>
