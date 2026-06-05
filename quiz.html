@@ -249,7 +249,22 @@ const hw5=[
 {q:"在 Linux 系統中，下列何檔案存放了「使用者的登入歷史紀錄」？",o:{A:"/var/log/wtmp",B:"/var/log/messages",C:"/etc/login.defs",D:"/var/log/dmesg"},a:["A"]}
 ];
 
-let state={cur:0,scores:[{done:0,correct:0},{done:0,correct:0}],answered:[[],[]]};
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function buildSections(){
+  const labels=['A','B','C','D'];
+  return [hw4,hw5].map(qs=>
+    shuffle([...Array(qs.length).keys()]).map(origIdx=>{
+      const q=qs[origIdx];
+      const shuffledKeys=shuffle(Object.keys(q.o));
+      const optMap={},dispOpts={};
+      shuffledKeys.forEach((ok,di)=>{const dk=labels[di];optMap[dk]=ok;dispOpts[dk]=q.o[ok];});
+      return {origIdx,optMap,dispOpts};
+    })
+  );
+}
+
+let state={cur:0,scores:[{done:0,correct:0},{done:0,correct:0}],answered:[[],[]],sections:buildSections()};
 
 function init(){
   renderSection(0,hw4,'sec0');
@@ -260,17 +275,18 @@ function init(){
 function renderSection(si,qs,id){
   const el=document.getElementById(id);
   el.innerHTML='';
-  qs.forEach((q,i)=>{
+  state.sections[si].forEach((item,i)=>{
+    const q=qs[item.origIdx];
     const multi=!!q.multi;
     const card=document.createElement('div');
     card.className='question-card';
     card.id=`card-${si}-${i}`;
-    const keys=Object.keys(q.o);
-    const opts=keys.map(k=>{
+    const dks=Object.keys(item.dispOpts);
+    const opts=dks.map(dk=>{
       const inp=multi
-        ?`<input type="checkbox" name="q${si}_${i}" value="${k}" id="opt${si}_${i}_${k}">`
-        :`<input type="radio" name="q${si}_${i}" value="${k}" id="opt${si}_${i}_${k}">`;
-      return`<label class="opt" id="optlbl${si}_${i}_${k}" for="opt${si}_${i}_${k}"><span class="opt-key">${k}.</span><span class="opt-label">${q.o[k]}</span>${inp}</label>`;
+        ?`<input type="checkbox" name="q${si}_${i}" value="${dk}" id="opt${si}_${i}_${dk}">`
+        :`<input type="radio" name="q${si}_${i}" value="${dk}" id="opt${si}_${i}_${dk}">`;
+      return`<label class="opt" id="optlbl${si}_${i}_${dk}" for="opt${si}_${i}_${dk}"><span class="opt-key">${dk}.</span><span class="opt-label">${item.dispOpts[dk]}</span>${inp}</label>`;
     }).join('');
     const multiBadge=multi?`<span class="multi-badge">複選</span>`:'';
     card.innerHTML=`
@@ -280,62 +296,66 @@ function renderSection(si,qs,id){
       <div class="feedback" id="fb${si}_${i}" style="display:none"></div>`;
     el.appendChild(card);
     if(!multi){
-      keys.forEach(k=>{
-        document.getElementById(`opt${si}_${i}_${k}`).addEventListener('change',()=>checkSingle(si,i,k));
+      dks.forEach(dk=>{
+        document.getElementById(`opt${si}_${i}_${dk}`).addEventListener('change',()=>checkSingle(si,i,dk));
       });
     }
   });
 }
 
-function checkSingle(si,qi,chosen){
-  const qs=si===0?hw4:hw5;
-  const q=qs[qi];
+function getCorrectDks(item,ans){
+  return ans.map(ok=>Object.entries(item.optMap).find(([,v])=>v===ok)[0]).sort();
+}
+
+function checkSingle(si,qi,chosenDk){
+  const item=state.sections[si][qi];
+  const q=(si===0?hw4:hw5)[item.origIdx];
   if(state.answered[si][qi]!==undefined) return;
-  state.answered[si][qi]=chosen;
-  const correct=q.a[0]===chosen;
-  Object.keys(q.o).forEach(k=>{
-    const lbl=document.getElementById(`optlbl${si}_${qi}_${k}`);
-    const inp=document.getElementById(`opt${si}_${qi}_${k}`);
-    lbl.classList.add('disabled');
-    inp.disabled=true;
-    if(k===q.a[0]) lbl.classList.add('correct');
-    else if(k===chosen && !correct) lbl.classList.add('wrong');
+  state.answered[si][qi]=chosenDk;
+  const correct=q.a[0]===item.optMap[chosenDk];
+  const correctDk=getCorrectDks(item,q.a)[0];
+  Object.keys(item.dispOpts).forEach(dk=>{
+    const lbl=document.getElementById(`optlbl${si}_${qi}_${dk}`);
+    const inp=document.getElementById(`opt${si}_${qi}_${dk}`);
+    lbl.classList.add('disabled'); inp.disabled=true;
+    if(dk===correctDk) lbl.classList.add('correct');
+    else if(dk===chosenDk&&!correct) lbl.classList.add('wrong');
   });
   const card=document.getElementById(`card-${si}-${qi}`);
   card.classList.add(correct?'answered-correct':'answered-wrong');
   const fb=document.getElementById(`fb${si}_${qi}`);
   fb.style.display='block';
   fb.className=`feedback ${correct?'correct':'wrong'}`;
-  fb.textContent=correct?'✓ 正確！':'✗ 錯誤！正確答案：'+q.a[0]+'（'+q.o[q.a[0]]+'）';
+  fb.textContent=correct?'✓ 正確！':'✗ 錯誤！正確答案：'+correctDk+'（'+item.dispOpts[correctDk]+'）';
   state.scores[si].done++;
   if(correct) state.scores[si].correct++;
   updateScore();
 }
 
 function checkMulti(si,qi){
-  const qs=si===0?hw4:hw5;
-  const q=qs[qi];
+  const item=state.sections[si][qi];
+  const q=(si===0?hw4:hw5)[item.origIdx];
   if(state.answered[si][qi]!==undefined) return;
-  const keys=Object.keys(q.o);
-  const chosen=keys.filter(k=>document.getElementById(`opt${si}_${qi}_${k}`).checked).sort();
-  const ans=[...q.a].sort();
-  if(chosen.length===0) return;
-  state.answered[si][qi]=chosen;
-  const correct=JSON.stringify(chosen)===JSON.stringify(ans);
-  const missed=ans.filter(k=>!chosen.includes(k));
-  keys.forEach(k=>{
-    const lbl=document.getElementById(`optlbl${si}_${qi}_${k}`);
-    const inp=document.getElementById(`opt${si}_${qi}_${k}`);
-    inp.disabled=true;
-    lbl.classList.add('disabled');
-    if(ans.includes(k)&&chosen.includes(k)) lbl.classList.add('correct');
-    else if(chosen.includes(k)&&!ans.includes(k)) lbl.classList.add('wrong');
-    else if(ans.includes(k)&&!chosen.includes(k)) lbl.classList.add('missed');
+  const dks=Object.keys(item.dispOpts);
+  const chosenDks=dks.filter(dk=>document.getElementById(`opt${si}_${qi}_${dk}`).checked).sort();
+  if(chosenDks.length===0) return;
+  state.answered[si][qi]=chosenDks;
+  const correctDks=getCorrectDks(item,q.a);
+  const chosenOks=chosenDks.map(dk=>item.optMap[dk]).sort();
+  const correct=JSON.stringify(chosenOks)===JSON.stringify([...q.a].sort());
+  const missed=correctDks.filter(dk=>!chosenDks.includes(dk));
+  dks.forEach(dk=>{
+    const lbl=document.getElementById(`optlbl${si}_${qi}_${dk}`);
+    const inp=document.getElementById(`opt${si}_${qi}_${dk}`);
+    inp.disabled=true; lbl.classList.add('disabled');
+    if(correctDks.includes(dk)&&chosenDks.includes(dk)) lbl.classList.add('correct');
+    else if(chosenDks.includes(dk)&&!correctDks.includes(dk)) lbl.classList.add('wrong');
+    else if(correctDks.includes(dk)&&!chosenDks.includes(dk)) lbl.classList.add('missed');
   });
   const btn=document.querySelector(`#card-${si}-${qi} .check-btn`);
   if(btn) btn.disabled=true;
   const card=document.getElementById(`card-${si}-${qi}`);
-  card.classList.add(correct?'answered-correct':(missed.length>0&&chosen.length>0?'answered-partial':'answered-wrong'));
+  card.classList.add(correct?'answered-correct':(missed.length>0?'answered-partial':'answered-wrong'));
   const fb=document.getElementById(`fb${si}_${qi}`);
   fb.style.display='block';
   if(correct){
@@ -343,7 +363,7 @@ function checkMulti(si,qi){
     fb.textContent='✓ 正確！';
   } else {
     fb.className='feedback wrong';
-    fb.textContent='✗ 正確答案：'+ans.join('、')+`（${ans.map(k=>k+'='+q.o[k]).join('；')}）`;
+    fb.textContent='✗ 正確答案：'+correctDks.join('、')+`（${correctDks.map(dk=>dk+'='+item.dispOpts[dk]).join('；')}）`;
   }
   state.scores[si].done++;
   if(correct) state.scores[si].correct++;
@@ -367,10 +387,11 @@ function updateScore(){
 }
 
 function resetAll(){
-  state={cur:state.cur,scores:[{done:0,correct:0},{done:0,correct:0}],answered:[[],[]]};
+  state={cur:state.cur,scores:[{done:0,correct:0},{done:0,correct:0}],answered:[[],[]],sections:buildSections()};
   renderSection(0,hw4,'sec0');
   renderSection(1,hw5,'sec1');
   updateScore();
+  window.scrollTo(0,0);
 }
 
 init();
