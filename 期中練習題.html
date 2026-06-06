@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>電子電路二 期中練習題</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft JhengHei',sans-serif;max-width:1000px;margin:0 auto;padding:20px;background:#f0f4f8;color:#333;line-height:1.6}
+h1{text-align:center;color:#1a252f;padding:15px 0 4px}
+.subtitle{text-align:center;color:#7f8c8d;margin-bottom:12px}
+h2{color:#2471a3;border-left:5px solid #2471a3;padding:6px 0 6px 12px;margin:35px 0 15px}
+.reset-wrap{text-align:center;margin:14px 0 28px}
+.reset-btn{background:#e74c3c;color:white;border:none;padding:11px 32px;border-radius:25px;font-size:1em;font-weight:bold;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(231,76,60,.35)}
+.reset-btn:hover{background:#c0392b}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.fcard{background:white;border-radius:8px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,.1);border-top:4px solid #2471a3}
+.fcard h3{font-size:.9em;color:#2471a3;margin-bottom:8px}
+.fcard .f{font-family:monospace;background:#eaf4fb;padding:3px 7px;border-radius:3px;margin:3px 0;display:block;font-size:.88em}
+.pbox{background:#fef5e7;border:2px solid #f39c12;border-radius:8px;padding:14px;margin:12px 0}
+.pbox h3{color:#e67e22;margin-bottom:6px}
+.prob{background:white;border-radius:10px;padding:22px;margin:20px 0;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.phdr{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.badge{border-radius:20px;padding:3px 12px;font-size:.82em;font-weight:bold;color:white}
+.b-dc{background:#6c3483}.b-ac{background:#117a65}.b-basic{background:#c0392b}
+.given{background:#fafafa;border:1px solid #ddd;border-radius:6px;padding:10px 14px;margin:10px 0;font-family:monospace;font-size:.9em}
+.find{color:#884ea0;font-weight:bold;margin:8px 0}
+.ckt{display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;margin:14px 0}
+.ckt svg{border:1px solid #d5d8dc;border-radius:6px;background:#fafafa;display:block}
+.ckt-lbl{font-size:.8em;color:#666;text-align:center;margin-top:4px}
+.ans{display:none;margin-top:14px;background:#eafaf1;border-left:4px solid #27ae60;border-radius:0 8px 8px 0;padding:16px 20px}
+.ans.show{display:block}
+.ans h4{color:#1e8449;margin-bottom:10px;font-size:.95em}
+.step{padding:7px 0;border-bottom:1px dashed #b2dfdb}
+.step:last-child{border:none}
+.eq{font-family:monospace;background:#d4efdf;padding:2px 6px;border-radius:3px;font-size:.88em}
+.res{color:#c0392b;font-weight:bold}
+.why{background:#e8f8f5;border-left:3px solid #1abc9c;padding:5px 10px;margin-top:5px;font-size:.85em;color:#145a32}
+.tip{background:#fef9e7;border:1px solid #f39c12;border-radius:5px;padding:7px 11px;margin-top:10px;font-size:.85em}
+.tip::before{content:"💡 ";font-weight:bold}
+.btn{padding:8px 20px;border:none;border-radius:20px;cursor:pointer;font-size:.88em;font-weight:bold;margin-top:12px}
+.b-show{background:#27ae60;color:white}.b-hide{background:#e74c3c;color:white}
+@media(max-width:600px){.fgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>⚡ 電子電路二 期中練習題</h1>
+<p class="subtitle">二技 116 ｜ 題型對應平時考</p>
+<div class="reset-wrap">
+  <button class="reset-btn" onclick="randomize()">🔀 重新出題（數字隨機更換）</button>
+</div>
+
+<h2>📋 公式速查</h2>
+<div class="fgrid">
+  <div class="fcard"><h3>① α↔β</h3><span class="f">β=α/(1−α)</span><span class="f">α=β/(β+1)</span></div>
+  <div class="fcard"><h3>② 功率降額</h3><span class="f">P(T)=Pmax−降額×(T−25)</span></div>
+  <div class="fcard"><h3>③ 固定偏壓</h3><span class="f">IB=(VCC−0.7)/RB</span><span class="f">IC=β×IB</span><span class="f">VCE=VCC−IC×RC</span></div>
+  <div class="fcard"><h3>④ 集極回授</h3><span class="f">IC=(VCC−0.7)/(RC+RB/β)</span><span class="f">VCE=VCC−IC×RC</span></div>
+  <div class="fcard"><h3>⑤ 電壓分壓 DC</h3><span class="f">VB=VCC×R2/(R1+R2)</span><span class="f">VE=VB−0.7　IE=VE/RE</span><span class="f">VC=VCC−IC×RC　VCE=VC−VE</span></div>
+  <div class="fcard"><h3>⑥ 小訊號 AC</h3><span class="f">r'e=25mV/IE　rL=RC∥RL</span><span class="f">Av=−rL/r'e　Vb=Vin×Zin/(Zin+RG)</span><span class="f">Zin(base)=β×r'e（或β×(r'e+RE1)）</span><span class="f">Zin=R1∥R2∥Zin(base)</span></div>
+</div>
+<div class="pbox"><h3>🔧 並聯：R1∥R2=(R1×R2)/(R1+R2)</h3></div>
+
+<h2>📝 練習組一（第三次平時考）</h2>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-basic">A1｜α↔β換算</span></div>
+  <div id="desc-a1"></div>
+  <button class="btn b-show" onclick="tog(this,'ans-a1')">看解答</button>
+  <div class="ans" id="ans-a1"></div>
+</div>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-basic">A2｜功率降額</span></div>
+  <div id="desc-a2"></div>
+  <button class="btn b-show" onclick="tog(this,'ans-a2')">看解答</button>
+  <div class="ans" id="ans-a2"></div>
+</div>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-dc">A3｜固定偏壓 DC</span></div>
+  <div class="ckt">
+    <div><svg id="svgA3" width="255" height="270"></svg><div class="ckt-lbl">固定偏壓電路</div></div>
+    <div id="given-a3" class="given" style="flex:1;align-self:center"></div>
+  </div>
+  <p class="find">求：IB、IC、IE、VCE、IC(sat)、VCE(off)、Q點</p>
+  <button class="btn b-show" onclick="tog(this,'ans-a3')">看解答</button>
+  <div class="ans" id="ans-a3"></div>
+</div>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-dc">A4｜電壓分壓偏壓 DC</span></div>
+  <div class="ckt">
+    <div><svg id="svgA4" width="268" height="295"></svg><div class="ckt-lbl">電壓分壓偏壓電路</div></div>
+    <div id="given-a4" class="given" style="flex:1;align-self:center"></div>
+  </div>
+  <p class="find">求：VB、VE、IE、VC、VCE、IC(sat)、VCE(off)、Q點</p>
+  <button class="btn b-show" onclick="tog(this,'ans-a4')">看解答</button>
+  <div class="ans" id="ans-a4"></div>
+</div>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-dc">A5｜集極回授偏壓 DC</span></div>
+  <div class="ckt">
+    <div><svg id="svgA5" width="248" height="280"></svg><div class="ckt-lbl">集極回授偏壓電路</div></div>
+    <div id="given-a5" class="given" style="flex:1;align-self:center"></div>
+  </div>
+  <p class="find">求：IC、VCE</p>
+  <button class="btn b-show" onclick="tog(this,'ans-a5')">看解答</button>
+  <div class="ans" id="ans-a5"></div>
+</div>
+
+<h2>📝 練習組二（第四次平時考）</h2>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-dc">B1｜CE 放大器 — DC 分析</span></div>
+  <div class="ckt">
+    <div><svg id="svgB1" width="325" height="300"></svg><div class="ckt-lbl">CE 放大電路（含耦合電容）</div></div>
+    <div id="given-b1" class="given" style="flex:1;align-self:center"></div>
+  </div>
+  <p class="find">求（DC）：VB、VE、IE、VC、VCE</p>
+  <button class="btn b-show" onclick="tog(this,'ans-b1')">看解答</button>
+  <div class="ans" id="ans-b1"></div>
+</div>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-ac">B2｜CE 放大器 — AC 分析</span></div>
+  <div id="desc-b2"></div>
+  <p class="find">求：r'e、rL、Av、Vout、Zin(base)、Zin</p>
+  <button class="btn b-show" onclick="tog(this,'ans-b2')">看解答</button>
+  <div class="ans" id="ans-b2"></div>
+</div>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-ac">B3｜含 RG 信號源電阻</span></div>
+  <div class="ckt">
+    <div><svg id="svgB3" width="345" height="300"></svg><div class="ckt-lbl">含 RG 的 CE 放大電路</div></div>
+    <div id="given-b3" class="given" style="flex:1;align-self:center"></div>
+  </div>
+  <p class="find">求：r'e、Zin(base)、Zin、Vb、rL、Av、Vout</p>
+  <button class="btn b-show" onclick="tog(this,'ans-b3')">看解答</button>
+  <div class="ans" id="ans-b3"></div>
+</div>
+
+<div class="prob">
+  <div class="phdr"><span class="badge b-ac">B4｜雙射極電阻</span></div>
+  <div class="ckt">
+    <div><svg id="svgB4" width="345" height="335"></svg><div class="ckt-lbl">雙射極電阻 CE 放大電路</div></div>
+    <div id="given-b4" class="given" style="flex:1;align-self:center"></div>
+  </div>
+  <p class="find">（DC）VB、VE、IE；（AC）r'e、Zin(base)、Zin、Vb、rL、Av、Vout</p>
+  <button class="btn b-show" onclick="tog(this,'ans-b4')">看解答</button>
+  <div class="ans" id="ans-b4"></div>
+</div>
+
+<h2>🎯 解題流程速記</h2>
+<div style="background:white;border-radius:10px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+  <p style="background:#eaf4fb;padding:10px;border-radius:6px;text-align:center;font-size:1.05em;margin:8px 0"><strong>DC：VB → VE → IE → VC → VCE</strong></p>
+  <p style="background:#eafaf1;padding:10px;border-radius:6px;text-align:center;font-size:1.05em;margin:8px 0"><strong>AC：r'e → rL → Av → （Vb）→ Vout → Zin</strong></p>
+  <ul style="margin:12px 0 0 20px;line-height:2">
+    <li>DC 時：耦合電容 = <strong>斷路</strong>；CE = <strong>斷路</strong></li>
+    <li>AC 時：耦合電容 = <strong>短路</strong>；VCC 短路到 GND；CE = <strong>短路</strong></li>
+    <li>有 RG：多算 Vb，Vout 用 Vb 不用 Vin</li>
+    <li>有未旁路 RE1：Av 分母 r'e → r'e+RE1；Zin(base) 同</li>
+  </ul>
+</div>
+
+<script>
+// ═══════════════════ SVG 畫圖工具 ═══════════════════
+const S={
+  w(x1,y1,x2,y2,sw){sw=sw||1.5;return`<line x1="${x1}"y1="${y1}"x2="${x2}"y2="${y2}"stroke="#111"stroke-width="${sw}"/>`},
+  lbl(x,y,t,a,sz,c){a=a||'start';sz=sz||11;c=c||'#222';return`<text x="${x}"y="${y}"text-anchor="${a}"font-size="${sz}"font-family="Arial,sans-serif"fill="${c}">${t}</text>`},
+  vr(cx,y1,y2){var zy=y1+10,a=9;return S.w(cx,y1,cx,zy)+`<polyline points="${cx},${zy} ${cx+a},${zy+7} ${cx-a},${zy+16} ${cx+a},${zy+25} ${cx-a},${zy+34} ${cx+a},${zy+43} ${cx-a},${zy+52} ${cx},${zy+59}"fill="none"stroke="#111"stroke-width="1.5"stroke-linejoin="round"/>`+S.w(cx,zy+59,cx,y2)},
+  hr(x1,x2,cy){var zx=x1+10,a=8;return S.w(x1,cy,zx,cy)+`<polyline points="${zx},${cy} ${zx+7},${cy-a} ${zx+16},${cy+a} ${zx+25},${cy-a} ${zx+34},${cy+a} ${zx+43},${cy-a} ${zx+52},${cy+a} ${zx+59},${cy}"fill="none"stroke="#111"stroke-width="1.5"stroke-linejoin="round"/>`+S.w(zx+59,cy,x2,cy)},
+  gnd(cx,y){return S.w(cx-15,y,cx+15,y)+S.w(cx-10,y+7,cx+10,y+7)+S.w(cx-5,y+14,cx+5,y+14)},
+  vcc(x1,x2,y){return S.w(x1,y,x2,y)+S.lbl((x1+x2)/2,y-7,'+VCC','middle',12,'#000')},
+  bjt(cx,cy){var bx=cx-13,ex=cx+13,ey=cy+24;var a1x=Math.round(ex-5*.894+3*.447),a1y=Math.round(ey-5*.447-3*.894),a2x=Math.round(ex-5*.894-3*.447),a2y=Math.round(ey-5*.447+3*.894);return`<circle cx="${cx}"cy="${cy}"r="23"fill="#fafafa"stroke="#111"stroke-width="1.5"/>`+S.w(bx,cy-22,bx,cy+22,2.2)+S.w(bx,cy-11,cx+13,cy-24)+S.w(bx,cy+11,cx+13,cy+24)+`<polygon points="${ex},${ey} ${a1x},${a1y} ${a2x},${a2y}"fill="#111"/>`+S.lbl(cx+1,cy+5,'Q','middle',10,'#888')},
+  capV(x,cy,label){
+    // 左：直線板；右：弧線板（C形，開口朝左）
+    var s=S.w(x,cy-13,x,cy+13,2.5);
+    s+=`<path d="M ${x+7},${cy-12} A 13,13 0 0,1 ${x+7},${cy+12}" fill="none" stroke="#111" stroke-width="2.5"/>`;
+    if(label)s+=S.lbl(x+3,cy-17,label,'middle',9,'#555');
+    return s},
+  capH(cx,y,label){
+    // 上：直線板；下：弧線板（C形，開口朝上）
+    var s=S.w(cx-13,y,cx+13,y,2.5);
+    s+=`<path d="M ${cx-12},${y+8} A 20,20 0 0,0 ${cx+12},${y+8}" fill="none" stroke="#111" stroke-width="2.5"/>`;
+    if(label)s+=S.lbl(cx+17,y+6,label,'start',9,'#555');
+    return s},
+  dot(x,y){return`<circle cx="${x}"cy="${y}"r="3"fill="#111"/>`},
+  vin(cx,cy){return`<circle cx="${cx}"cy="${cy}"r="15"fill="#fafafa"stroke="#111"stroke-width="1.5"/>`+S.lbl(cx,cy+5,'~','middle',14,'#111')+S.lbl(cx,cy+28,'Vin','middle',10,'#666')}
+};
+function dsvg(id,html){document.getElementById(id).innerHTML=html}
+
+function buildA3(){var cx=165,cy=148,bx=cx-13,col=[cx+13,cy-24],em=[cx+13,cy+24];return[S.vcc(62,210,20),S.vr(68,20,cy),S.lbl(84,68,'RB'),S.w(68,cy,bx,cy),S.bjt(cx,cy),S.vr(210,20,col[1]),S.lbl(226,68,'RC'),S.w(col[0],col[1],210,col[1]),S.w(em[0],em[1],em[0],248),S.gnd(em[0],248)].join('')}
+function buildA4(){var cx=175,cy=148,bx=cx-13,col=[cx+13,cy-24],em=[cx+13,cy+24];return[S.vcc(70,218,20),S.vr(70,20,cy),S.lbl(86,68,'R1'),S.dot(70,cy),S.vr(70,cy,cy+110),S.lbl(86,cy+48,'R2'),S.w(70,cy+110,70,272),S.gnd(70,272),S.w(70,cy,bx,cy),S.bjt(cx,cy),S.vr(218,20,col[1]),S.lbl(234,68,'RC'),S.w(col[0],col[1],218,col[1]),S.vr(em[0],em[1],em[1]+80),S.lbl(em[0]+14,em[1]+38,'RE'),S.w(em[0],em[1]+80,em[0],272),S.gnd(em[0],272)].join('')}
+function buildA5(){
+  var cx=162,cy=158,bx=cx-13,col=[cx+13,cy-24],em=[cx+13,cy+24];
+  var rcx=210,jy=col[1],rbLx=65,GY=266;
+  var midRB=Math.round((rbLx+rcx)/2);
+  return[
+    S.lbl(rcx,12,'+VCC','middle',12,'#000'),
+    S.w(rcx,15,rcx,22),
+    S.vr(rcx,22,jy), S.lbl(rcx+14,65,'RC'),
+    S.w(col[0],jy,rcx,jy), S.dot(rcx,jy),
+    S.hr(rbLx,rcx,jy),
+    S.lbl(midRB,jy-20,'RB','middle',11),
+    S.lbl(midRB,jy-33,'← 集極回授','middle',8,'#c0392b'),
+    S.w(rbLx,jy,rbLx,cy),
+    S.w(rbLx,cy,bx,cy),
+    S.bjt(cx,cy),
+    S.w(em[0],em[1],em[0],GY), S.gnd(em[0],GY)
+  ].join('')
+}
+function buildB1(){var cx=192,cy=152,bx=cx-13,col=[cx+13,cy-24],em=[cx+13,cy+24],r1x=140,rcx=230,cmX=78,coX=258,rlX=285,reX=em[0],ceX=em[0]+42,GY=278;return[S.vcc(r1x,rcx,20),S.vin(22,cy),S.w(37,cy,cmX,cy),S.capV(cmX,cy,'Cm'),S.w(cmX+7,cy,r1x,cy),S.vr(r1x,20,cy),S.lbl(r1x+14,62,'R1'),S.dot(r1x,cy),S.vr(r1x,cy,cy+95),S.lbl(r1x+14,cy+42,'R2'),S.w(r1x,cy+95,r1x,GY),S.gnd(r1x,GY),S.w(r1x,cy,bx,cy),S.bjt(cx,cy),S.vr(rcx,20,col[1]),S.lbl(rcx+14,62,'RC'),S.w(col[0],col[1],rcx,col[1]),S.w(rcx,col[1],coX,col[1]),S.capV(coX,col[1],'Cout'),S.w(coX+7,col[1],rlX,col[1]),S.vr(rlX,col[1],col[1]+100),S.lbl(rlX+14,col[1]+48,'RL'),S.w(rlX,col[1]+100,rlX,GY),S.gnd(rlX,GY),S.lbl(rlX+5,col[1]-9,'Vout','start',9,'#2471a3'),S.dot(reX,em[1]),S.vr(reX,em[1],em[1]+75),S.lbl(reX+14,em[1]+36,'RE'),S.w(reX,em[1]+75,reX,GY),S.gnd(reX,GY),S.w(reX,em[1],ceX,em[1]),S.w(ceX,em[1],ceX,em[1]+44),S.capH(ceX,em[1]+44,'CE'),S.w(ceX,em[1]+57,ceX,GY),S.gnd(ceX,GY),S.w(22,cy+15,22,GY),S.gnd(22,GY)].join('')}
+function buildB3(){var cx=210,cy=152,bx=cx-13,col=[cx+13,cy-24],em=[cx+13,cy+24],r1x=158,rcx=248,rgX1=37,rgX2=112,cmX=114,coX=275,rlX=302,reX=em[0],ceX=em[0]+42,GY=278;return[S.vcc(r1x,rcx,20),S.vin(22,cy),S.w(37,cy,rgX1,cy),S.hr(rgX1,rgX2,cy),S.lbl(rgX1+22,cy-16,'RG','middle',10),S.w(rgX2,cy,cmX,cy),S.capV(cmX,cy,'Cm'),S.w(cmX+7,cy,r1x,cy),S.vr(r1x,20,cy),S.lbl(r1x+14,62,'R1'),S.dot(r1x,cy),S.vr(r1x,cy,cy+95),S.lbl(r1x+14,cy+42,'R2'),S.w(r1x,cy+95,r1x,GY),S.gnd(r1x,GY),S.w(r1x,cy,bx,cy),S.bjt(cx,cy),S.vr(rcx,20,col[1]),S.lbl(rcx+14,62,'RC'),S.w(col[0],col[1],rcx,col[1]),S.w(rcx,col[1],coX,col[1]),S.capV(coX,col[1],'Cout'),S.w(coX+7,col[1],rlX,col[1]),S.vr(rlX,col[1],col[1]+100),S.lbl(rlX+14,col[1]+48,'RL'),S.w(rlX,col[1]+100,rlX,GY),S.gnd(rlX,GY),S.lbl(rlX+5,col[1]-9,'Vout','start',9,'#2471a3'),S.dot(reX,em[1]),S.vr(reX,em[1],em[1]+75),S.lbl(reX+14,em[1]+36,'RE'),S.w(reX,em[1]+75,reX,GY),S.gnd(reX,GY),S.w(reX,em[1],ceX,em[1]),S.w(ceX,em[1],ceX,em[1]+44),S.capH(ceX,em[1]+44,'CE'),S.w(ceX,em[1]+57,ceX,GY),S.gnd(ceX,GY),S.w(22,cy+15,22,GY),S.gnd(22,GY)].join('')}
+function buildB4(){var cx=210,cy=152,bx=cx-13,col=[cx+13,cy-24],em=[cx+13,cy+24],r1x=158,rcx=248,rgX1=37,rgX2=112,cmX=114,coX=275,rlX=302,reX=em[0],ceX=em[0]+44,re1bot=em[1]+75,re2bot=em[1]+140,GY=310;return[S.vcc(r1x,rcx,20),S.vin(22,cy),S.w(37,cy,rgX1,cy),S.hr(rgX1,rgX2,cy),S.lbl(rgX1+22,cy-16,'RG','middle',10),S.w(rgX2,cy,cmX,cy),S.capV(cmX,cy,'Cm'),S.w(cmX+7,cy,r1x,cy),S.vr(r1x,20,cy),S.lbl(r1x+14,62,'R1'),S.dot(r1x,cy),S.vr(r1x,cy,cy+95),S.lbl(r1x+14,cy+42,'R2'),S.w(r1x,cy+95,r1x,GY),S.gnd(r1x,GY),S.w(r1x,cy,bx,cy),S.bjt(cx,cy),S.vr(rcx,20,col[1]),S.lbl(rcx+14,62,'RC'),S.w(col[0],col[1],rcx,col[1]),S.w(rcx,col[1],coX,col[1]),S.capV(coX,col[1],'Cout'),S.w(coX+7,col[1],rlX,col[1]),S.vr(rlX,col[1],col[1]+100),S.lbl(rlX+14,col[1]+48,'RL'),S.w(rlX,col[1]+100,rlX,GY),S.gnd(rlX,GY),S.lbl(rlX+5,col[1]-9,'Vout','start',9,'#2471a3'),S.vr(reX,em[1],re1bot),S.lbl(reX+14,em[1]+36,'RE1','start',11,'#c0392b'),S.dot(reX,re1bot),S.vr(reX,re1bot,re2bot),S.lbl(reX+14,re1bot+30,'RE2','start',11,'#2471a3'),S.w(reX,re2bot,reX,GY),S.gnd(reX,GY),S.w(reX,re1bot,ceX,re1bot),S.w(ceX,re1bot,ceX,re1bot+30),S.capH(ceX,re1bot+30,'CE'),S.w(ceX,re1bot+43,ceX,GY),S.gnd(ceX,GY),S.w(22,cy+15,22,GY),S.gnd(22,GY)].join('')}
+
+// ═══════════════════ 數字格式化 ═══════════════════
+const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+const par=(a,b)=>a*b/(a+b);
+const f2=n=>parseFloat(n.toFixed(2)).toString();
+const f3=n=>parseFloat(n.toFixed(3)).toString();
+function fR(ohms){if(ohms>=1e6)return(ohms/1e6)+'MΩ';if(ohms>=1000){var k=ohms/1000;return(Number.isInteger(k)?k:parseFloat(k.toFixed(1)))+'kΩ';}return ohms+'Ω'}
+function fI(A){var ma=A*1000;if(Math.abs(A)>=0.001)return parseFloat(ma.toFixed(3))+'mA';return parseFloat((A*1e6).toFixed(2))+'μA'}
+function fV(v){return parseFloat(v.toFixed(3))+'V'}
+function fZ(ohms){if(ohms>=1000)return parseFloat((ohms/1000).toFixed(2))+'kΩ';return parseFloat(ohms.toFixed(1))+'Ω'}
+
+// ═══════════════════ 參數隨機選取 ═══════════════════
+let P={};
+
+function pickA3(){
+  var vcc_p=[9,12,15,18],rb_p=[150000,200000,270000,300000,330000,470000],rc_p=[1000,1500,2000,2200,3300,4700],beta_p=[60,80,100,120,150];
+  for(var i=0;i<40;i++){var p={vcc:pick(vcc_p),rb:pick(rb_p),rc:pick(rc_p),beta:pick(beta_p)};var ib=(p.vcc-.7)/p.rb,ic=p.beta*ib,vce=p.vcc-ic*p.rc;if(vce>1.5&&vce<p.vcc-.5)return p;}
+  return{vcc:12,rb:300000,rc:2000,beta:80}
+}
+function pickA4(){
+  var vcc_p=[9,12,15,18],r1_p=[10000,15000,18000,22000,33000,47000],r2_p=[2200,3300,4700,5600,6800,8200],rc_p=[1000,1500,2200,3300],re_p=[220,330,470,560,680,1000],beta_p=[80,100,120,150];
+  for(var i=0;i<40;i++){var p={vcc:pick(vcc_p),r1:pick(r1_p),r2:pick(r2_p),rc:pick(rc_p),re:pick(re_p),beta:pick(beta_p)};var vb=p.vcc*p.r2/(p.r1+p.r2),ve=vb-.7;if(ve<0.3)continue;var ie=ve/p.re,ic=ie,vc=p.vcc-ic*p.rc,vce=vc-ve;if(vce>1.5&&vc<p.vcc-.5)return p;}
+  return{vcc:12,r1:22000,r2:4700,rc:2200,re:470,beta:100}
+}
+function pickA5(){
+  var vcc_p=[9,12,15,18],rb_p=[47000,68000,100000,150000,220000],rc_p=[1000,1500,2200,3300],beta_p=[50,60,80,100,120];
+  for(var i=0;i<40;i++){var p={vcc:pick(vcc_p),rb:pick(rb_p),rc:pick(rc_p),beta:pick(beta_p)};var ic=(p.vcc-.7)/(p.rc+p.rb/p.beta),vce=p.vcc-ic*p.rc;if(vce>1.5&&vce<p.vcc-.5)return p;}
+  return{vcc:12,rb:100000,rc:1500,beta:60}
+}
+function pickB12(){
+  var vcc_p=[12,15,18],r1_p=[8200,10000,12000,15000,18000,22000],r2_p=[1500,1800,2200,3300,4700],rc_p=[1000,1200,1500,2200],re_p=[220,270,330,470,560],rl_p=[3300,4700,6800,10000],beta_p=[80,100,120,150,180],vin_p=[20,30,40,50,60,80];
+  for(var i=0;i<40;i++){var p={vcc:pick(vcc_p),r1:pick(r1_p),r2:pick(r2_p),rc:pick(rc_p),re:pick(re_p),rl:pick(rl_p),beta:pick(beta_p),vin:pick(vin_p)};var vb=p.vcc*p.r2/(p.r1+p.r2),ve=vb-.7;if(ve<.3)continue;var ie=ve/p.re,vc=p.vcc-ie*p.rc,vce=vc-ve;if(vce>1.5&&vc<p.vcc-.5)return p;}
+  return{vcc:12,r1:8200,r2:1800,rc:1500,re:330,rl:4700,beta:120,vin:40}
+}
+function pickB3(){
+  var base=pickB12();base.rg=pick([470,600,680,1000,1200]);return base
+}
+function pickB4(){
+  var vcc_p=[12,15,18,20],r1_p=[100000,120000,150000,180000,220000],r2_p=[18000,22000,24000,33000,47000],rc_p=[6800,8200,10000,12000],rl_p=[68000,82000,100000,120000],re1_p=[680,1000,1200,1500],re2_p=[1000,1200,1500,1800,2200],beta_p=[80,100,120,150],rg_p=[680,1000,1200,1500],vin_p=[50,80,100,120,150];
+  for(var i=0;i<40;i++){var p={vcc:pick(vcc_p),r1:pick(r1_p),r2:pick(r2_p),rc:pick(rc_p),rl:pick(rl_p),re1:pick(re1_p),re2:pick(re2_p),beta:pick(beta_p),rg:pick(rg_p),vin:pick(vin_p)};var vb=p.vcc*p.r2/(p.r1+p.r2),ve=vb-.7;if(ve<.5)continue;var ie=ve/(p.re1+p.re2),vc=p.vcc-ie*p.rc,vce=vc-ve;if(vce>2&&vc<p.vcc-1)return p;}
+  return{vcc:15,r1:120000,r2:24000,rc:10000,rl:100000,re1:1000,re2:1500,beta:100,rg:1000,vin:100}
+}
+
+// ═══════════════════ 解答 HTML 產生函式 ═══════════════════
+function ansA1(p){
+  var b=parseFloat((p.alpha/(1-p.alpha)).toFixed(1)),a=parseFloat((p.beta/(p.beta+1)).toFixed(4));
+  return`<h4>解答</h4><div class="step">① <span class="eq">β=α/(1−α)=${p.alpha}/(1−${p.alpha})=${p.alpha}/${1-p.alpha}</span>=<span class="res">β=${b}</span><div class="why">β代表IC/IB的倍率，α越接近1放大能力越強。</div></div><div class="step">② <span class="eq">α=β/(β+1)=${p.beta}/(${p.beta}+1)=${p.beta}/${p.beta+1}</span>=<span class="res">α=${a}</span></div>`
+}
+function ansA2(p){
+  var ans=p.pdmax-p.derating*(p.temp-25);
+  return`<h4>解答</h4><div class="step"><span class="eq">P(${p.temp}°C)=Pmax−降額×(T−25)=${p.pdmax}−${p.derating}×(${p.temp}−25)=${p.pdmax}−${p.derating*(p.temp-25)}</span>=<span class="res">${ans}mW</span><div class="why">溫度每超過25°C一度，允許最大功率就少${p.derating}mW。</div></div>`
+}
+function ansA3(p){
+  var ib=(p.vcc-.7)/p.rb,ic=p.beta*ib,ie=ic+ib,vce=p.vcc-ic*p.rc,ic_sat=p.vcc/p.rc;
+  var ic_ma=f3(ic*1e3),ib_disp=fI(ib),ie_ma=f3(ie*1e3),drop=f3(ic*p.rc);
+  return`<h4>解答</h4>
+<div class="step">① <span class="eq">IB=(VCC−0.7)/RB=(${p.vcc}−0.7)/${fR(p.rb)}=${f2(p.vcc-.7)}/${fR(p.rb)}</span>=<span class="res">IB=${ib_disp}</span><div class="why">KVL基極迴路：VCC=IB×RB+0.7，解出IB。</div></div>
+<div class="step">② <span class="eq">IC=β×IB=${p.beta}×${ib_disp}</span>=<span class="res">IC=${ic_ma}mA</span><div class="why">BJT放大：IC是IB的β倍。</div></div>
+<div class="step">③ <span class="eq">IE=IC+IB=${ic_ma}mA+${ib_disp}</span>=<span class="res">IE=${ie_ma}mA</span></div>
+<div class="step">④ <span class="eq">VCE=VCC−IC×RC=${p.vcc}−${ic_ma}mA×${fR(p.rc)}=${p.vcc}−${drop}</span>=<span class="res">VCE=${fV(vce)}</span><div class="why">KVL集極：VCC=IC×RC+VCE。注意：mA×kΩ=V。VCE>${fV(vce)}>0→主動區✓</div></div>
+<div class="step">⑤ <span class="eq">IC(sat)=VCC/RC=${p.vcc}/${fR(p.rc)}</span>=<span class="res">${f3(ic_sat*1e3)}mA</span>；<span class="res">VCE(off)=${p.vcc}V</span></div>
+<div class="step">⑥ <span class="res">Q點：ICQ≈${ic_ma}mA，VCEQ≈${fV(vce)}</span></div>
+<p class="tip">解題順序：IB→IC→IE→VCE→負載線。</p>`
+}
+function ansA4(p){
+  var vb=p.vcc*p.r2/(p.r1+p.r2),ve=vb-.7,ie=ve/p.re,ic=ie,vc=p.vcc-ic*p.rc,vce=vc-ve,ic_sat=p.vcc/(p.rc+p.re);
+  var r1k=fR(p.r1),r2k=fR(p.r2),rck=fR(p.rc),rek=fR(p.re);
+  var ic_ma=f3(ic*1e3),drop=f3(ic*p.rc);
+  return`<h4>解答</h4>
+<div class="step">① <span class="eq">VB=VCC×R2/(R1+R2)=${p.vcc}×${r2k}/(${r1k}+${r2k})=${f3(p.vcc*p.r2/1000)}/${f3((p.r1+p.r2)/1000)}</span>=<span class="res">VB=${fV(vb)}</span><div class="why">R1、R2分壓，BJT基極阻抗>>R1、R2，視為開路。</div></div>
+<div class="step">② <span class="eq">VE=VB−0.7=${fV(vb)}−0.7</span>=<span class="res">VE=${fV(ve)}</span><div class="why">BE接面如順向二極體，矽管壓降固定0.7V。</div></div>
+<div class="step">③ <span class="eq">IE=VE/RE=${fV(ve)}/${rek}</span>=<span class="res">IE=${ic_ma}mA≈IC</span></div>
+<div class="step">④ <span class="eq">VC=VCC−IC×RC=${p.vcc}−${ic_ma}mA×${rck}=${p.vcc}−${drop}</span>=<span class="res">VC=${fV(vc)}</span></div>
+<div class="step">⑤ <span class="eq">VCE=VC−VE=${fV(vc)}−${fV(ve)}</span>=<span class="res">VCE=${fV(vce)}</span></div>
+<div class="step">⑥ <span class="eq">IC(sat)=VCC/(RC+RE)=${p.vcc}/${fR(p.rc+p.re)}</span>=<span class="res">${f3(ic_sat*1e3)}mA</span>；<span class="res">VCE(off)=${p.vcc}V</span></div>
+<div class="step">⑦ <span class="res">Q點：ICQ≈${ic_ma}mA，VCEQ≈${fV(vce)}</span></div>
+<p class="tip">解題順序：VB→VE→IE→VC→VCE（每步一條公式，順序固定）。</p>`
+}
+function ansA5(p){
+  var denom=p.rc+p.rb/p.beta,ic=(p.vcc-.7)/denom,vce=p.vcc-ic*p.rc;
+  var rb_k=fR(p.rb),rc_k=fR(p.rc),ic_ma=f3(ic*1e3),drop=f3(ic*p.rc);
+  return`<h4>解答</h4>
+<div class="step">① <span class="eq">IC=(VCC−0.7)/(RC+RB/β)=${f2(p.vcc-.7)}/(${rc_k}+${rb_k}/${p.beta})=${f2(p.vcc-.7)}/${f3(denom)}</span>=<span class="res">IC=${ic_ma}mA</span><div class="why">RB接集極，VC隨IC升高而降低→IB也降低→自動穩定（回授）。分母中RB/β是RB折算到集極的等效電阻。</div></div>
+<div class="step">② <span class="eq">VCE=VCC−IC×RC=${p.vcc}−${ic_ma}mA×${rc_k}=${p.vcc}−${drop}</span>=<span class="res">VCE=${fV(vce)}</span></div>
+<p class="tip">辨別：RB接VCC→固定偏壓；RB接集極→集極回授偏壓，公式不同！</p>`
+}
+function dcB(p){var vb=p.vcc*p.r2/(p.r1+p.r2),ve=vb-.7,ie=ve/p.re,vc=p.vcc-ie*p.rc;return{vb,ve,ie,vc,vce:vc-ve}}
+function ansB1(p){
+  var d=dcB(p),ic_ma=f3(d.ie*1e3),drop=f3(d.ie*p.rc);
+  return`<h4>解答（直流：Cm、Cout視為斷路）</h4>
+<div class="step">① <span class="eq">VB=${p.vcc}×${fR(p.r2)}/(${fR(p.r1)}+${fR(p.r2)})</span>=<span class="res">VB=${fV(d.vb)}</span></div>
+<div class="step">② <span class="eq">VE=${fV(d.vb)}−0.7</span>=<span class="res">VE=${fV(d.ve)}</span></div>
+<div class="step">③ <span class="eq">IE=${fV(d.ve)}/${fR(p.re)}</span>=<span class="res">IE=${ic_ma}mA</span></div>
+<div class="step">④ <span class="eq">VC=${p.vcc}−${ic_ma}mA×${fR(p.rc)}=${p.vcc}−${drop}</span>=<span class="res">VC=${fV(d.vc)}</span></div>
+<div class="step">⑤ <span class="eq">VCE=${fV(d.vc)}−${fV(d.ve)}</span>=<span class="res">VCE=${fV(d.vce)}</span></div>`
+}
+function ansB2(p){
+  var d=dcB(p),re=.025/d.ie,rL=par(p.rc,p.rl),av=-rL/re,vout=Math.abs(av)*p.vin*1e-3,zbase=p.beta*re,r12=par(p.r1,p.r2),zin=par(r12,zbase);
+  return`<h4>解答（交流：CE短路RE，VCC短路，Cm/Cout短路）</h4>
+<div class="step">① <span class="eq">r'e=25mV/IE=25mV/${f3(d.ie*1e3)}mA</span>=<span class="res">r'e=${fZ(re)}</span><div class="why">IE越大→r'e越小→放大能力越強。</div></div>
+<div class="step">② <span class="eq">rL=RC∥RL=${fR(p.rc)}∥${fR(p.rl)}=${fR(p.rc)}×${fR(p.rl)}/${fR(p.rc+p.rl)}</span>=<span class="res">rL=${fZ(rL)}</span></div>
+<div class="step">③ <span class="eq">Av=−rL/r'e=−${fZ(rL)}/${fZ(re)}</span>=<span class="res">Av=${f2(av)}</span><div class="why">負號=CE放大器輸出反相。</div></div>
+<div class="step">④ <span class="eq">Vout=|Av|×Vin=${f2(Math.abs(av))}×${p.vin}mVpp</span>=<span class="res">Vout=${f3(vout*1e3)}mVpp</span></div>
+<div class="step">⑤ <span class="eq">Zin(base)=β×r'e=${p.beta}×${fZ(re)}</span>=<span class="res">${fZ(zbase)}</span></div>
+<div class="step">⑥ <span class="eq">R1∥R2=${fZ(r12)}；Zin=${fZ(r12)}∥${fZ(zbase)}</span>=<span class="res">Zin=${fZ(zin)}</span></div>
+<p class="tip">AC順序：r'e→rL→Av→Vout→Zin</p>`
+}
+function ansB3(p){
+  var d=dcB(p),re=.025/d.ie,zbase=p.beta*re,r12=par(p.r1,p.r2),zin=par(r12,zbase),vb=p.vin*1e-3*zin/(zin+p.rg),rL=par(p.rc,p.rl),av=-rL/re,vout=Math.abs(av)*vb;
+  return`<h4>解答</h4>
+<div class="step">① <span class="eq">r'e=25mV/${f3(d.ie*1e3)}mA</span>=<span class="res">r'e=${fZ(re)}</span></div>
+<div class="step">② <span class="eq">Zin(base)=β×r'e=${p.beta}×${fZ(re)}</span>=<span class="res">${fZ(zbase)}</span></div>
+<div class="step">③ <span class="eq">R1∥R2=${fZ(r12)}；Zin=${fZ(r12)}∥${fZ(zbase)}</span>=<span class="res">Zin=${fZ(zin)}</span></div>
+<div class="step">④ <span class="eq">Vb=Vin×Zin/(Zin+RG)=${p.vin}mVpp×${fZ(zin)}/(${fZ(zin)}+${fR(p.rg)})</span>=<span class="res">Vb=${f3(vb*1e3)}mVpp</span><div class="why">有RG時Vin被分壓，Vb才是真正加到BJT基極的電壓。</div></div>
+<div class="step">⑤ <span class="eq">rL=${fR(p.rc)}∥${fR(p.rl)}</span>=<span class="res">rL=${fZ(rL)}</span></div>
+<div class="step">⑥ <span class="eq">Av=−${fZ(rL)}/${fZ(re)}</span>=<span class="res">Av=${f2(av)}</span></div>
+<div class="step">⑦ <span class="eq">Vout=|Av|×Vb=${f2(Math.abs(av))}×${f3(vb*1e3)}mVpp</span>=<span class="res">Vout=${f3(vout*1e3)}mVpp</span></div>
+<p class="tip">有RG：r'e→Zin(base)→Zin→Vb→rL→Av→Vout（用Vb不用Vin）</p>`
+}
+function ansB4(p){
+  var vb=p.vcc*p.r2/(p.r1+p.r2),ve=vb-.7,re_tot=p.re1+p.re2,ie=ve/re_tot,vc=p.vcc-ie*p.rc,vce=vc-ve;
+  var re=.025/ie,denom=re+p.re1,zbase=p.beta*denom,r12=par(p.r1,p.r2),zin=par(r12,zbase),vb_sig=p.vin*1e-3*zin/(zin+p.rg),rL=par(p.rc,p.rl),av=-rL/denom,vout=Math.abs(av)*vb_sig;
+  return`<h4>DC 分析（RE1+RE2串聯，CE斷路）</h4>
+<div class="step">① <span class="eq">VB=${p.vcc}×${fR(p.r2)}/(${fR(p.r1)}+${fR(p.r2)})</span>=<span class="res">VB=${fV(vb)}</span></div>
+<div class="step">② <span class="eq">VE=${fV(vb)}−0.7</span>=<span class="res">VE=${fV(ve)}</span></div>
+<div class="step">③ RE1+RE2=${fR(p.re1)}+${fR(p.re2)}=${fR(re_tot)}；<span class="eq">IE=${fV(ve)}/${fR(re_tot)}</span>=<span class="res">IE=${f3(ie*1e3)}mA</span><div class="why">DC時電容斷路，兩個射極電阻都要計算。</div></div>
+<h4 style="margin-top:12px">AC 分析（CE短路RE2，RE1留在AC路徑）</h4>
+<div class="step">④ <span class="eq">r'e=25mV/${f3(ie*1e3)}mA</span>=<span class="res">r'e=${fZ(re)}</span></div>
+<div class="step">⑤ <span class="eq">Zin(base)=β×(r'e+RE1)=${p.beta}×(${fZ(re)}+${fR(p.re1)})=${p.beta}×${fZ(denom)}</span>=<span class="res">${fZ(zbase)}</span><div class="why">RE1無旁路，仍在AC路徑中，Zin(base)=β×(r'e+RE1)。</div></div>
+<div class="step">⑥ <span class="eq">R1∥R2=${fZ(r12)}；Zin=${fZ(r12)}∥${fZ(zbase)}</span>=<span class="res">Zin=${fZ(zin)}</span></div>
+<div class="step">⑦ <span class="eq">Vb=${p.vin}mVpp×${fZ(zin)}/(${fZ(zin)}+${fR(p.rg)})</span>=<span class="res">Vb=${f3(vb_sig*1e3)}mVpp</span></div>
+<div class="step">⑧ <span class="eq">rL=${fR(p.rc)}∥${fR(p.rl)}</span>=<span class="res">rL=${fZ(rL)}</span></div>
+<div class="step">⑨ <span class="eq">Av=−rL/(r'e+RE1)=−${fZ(rL)}/${fZ(denom)}</span>=<span class="res">Av=${f2(av)}</span><div class="why">有未旁路RE1：Av分母改為r'e+RE1，增益下降但電路更穩定。</div></div>
+<div class="step">⑩ <span class="eq">Vout=${f2(Math.abs(av))}×${f3(vb_sig*1e3)}mVpp</span>=<span class="res">Vout=${f3(vout*1e3)}mVpp</span></div>`
+}
+
+// ═══════════════════ 渲染函式 ═══════════════════
+function renderAll(){
+  var p=P;
+  // A1
+  document.getElementById('desc-a1').innerHTML=`<p>(a) α=${p.a1.alpha}，求 β　　(b) β=${p.a1.beta}，求 α</p>`;
+  document.getElementById('ans-a1').innerHTML=ansA1(p.a1);
+  // A2
+  document.getElementById('desc-a2').innerHTML=`<p>Pd(max)=${p.a2.pdmax}mW（@25°C），降額因數=${p.a2.derating}mW/°C，求 ${p.a2.temp}°C 的功率額定值。</p>`;
+  document.getElementById('ans-a2').innerHTML=ansA2(p.a2);
+  // A3
+  document.getElementById('given-a3').innerHTML=`VCC = ${p.a3.vcc}V<br>RB = ${fR(p.a3.rb)}<br>RC = ${fR(p.a3.rc)}<br>β = ${p.a3.beta}`;
+  document.getElementById('ans-a3').innerHTML=ansA3(p.a3);
+  // A4
+  document.getElementById('given-a4').innerHTML=`VCC = ${p.a4.vcc}V<br>R1 = ${fR(p.a4.r1)}<br>R2 = ${fR(p.a4.r2)}<br>RC = ${fR(p.a4.rc)}<br>RE = ${fR(p.a4.re)}<br>β = ${p.a4.beta}`;
+  document.getElementById('ans-a4').innerHTML=ansA4(p.a4);
+  // A5
+  document.getElementById('given-a5').innerHTML=`VCC = ${p.a5.vcc}V<br>RB = ${fR(p.a5.rb)}（C→B）<br>RC = ${fR(p.a5.rc)}<br>β = ${p.a5.beta}`;
+  document.getElementById('ans-a5').innerHTML=ansA5(p.a5);
+  // B1
+  var b12=p.b12;
+  document.getElementById('given-b1').innerHTML=`VCC=${b12.vcc}V　R1=${fR(b12.r1)}　R2=${fR(b12.r2)}<br>RC=${fR(b12.rc)}　RE=${fR(b12.re)}（CE旁路）<br>RL=${fR(b12.rl)}　β=${b12.beta}`;
+  document.getElementById('ans-b1').innerHTML=ansB1(b12);
+  // B2
+  document.getElementById('desc-b2').innerHTML=`<p>同 B1 電路，CE 旁路 RE（AC 時 RE 短路），Vin = ${b12.vin}mVpp，無 RG。</p>`;
+  document.getElementById('ans-b2').innerHTML=ansB2(b12);
+  // B3
+  var b3=p.b3;
+  var d3=dcB(b3);
+  document.getElementById('given-b3').innerHTML=`VCC=${b3.vcc}V　R1=${fR(b3.r1)}　R2=${fR(b3.r2)}<br>RC=${fR(b3.rc)}　RE=${fR(b3.re)}（CE旁路）<br>RL=${fR(b3.rl)}　β=${b3.beta}<br>Vin=${b3.vin}mVpp　RG=${fR(b3.rg)}<br><em>IE=${f3(d3.ie*1e3)}mA（DC已求）</em>`;
+  document.getElementById('ans-b3').innerHTML=ansB3(b3);
+  // B4
+  var b4=p.b4;
+  document.getElementById('given-b4').innerHTML=`VCC=${b4.vcc}V　R1=${fR(b4.r1)}　R2=${fR(b4.r2)}<br>RC=${fR(b4.rc)}　RL=${fR(b4.rl)}<br>RE1=${fR(b4.re1)}（未旁路）<br>RE2=${fR(b4.re2)}（CE旁路）<br>β=${b4.beta}　Vin=${b4.vin}mVpp　RG=${fR(b4.rg)}`;
+  document.getElementById('ans-b4').innerHTML=ansB4(b4);
+  // 收起所有解答
+  document.querySelectorAll('.ans').forEach(a=>a.classList.remove('show'));
+  document.querySelectorAll('.btn:not(.reset-btn)').forEach(b=>{b.textContent='看解答';b.className='btn b-show'});
+}
+
+function randomize(){
+  P={
+    a1:{alpha:pick([.970,.975,.980,.985,.990,.992]),beta:pick([40,50,60,80,100,120,150,180,200])},
+    a2:{pdmax:pick([500,600,800,1000,1200]),derating:pick([2,3,4,5,6,8]),temp:pick([60,70,75,80,85,90,100,110])},
+    a3:pickA3(),a4:pickA4(),a5:pickA5(),b12:pickB12(),b3:pickB3(),b4:pickB4()
+  };
+  renderAll();
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  dsvg('svgA3',buildA3());dsvg('svgA4',buildA4());dsvg('svgA5',buildA5());
+  dsvg('svgB1',buildB1());dsvg('svgB3',buildB3());dsvg('svgB4',buildB4());
+  randomize();
+});
+
+function tog(btn,id){var a=document.getElementById(id),s=a.classList.toggle('show');btn.textContent=s?'收起解答':'看解答';btn.className=s?'btn b-hide':'btn b-show'}
+</script>
+</body>
+</html>
