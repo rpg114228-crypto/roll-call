@@ -47,6 +47,18 @@ header p{font-size:.85rem;opacity:.85}
 .feedback.correct{background:#d5f5e3;color:#1a7a3c}
 .feedback.wrong{background:#fde8e8;color:#922b21}
 .feedback.partial{background:#fef9e7;color:#7d6608}
+.next-btn{margin-top:12px;background:#2d6a9f;color:#fff;border:none;padding:9px 22px;border-radius:7px;cursor:pointer;font-size:.88rem}
+.next-btn:hover{background:#1a3c5e}
+.summary-card{background:#fff;border-radius:10px;padding:18px;margin:12px 0;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.summary-card h2{color:#1a3c5e;margin-bottom:8px;font-size:1.1rem}
+.summary-card h3{color:#1a3c5e;margin:14px 0 8px;font-size:.95rem}
+.all-correct{color:#1a7a3c;font-weight:600;margin-top:10px;font-size:.9rem}
+.wrong-item{border-left:4px solid #e74c3c;background:#fdf2f2;border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:.85rem;line-height:1.5}
+.wrong-q{font-weight:600;margin-bottom:6px;color:#222}
+.wrong-your{color:#922b21}
+.wrong-correct{color:#1a7a3c}
+.btn-restart{margin-top:12px;background:#1a3c5e;color:#fff;border:none;padding:9px 22px;border-radius:7px;cursor:pointer;font-size:.88rem}
+.btn-restart:hover{background:#2d6a9f}
 @media(max-width:480px){.qnum{width:24px;height:24px;font-size:.7rem}.qtitle{font-size:.85rem}.opt{font-size:.82rem}}
 </style>
 </head>
@@ -60,14 +72,21 @@ header p{font-size:.85rem;opacity:.85}
   <div class="tab" onclick="switchTab(1)">第十四週（HW5）87題</div>
 </div>
 <div class="scorebar">
+  <span>第 <strong id="qcounter">1</strong> / <strong id="qtotal">0</strong> 題</span>
   <span>得分：<strong id="score-display">0 / 0</strong></span>
   <span id="pct-display">答對率 0%</span>
   <div class="progress-wrap"><div class="progress-bar" id="pbar" style="width:0%"></div></div>
-  <button class="btn-reset" onclick="resetAll()">重置</button>
+  <button class="btn-reset" onclick="resetCurrent()">重置本回合</button>
 </div>
 
-<div id="sec0" class="section active"></div>
-<div id="sec1" class="section"></div>
+<div id="sec0" class="section active">
+  <div class="quiz-area" id="quiz0"></div>
+  <div class="summary-area" id="summary0" style="display:none"></div>
+</div>
+<div id="sec1" class="section">
+  <div class="quiz-area" id="quiz1"></div>
+  <div class="summary-area" id="summary1" style="display:none"></div>
+</div>
 
 <script>
 const hw4=[
@@ -251,112 +270,136 @@ const hw5=[
 
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
-function buildSections(){
-  const labels=['A','B','C','D'];
-  return [hw4,hw5].map(qs=>
-    shuffle([...Array(qs.length).keys()]).map(origIdx=>{
-      const q=qs[origIdx];
-      const shuffledKeys=shuffle(Object.keys(q.o));
-      const optMap={},dispOpts={};
-      shuffledKeys.forEach((ok,di)=>{const dk=labels[di];optMap[dk]=ok;dispOpts[dk]=q.o[ok];});
-      return {origIdx,optMap,dispOpts};
-    })
-  );
-}
-
-let state={cur:0,scores:[{done:0,correct:0},{done:0,correct:0}],answered:[[],[]],sections:buildSections()};
-
-function init(){
-  renderSection(0,hw4,'sec0');
-  renderSection(1,hw5,'sec1');
-  updateScore();
-}
-
-function renderSection(si,qs,id){
-  const el=document.getElementById(id);
-  el.innerHTML='';
-  state.sections[si].forEach((item,i)=>{
-    const q=qs[item.origIdx];
-    const multi=!!q.multi;
-    const card=document.createElement('div');
-    card.className='question-card';
-    card.id=`card-${si}-${i}`;
-    const dks=Object.keys(item.dispOpts);
-    const opts=dks.map(dk=>{
-      const inp=multi
-        ?`<input type="checkbox" name="q${si}_${i}" value="${dk}" id="opt${si}_${i}_${dk}">`
-        :`<input type="radio" name="q${si}_${i}" value="${dk}" id="opt${si}_${i}_${dk}">`;
-      return`<label class="opt" id="optlbl${si}_${i}_${dk}" for="opt${si}_${i}_${dk}"><span class="opt-key">${dk}.</span><span class="opt-label">${item.dispOpts[dk]}</span>${inp}</label>`;
-    }).join('');
-    const multiBadge=multi?`<span class="multi-badge">複選</span>`:'';
-    card.innerHTML=`
-      <div class="qhead"><div class="qnum">${i+1}</div><div class="qtitle">${q.q}${multiBadge}</div></div>
-      <div class="options" id="opts${si}_${i}">${opts}</div>
-      ${multi?`<button class="check-btn" onclick="checkMulti(${si},${i})">確認答案</button>`:''}
-      <div class="feedback" id="fb${si}_${i}" style="display:none"></div>`;
-    el.appendChild(card);
-    if(!multi){
-      dks.forEach(dk=>{
-        document.getElementById(`opt${si}_${i}_${dk}`).addEventListener('change',()=>checkSingle(si,i,dk));
-      });
-    }
-  });
-}
+const labels=['A','B','C','D'];
 
 function getCorrectDks(item,ans){
   return ans.map(ok=>Object.entries(item.optMap).find(([,v])=>v===ok)[0]).sort();
 }
 
-function checkSingle(si,qi,chosenDk){
-  const item=state.sections[si][qi];
-  const q=(si===0?hw4:hw5)[item.origIdx];
-  if(state.answered[si][qi]!==undefined) return;
-  state.answered[si][qi]=chosenDk;
+function newSectionState(qs){
+  return{order:shuffle([...Array(qs.length).keys()]),idx:0,done:0,correct:0,wrong:[],curItem:null};
+}
+
+let state={cur:0,sections:[newSectionState(hw4),newSectionState(hw5)]};
+
+function init(){
+  renderQuestion(0);
+  renderQuestion(1);
+  updateScore(0);
+}
+
+function buildItem(q){
+  const shuffledKeys=shuffle(Object.keys(q.o));
+  const optMap={},dispOpts={};
+  shuffledKeys.forEach((ok,di)=>{const dk=labels[di];optMap[dk]=ok;dispOpts[dk]=q.o[ok];});
+  return{optMap,dispOpts,multi:!!q.multi,answered:false};
+}
+
+function renderQuestion(si){
+  const qs=si===0?hw4:hw5;
+  const st=state.sections[si];
+  const origIdx=st.order[st.idx];
+  const q=qs[origIdx];
+  const item=buildItem(q);
+  item.origIdx=origIdx;
+  st.curItem=item;
+  const dks=Object.keys(item.dispOpts);
+  const opts=dks.map(dk=>{
+    const inp=item.multi
+      ?`<input type="checkbox" name="cur${si}" value="${dk}" id="opt_${si}_${dk}">`
+      :`<input type="radio" name="cur${si}" value="${dk}" id="opt_${si}_${dk}">`;
+    return`<label class="opt" id="optlbl_${si}_${dk}" for="opt_${si}_${dk}"><span class="opt-key">${dk}.</span><span class="opt-label">${item.dispOpts[dk]}</span>${inp}</label>`;
+  }).join('');
+  const multiBadge=item.multi?`<span class="multi-badge">複選</span>`:'';
+  const el=document.getElementById(`quiz${si}`);
+  el.innerHTML=`
+    <div class="question-card" id="qcard${si}">
+      <div class="qhead"><div class="qnum">${st.idx+1}</div><div class="qtitle">${q.q}${multiBadge}</div></div>
+      <div class="options" id="qopts${si}">${opts}</div>
+      ${item.multi?`<button class="check-btn" id="checkBtn${si}" onclick="checkMulti(${si})">確認答案</button>`:''}
+      <div class="feedback" id="qfb${si}" style="display:none"></div>
+      <button class="next-btn" id="nextBtn${si}" style="display:none" onclick="nextQuestion(${si})"></button>
+    </div>`;
+  if(!item.multi){
+    dks.forEach(dk=>{
+      document.getElementById(`opt_${si}_${dk}`).addEventListener('change',()=>checkSingle(si,dk));
+    });
+  }
+  updateScore(si);
+}
+
+function recordResult(si,item,q,correct,chosenDks){
+  const st=state.sections[si];
+  st.done++;
+  if(correct){st.correct++;return}
+  const correctDks=getCorrectDks(item,q.a);
+  st.wrong.push({
+    qtext:q.q,
+    multi:item.multi,
+    yourAnswer:chosenDks.length?chosenDks.map(dk=>dk+'. '+item.dispOpts[dk]).join('、'):'（未作答）',
+    correctAnswer:correctDks.map(dk=>dk+'. '+item.dispOpts[dk]).join('、')
+  });
+}
+
+function showNextButton(si){
+  const st=state.sections[si];
+  const btn=document.getElementById(`nextBtn${si}`);
+  btn.style.display='inline-block';
+  btn.textContent=(st.idx===st.order.length-1)?'查看結果':'下一題';
+}
+
+function checkSingle(si,chosenDk){
+  const item=state.sections[si].curItem;
+  if(item.answered) return;
+  item.answered=true;
+  const qs=si===0?hw4:hw5;
+  const q=qs[item.origIdx];
   const correct=q.a[0]===item.optMap[chosenDk];
   const correctDk=getCorrectDks(item,q.a)[0];
   Object.keys(item.dispOpts).forEach(dk=>{
-    const lbl=document.getElementById(`optlbl${si}_${qi}_${dk}`);
-    const inp=document.getElementById(`opt${si}_${qi}_${dk}`);
+    const lbl=document.getElementById(`optlbl_${si}_${dk}`);
+    const inp=document.getElementById(`opt_${si}_${dk}`);
     lbl.classList.add('disabled'); inp.disabled=true;
     if(dk===correctDk) lbl.classList.add('correct');
     else if(dk===chosenDk&&!correct) lbl.classList.add('wrong');
   });
-  const card=document.getElementById(`card-${si}-${qi}`);
+  const card=document.getElementById(`qcard${si}`);
   card.classList.add(correct?'answered-correct':'answered-wrong');
-  const fb=document.getElementById(`fb${si}_${qi}`);
+  const fb=document.getElementById(`qfb${si}`);
   fb.style.display='block';
   fb.className=`feedback ${correct?'correct':'wrong'}`;
   fb.textContent=correct?'✓ 正確！':'✗ 錯誤！正確答案：'+correctDk+'（'+item.dispOpts[correctDk]+'）';
-  state.scores[si].done++;
-  if(correct) state.scores[si].correct++;
-  updateScore();
+  recordResult(si,item,q,correct,[chosenDk]);
+  updateScore(si);
+  showNextButton(si);
 }
 
-function checkMulti(si,qi){
-  const item=state.sections[si][qi];
-  const q=(si===0?hw4:hw5)[item.origIdx];
-  if(state.answered[si][qi]!==undefined) return;
+function checkMulti(si){
+  const item=state.sections[si].curItem;
+  if(item.answered) return;
   const dks=Object.keys(item.dispOpts);
-  const chosenDks=dks.filter(dk=>document.getElementById(`opt${si}_${qi}_${dk}`).checked).sort();
+  const chosenDks=dks.filter(dk=>document.getElementById(`opt_${si}_${dk}`).checked).sort();
   if(chosenDks.length===0) return;
-  state.answered[si][qi]=chosenDks;
+  item.answered=true;
+  const qs=si===0?hw4:hw5;
+  const q=qs[item.origIdx];
   const correctDks=getCorrectDks(item,q.a);
   const chosenOks=chosenDks.map(dk=>item.optMap[dk]).sort();
   const correct=JSON.stringify(chosenOks)===JSON.stringify([...q.a].sort());
   const missed=correctDks.filter(dk=>!chosenDks.includes(dk));
   dks.forEach(dk=>{
-    const lbl=document.getElementById(`optlbl${si}_${qi}_${dk}`);
-    const inp=document.getElementById(`opt${si}_${qi}_${dk}`);
+    const lbl=document.getElementById(`optlbl_${si}_${dk}`);
+    const inp=document.getElementById(`opt_${si}_${dk}`);
     inp.disabled=true; lbl.classList.add('disabled');
     if(correctDks.includes(dk)&&chosenDks.includes(dk)) lbl.classList.add('correct');
     else if(chosenDks.includes(dk)&&!correctDks.includes(dk)) lbl.classList.add('wrong');
     else if(correctDks.includes(dk)&&!chosenDks.includes(dk)) lbl.classList.add('missed');
   });
-  const btn=document.querySelector(`#card-${si}-${qi} .check-btn`);
+  const btn=document.getElementById(`checkBtn${si}`);
   if(btn) btn.disabled=true;
-  const card=document.getElementById(`card-${si}-${qi}`);
+  const card=document.getElementById(`qcard${si}`);
   card.classList.add(correct?'answered-correct':(missed.length>0?'answered-partial':'answered-wrong'));
-  const fb=document.getElementById(`fb${si}_${qi}`);
+  const fb=document.getElementById(`qfb${si}`);
   fb.style.display='block';
   if(correct){
     fb.className='feedback correct';
@@ -365,33 +408,78 @@ function checkMulti(si,qi){
     fb.className='feedback wrong';
     fb.textContent='✗ 正確答案：'+correctDks.join('、')+`（${correctDks.map(dk=>dk+'='+item.dispOpts[dk]).join('；')}）`;
   }
-  state.scores[si].done++;
-  if(correct) state.scores[si].correct++;
-  updateScore();
+  recordResult(si,item,q,correct,chosenDks);
+  updateScore(si);
+  showNextButton(si);
+}
+
+function nextQuestion(si){
+  const st=state.sections[si];
+  st.idx++;
+  if(st.idx>=st.order.length){
+    showSummary(si);
+  } else {
+    renderQuestion(si);
+  }
+  window.scrollTo(0,0);
+}
+
+function showSummary(si){
+  const st=state.sections[si];
+  document.getElementById(`quiz${si}`).style.display='none';
+  const sum=document.getElementById(`summary${si}`);
+  const pct=st.done?Math.round(st.correct/st.done*100):0;
+  let html=`<div class="summary-card">
+    <h2>測驗結束！</h2>
+    <p>得分：${st.correct} / ${st.done}（答對率 ${pct}%）</p>`;
+  if(st.wrong.length===0){
+    html+=`<p class="all-correct">🎉 全部答對，太強了！</p>`;
+  } else {
+    html+=`<h3>錯題統整（共 ${st.wrong.length} 題）</h3>`;
+    html+=st.wrong.map((w,i)=>`
+      <div class="wrong-item">
+        <div class="wrong-q">${i+1}. ${w.qtext}${w.multi?'<span class="multi-badge">複選</span>':''}</div>
+        <div class="wrong-your">你的答案：${w.yourAnswer}</div>
+        <div class="wrong-correct">正確答案：${w.correctAnswer}</div>
+      </div>`).join('');
+  }
+  html+=`<button class="btn-restart" onclick="resetSection(${si})">重新測驗本回合</button></div>`;
+  sum.innerHTML=html;
+  sum.style.display='block';
+  updateScore(si);
+}
+
+function resetSection(si){
+  const qs=si===0?hw4:hw5;
+  state.sections[si]=newSectionState(qs);
+  document.getElementById(`quiz${si}`).style.display='block';
+  const sum=document.getElementById(`summary${si}`);
+  sum.style.display='none';
+  sum.innerHTML='';
+  renderQuestion(si);
+  window.scrollTo(0,0);
+}
+
+function resetCurrent(){
+  resetSection(state.cur);
 }
 
 function switchTab(idx){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
   document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===idx));
   state.cur=idx;
-  updateScore();
+  updateScore(idx);
 }
 
-function updateScore(){
-  const si=state.cur;
-  const {done,correct}=state.scores[si];
-  const total=si===0?hw4.length:hw5.length;
-  document.getElementById('score-display').textContent=`${correct} / ${done}`;
-  document.getElementById('pct-display').textContent=done?`答對率 ${Math.round(correct/done*100)}%`:'答對率 0%';
-  document.getElementById('pbar').style.width=`${Math.round(done/total*100)}%`;
-}
-
-function resetAll(){
-  state={cur:state.cur,scores:[{done:0,correct:0},{done:0,correct:0}],answered:[[],[]],sections:buildSections()};
-  renderSection(0,hw4,'sec0');
-  renderSection(1,hw5,'sec1');
-  updateScore();
-  window.scrollTo(0,0);
+function updateScore(si){
+  if(si!==state.cur) return;
+  const st=state.sections[si];
+  const total=st.order.length;
+  document.getElementById('score-display').textContent=`${st.correct} / ${st.done}`;
+  document.getElementById('pct-display').textContent=st.done?`答對率 ${Math.round(st.correct/st.done*100)}%`:'答對率 0%';
+  document.getElementById('pbar').style.width=`${Math.round(st.done/total*100)}%`;
+  document.getElementById('qcounter').textContent=Math.min(st.idx+1,total);
+  document.getElementById('qtotal').textContent=total;
 }
 
 init();
