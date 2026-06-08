@@ -305,11 +305,11 @@ function dcB(p){var vb=p.vcc*p.r2/(p.r1+p.r2),ve=vb-.7,ie=ve/p.re,vc=p.vcc-ie*p.
 function ansB1(p){
   var d=dcB(p),ic_ma=f3(d.ie*1e3),drop=f3(d.ie*p.rc);
   return`<h4>解答（直流：Cm、Cout視為斷路）</h4>
-<div class="step">① <span class="eq">VB=${p.vcc}×${fR(p.r2)}/(${fR(p.r1)}+${fR(p.r2)})</span>=<span class="res">VB=${fV(d.vb)}</span></div>
-<div class="step">② <span class="eq">VE=${fV(d.vb)}−0.7</span>=<span class="res">VE=${fV(d.ve)}</span></div>
-<div class="step">③ <span class="eq">IE=${fV(d.ve)}/${fR(p.re)}</span>=<span class="res">IE=${ic_ma}mA</span></div>
-<div class="step">④ <span class="eq">VC=${p.vcc}−${ic_ma}mA×${fR(p.rc)}=${p.vcc}−${drop}</span>=<span class="res">VC=${fV(d.vc)}</span></div>
-<div class="step">⑤ <span class="eq">VCE=${fV(d.vc)}−${fV(d.ve)}</span>=<span class="res">VCE=${fV(d.vce)}</span></div>`
+<div class="step">① <span class="eq">VB=VCC×R2/(R1+R2)=${p.vcc}×${fR(p.r2)}/(${fR(p.r1)}+${fR(p.r2)})</span>=<span class="res">VB=${fV(d.vb)}</span></div>
+<div class="step">② <span class="eq">VE=VB−0.7=${fV(d.vb)}−0.7</span>=<span class="res">VE=${fV(d.ve)}</span></div>
+<div class="step">③ <span class="eq">IE=VE/RE=${fV(d.ve)}/${fR(p.re)}</span>=<span class="res">IE=${ic_ma}mA</span></div>
+<div class="step">④ <span class="eq">VC=VCC−IC×RC=${p.vcc}−${ic_ma}mA×${fR(p.rc)}=${p.vcc}−${drop}</span>=<span class="res">VC=${fV(d.vc)}</span></div>
+<div class="step">⑤ <span class="eq">VCE=VC−VE=${fV(d.vc)}−${fV(d.ve)}</span>=<span class="res">VCE=${fV(d.vce)}</span></div>`
 }
 function ansB2(p){
   var d=dcB(p),re=.025/d.ie,rL=par(p.rc,p.rl),av=-rL/re,vout=Math.abs(av)*p.vin*1e-3,zbase=p.beta*re,r12=par(p.r1,p.r2),zin=par(r12,zbase);
@@ -325,12 +325,12 @@ function ansB2(p){
 function ansB3(p){
   var d=dcB(p),re=.025/d.ie,zbase=p.beta*re,r12=par(p.r1,p.r2),zin=par(r12,zbase),vb=p.vin*1e-3*zin/(zin+p.rg),rL=par(p.rc,p.rl),av=-rL/re,vout=Math.abs(av)*vb;
   return`<h4>解答</h4>
-<div class="step">① <span class="eq">r'e=25mV/${f3(d.ie*1e3)}mA</span>=<span class="res">r'e=${fZ(re)}</span></div>
+<div class="step">① <span class="eq">r'e=25mV/IE=25mV/${f3(d.ie*1e3)}mA</span>=<span class="res">r'e=${fZ(re)}</span></div>
 <div class="step">② <span class="eq">Zin(base)=β×r'e=${p.beta}×${fZ(re)}</span>=<span class="res">${fZ(zbase)}</span></div>
 <div class="step">③ <span class="eq">R1∥R2=${fZ(r12)}；Zin=${fZ(r12)}∥${fZ(zbase)}</span>=<span class="res">Zin=${fZ(zin)}</span></div>
 <div class="step">④ <span class="eq">Vb=Vin×Zin/(Zin+RG)=${p.vin}mVpp×${fZ(zin)}/(${fZ(zin)}+${fR(p.rg)})</span>=<span class="res">Vb=${f3(vb*1e3)}mVpp</span><div class="why">有RG時Vin被分壓，Vb才是真正加到BJT基極的電壓。</div></div>
-<div class="step">⑤ <span class="eq">rL=${fR(p.rc)}∥${fR(p.rl)}</span>=<span class="res">rL=${fZ(rL)}</span></div>
-<div class="step">⑥ <span class="eq">Av=−${fZ(rL)}/${fZ(re)}</span>=<span class="res">Av=${f2(av)}</span></div>
+<div class="step">⑤ <span class="eq">rL=RC∥RL=${fR(p.rc)}∥${fR(p.rl)}</span>=<span class="res">rL=${fZ(rL)}</span></div>
+<div class="step">⑥ <span class="eq">Av=−rL/r'e=−${fZ(rL)}/${fZ(re)}</span>=<span class="res">Av=${f2(av)}</span></div>
 <div class="step">⑦ <span class="eq">Vout=|Av|×Vb=${f2(Math.abs(av))}×${f3(vb*1e3)}mVpp</span>=<span class="res">Vout=${f3(vout*1e3)}mVpp</span></div>
 <p class="tip">有RG：r'e→Zin(base)→Zin→Vb→rL→Av→Vout（用Vb不用Vin）</p>`
 }
@@ -338,17 +338,17 @@ function ansB4(p){
   var vb=p.vcc*p.r2/(p.r1+p.r2),ve=vb-.7,re_tot=p.re1+p.re2,ie=ve/re_tot,vc=p.vcc-ie*p.rc,vce=vc-ve;
   var re=.025/ie,denom=re+p.re1,zbase=p.beta*denom,r12=par(p.r1,p.r2),zin=par(r12,zbase),vb_sig=p.vin*1e-3*zin/(zin+p.rg),rL=par(p.rc,p.rl),av=-rL/denom,vout=Math.abs(av)*vb_sig;
   return`<h4>DC 分析（RE1+RE2串聯，CE斷路）</h4>
-<div class="step">① <span class="eq">VB=${p.vcc}×${fR(p.r2)}/(${fR(p.r1)}+${fR(p.r2)})</span>=<span class="res">VB=${fV(vb)}</span></div>
-<div class="step">② <span class="eq">VE=${fV(vb)}−0.7</span>=<span class="res">VE=${fV(ve)}</span></div>
-<div class="step">③ RE1+RE2=${fR(p.re1)}+${fR(p.re2)}=${fR(re_tot)}；<span class="eq">IE=${fV(ve)}/${fR(re_tot)}</span>=<span class="res">IE=${f3(ie*1e3)}mA</span><div class="why">DC時電容斷路，兩個射極電阻都要計算。</div></div>
+<div class="step">① <span class="eq">VB=VCC×R2/(R1+R2)=${p.vcc}×${fR(p.r2)}/(${fR(p.r1)}+${fR(p.r2)})</span>=<span class="res">VB=${fV(vb)}</span></div>
+<div class="step">② <span class="eq">VE=VB−0.7=${fV(vb)}−0.7</span>=<span class="res">VE=${fV(ve)}</span></div>
+<div class="step">③ RE1+RE2=${fR(p.re1)}+${fR(p.re2)}=${fR(re_tot)}；<span class="eq">IE=VE/(RE1+RE2)=${fV(ve)}/${fR(re_tot)}</span>=<span class="res">IE=${f3(ie*1e3)}mA</span><div class="why">DC時電容斷路，兩個射極電阻都要計算。</div></div>
 <h4 style="margin-top:12px">AC 分析（CE短路RE2，RE1留在AC路徑）</h4>
-<div class="step">④ <span class="eq">r'e=25mV/${f3(ie*1e3)}mA</span>=<span class="res">r'e=${fZ(re)}</span></div>
+<div class="step">④ <span class="eq">r'e=25mV/IE=25mV/${f3(ie*1e3)}mA</span>=<span class="res">r'e=${fZ(re)}</span></div>
 <div class="step">⑤ <span class="eq">Zin(base)=β×(r'e+RE1)=${p.beta}×(${fZ(re)}+${fR(p.re1)})=${p.beta}×${fZ(denom)}</span>=<span class="res">${fZ(zbase)}</span><div class="why">RE1無旁路，仍在AC路徑中，Zin(base)=β×(r'e+RE1)。</div></div>
 <div class="step">⑥ <span class="eq">R1∥R2=${fZ(r12)}；Zin=${fZ(r12)}∥${fZ(zbase)}</span>=<span class="res">Zin=${fZ(zin)}</span></div>
-<div class="step">⑦ <span class="eq">Vb=${p.vin}mVpp×${fZ(zin)}/(${fZ(zin)}+${fR(p.rg)})</span>=<span class="res">Vb=${f3(vb_sig*1e3)}mVpp</span></div>
-<div class="step">⑧ <span class="eq">rL=${fR(p.rc)}∥${fR(p.rl)}</span>=<span class="res">rL=${fZ(rL)}</span></div>
+<div class="step">⑦ <span class="eq">Vb=Vin×Zin/(Zin+RG)=${p.vin}mVpp×${fZ(zin)}/(${fZ(zin)}+${fR(p.rg)})</span>=<span class="res">Vb=${f3(vb_sig*1e3)}mVpp</span></div>
+<div class="step">⑧ <span class="eq">rL=RC∥RL=${fR(p.rc)}∥${fR(p.rl)}</span>=<span class="res">rL=${fZ(rL)}</span></div>
 <div class="step">⑨ <span class="eq">Av=−rL/(r'e+RE1)=−${fZ(rL)}/${fZ(denom)}</span>=<span class="res">Av=${f2(av)}</span><div class="why">有未旁路RE1：Av分母改為r'e+RE1，增益下降但電路更穩定。</div></div>
-<div class="step">⑩ <span class="eq">Vout=${f2(Math.abs(av))}×${f3(vb_sig*1e3)}mVpp</span>=<span class="res">Vout=${f3(vout*1e3)}mVpp</span></div>`
+<div class="step">⑩ <span class="eq">Vout=|Av|×Vb=${f2(Math.abs(av))}×${f3(vb_sig*1e3)}mVpp</span>=<span class="res">Vout=${f3(vout*1e3)}mVpp</span></div>`
 }
 
 // ═══════════════════ 渲染函式 ═══════════════════
