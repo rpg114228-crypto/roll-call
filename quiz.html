@@ -78,6 +78,13 @@ header p{font-size:.85rem;opacity:.85}
 .ri-your{color:#922b21}
 .ri-correct{color:#1a7a3c}
 .review-empty{color:#aaa;font-size:.85rem;padding:6px 0 4px}
+.btn-practice{display:block;width:100%;background:#1a3c5e;color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-size:.9rem;margin-bottom:14px;text-align:center}
+.btn-practice:hover{background:#2d6a9f}
+.btn-practice:disabled{background:#aaa;cursor:default}
+.prac-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.prac-scorebar{font-size:.83rem;color:#555;background:#f0f4f8;border-radius:6px;padding:7px 12px;margin-bottom:12px}
+.prac-restart{margin-top:10px;background:#1a3c5e;color:#fff;border:none;padding:9px 22px;border-radius:7px;cursor:pointer;font-size:.88rem}
+.prac-restart:hover{background:#2d6a9f}
 </style>
 </head>
 <body>
@@ -111,7 +118,20 @@ header p{font-size:.85rem;opacity:.85}
   <div class="review-panel">
     <button class="review-close" onclick="closeReview()">&#x2715;</button>
     <h2>錯題回顧</h2>
+    <button class="btn-practice" id="startPracticeBtn" onclick="startPractice()">&#x1F4DD; 開始針對練習</button>
     <div id="reviewContent"></div>
+  </div>
+</div>
+
+<div class="review-overlay" id="practiceOverlay" onclick="closePracticeOutside(event)">
+  <div class="review-panel">
+    <div class="prac-header">
+      <h2 style="margin:0">&#x1F4D6; 針對練習</h2>
+      <button class="review-close" style="position:static" onclick="closePractice()">&#x2715;</button>
+    </div>
+    <div id="pracScorebar" class="prac-scorebar"></div>
+    <div id="pracQuiz"></div>
+    <div id="pracSummary" style="display:none"></div>
   </div>
 </div>
 
@@ -364,6 +384,7 @@ function recordResult(si,item,q,correct,chosenDks){
   if(correct){st.correct++;return}
   const correctDks=getCorrectDks(item,q.a);
   st.wrong.push({
+    origIdx:item.origIdx,
     qtext:q.q,
     multi:item.multi,
     yourAnswer:chosenDks.length?chosenDks.map(dk=>dk+'. '+item.dispOpts[dk]).join('、'):'（未作答）',
@@ -555,6 +576,10 @@ function toggleFlag(si){
 function openReview(){
   const si=state.cur;
   const st=state.sections[si];
+  const totalPrac=st.wrong.filter(w=>w.origIdx!==undefined).length+st.flagged.length;
+  const pbtn=document.getElementById('startPracticeBtn');
+  pbtn.disabled=totalPrac===0;
+  pbtn.textContent=totalPrac?`📝 開始針對練習（${totalPrac} 題）`:'📝 開始針對練習（尚無題目）';
   let html='';
   const wrongCount=st.wrong.length;
   const flagCount=st.flagged.length;
@@ -589,6 +614,177 @@ function closeReview(){
 
 function closeReviewOutside(e){
   if(e.target===document.getElementById('reviewOverlay')) closeReview();
+}
+
+/* ===== 針對練習模式 ===== */
+let ps=null;
+
+function startPractice(){
+  const si=state.cur;
+  const st=state.sections[si];
+  const origIdxSet=new Set();
+  st.wrong.forEach(w=>{if(w.origIdx!==undefined)origIdxSet.add(w.origIdx);});
+  st.flagged.forEach(f=>{
+    const parts=f.key.split('_');
+    if(parseInt(parts[0])===si) origIdxSet.add(parseInt(parts[1]));
+  });
+  if(origIdxSet.size===0){alert('目前沒有錯題或標記題目可以練習');return;}
+  ps={si,origIdxArr:shuffle([...origIdxSet]),idx:0,done:0,correct:0,wrong:[],curItem:null};
+  closeReview();
+  document.getElementById('pracSummary').style.display='none';
+  document.getElementById('pracQuiz').style.display='block';
+  document.getElementById('practiceOverlay').style.display='block';
+  document.body.style.overflow='hidden';
+  renderPracQ();
+}
+
+function renderPracQ(){
+  const qs=ps.si===0?hw4:hw5;
+  const origIdx=ps.origIdxArr[ps.idx];
+  const q=qs[origIdx];
+  const item=buildItem(q);
+  item.origIdx=origIdx;
+  ps.curItem=item;
+  const dks=Object.keys(item.dispOpts);
+  const opts=dks.map(dk=>{
+    const inp=item.multi
+      ?`<input type="checkbox" name="prac" value="${dk}" id="popt_${dk}">`
+      :`<input type="radio" name="prac" value="${dk}" id="popt_${dk}">`;
+    return`<label class="opt" id="poptlbl_${dk}" for="popt_${dk}"><span class="opt-key">${dk}.</span><span class="opt-label">${item.dispOpts[dk]}</span>${inp}</label>`;
+  }).join('');
+  const multiBadge=item.multi?`<span class="multi-badge">複選</span>`:'';
+  document.getElementById('pracScorebar').textContent=
+    `第 ${ps.idx+1} / ${ps.origIdxArr.length} 題　得分：${ps.correct} / ${ps.done}`;
+  document.getElementById('pracQuiz').innerHTML=`
+    <div class="question-card" id="pracCard">
+      <div class="qhead"><div class="qnum">${ps.idx+1}</div><div class="qtitle">${q.q}${multiBadge}</div></div>
+      <div class="options">${opts}</div>
+      ${item.multi?`<button class="check-btn" id="pracCheckBtn" onclick="checkPracMulti()">確認答案</button>`:''}
+      <div class="feedback" id="pracFb" style="display:none"></div>
+      <button class="next-btn" id="pracNextBtn" style="display:none;margin-top:10px" onclick="nextPracQ()"></button>
+    </div>`;
+  if(!item.multi){
+    dks.forEach(dk=>{
+      document.getElementById(`popt_${dk}`).addEventListener('change',()=>checkPracSingle(dk));
+    });
+  }
+}
+
+function checkPracSingle(chosenDk){
+  const item=ps.curItem;
+  if(item.answered)return;
+  item.answered=true;
+  const qs=ps.si===0?hw4:hw5;
+  const q=qs[item.origIdx];
+  const correct=q.a[0]===item.optMap[chosenDk];
+  const correctDk=getCorrectDks(item,q.a)[0];
+  Object.keys(item.dispOpts).forEach(dk=>{
+    const lbl=document.getElementById(`poptlbl_${dk}`);
+    const inp=document.getElementById(`popt_${dk}`);
+    lbl.classList.add('disabled');inp.disabled=true;
+    if(dk===correctDk)lbl.classList.add('correct');
+    else if(dk===chosenDk&&!correct)lbl.classList.add('wrong');
+  });
+  document.getElementById('pracCard').classList.add(correct?'answered-correct':'answered-wrong');
+  const fb=document.getElementById('pracFb');
+  fb.style.display='block';
+  fb.className=`feedback ${correct?'correct':'wrong'}`;
+  fb.textContent=correct?'✓ 正確！':'✗ 錯誤！正確答案：'+correctDk+'（'+item.dispOpts[correctDk]+'）';
+  ps.done++;
+  if(correct)ps.correct++;
+  else ps.wrong.push({qtext:q.q,multi:false,yourAnswer:chosenDk+'. '+item.dispOpts[chosenDk],correctAnswer:correctDk+'. '+item.dispOpts[correctDk]});
+  document.getElementById('pracScorebar').textContent=
+    `第 ${ps.idx+1} / ${ps.origIdxArr.length} 題　得分：${ps.correct} / ${ps.done}`;
+  const btn=document.getElementById('pracNextBtn');
+  btn.style.display='inline-block';
+  btn.textContent=(ps.idx===ps.origIdxArr.length-1)?'查看結果':'下一題';
+}
+
+function checkPracMulti(){
+  const item=ps.curItem;
+  if(item.answered)return;
+  const dks=Object.keys(item.dispOpts);
+  const chosenDks=dks.filter(dk=>document.getElementById(`popt_${dk}`).checked).sort();
+  if(chosenDks.length===0)return;
+  item.answered=true;
+  const qs=ps.si===0?hw4:hw5;
+  const q=qs[item.origIdx];
+  const correctDks=getCorrectDks(item,q.a);
+  const chosenOks=chosenDks.map(dk=>item.optMap[dk]).sort();
+  const correct=JSON.stringify(chosenOks)===JSON.stringify([...q.a].sort());
+  const missed=correctDks.filter(dk=>!chosenDks.includes(dk));
+  dks.forEach(dk=>{
+    const lbl=document.getElementById(`poptlbl_${dk}`);
+    const inp=document.getElementById(`popt_${dk}`);
+    inp.disabled=true;lbl.classList.add('disabled');
+    if(correctDks.includes(dk)&&chosenDks.includes(dk))lbl.classList.add('correct');
+    else if(chosenDks.includes(dk)&&!correctDks.includes(dk))lbl.classList.add('wrong');
+    else if(correctDks.includes(dk)&&!chosenDks.includes(dk))lbl.classList.add('missed');
+  });
+  const cbtn=document.getElementById('pracCheckBtn');
+  if(cbtn)cbtn.disabled=true;
+  document.getElementById('pracCard').classList.add(correct?'answered-correct':(missed.length?'answered-partial':'answered-wrong'));
+  const fb=document.getElementById('pracFb');
+  fb.style.display='block';
+  if(correct){fb.className='feedback correct';fb.textContent='✓ 正確！';}
+  else{fb.className='feedback wrong';fb.textContent='✗ 正確答案：'+correctDks.join('、')+`（${correctDks.map(dk=>dk+'='+item.dispOpts[dk]).join('；')}）`;}
+  ps.done++;
+  if(correct)ps.correct++;
+  else ps.wrong.push({qtext:q.q,multi:true,yourAnswer:chosenDks.map(dk=>dk+'. '+item.dispOpts[dk]).join('、'),correctAnswer:correctDks.map(dk=>dk+'. '+item.dispOpts[dk]).join('、')});
+  document.getElementById('pracScorebar').textContent=
+    `第 ${ps.idx+1} / ${ps.origIdxArr.length} 題　得分：${ps.correct} / ${ps.done}`;
+  const btn=document.getElementById('pracNextBtn');
+  btn.style.display='inline-block';
+  btn.textContent=(ps.idx===ps.origIdxArr.length-1)?'查看結果':'下一題';
+}
+
+function nextPracQ(){
+  ps.idx++;
+  if(ps.idx>=ps.origIdxArr.length){showPracSummary();}
+  else{renderPracQ();}
+}
+
+function showPracSummary(){
+  document.getElementById('pracQuiz').style.display='none';
+  const pct=ps.done?Math.round(ps.correct/ps.done*100):0;
+  let html=`<div class="summary-card">
+    <h2>練習結束！</h2>
+    <p>得分：${ps.correct} / ${ps.done}（答對率 ${pct}%）</p>`;
+  if(ps.wrong.length===0){
+    html+=`<p class="all-correct">🎉 全部答對！繼續保持！</p>`;
+  } else {
+    html+=`<h3>本回合錯題（${ps.wrong.length} 題）</h3>`;
+    html+=ps.wrong.map((w,i)=>`
+      <div class="wrong-item">
+        <div class="wrong-q">${i+1}. ${w.qtext}${w.multi?'<span class="multi-badge">複選</span>':''}</div>
+        <div class="wrong-your">你的答案：${w.yourAnswer}</div>
+        <div class="wrong-correct">正確答案：${w.correctAnswer}</div>
+      </div>`).join('');
+  }
+  html+=`<button class="prac-restart" onclick="restartPractice()">再練一次</button>
+         <button class="prac-restart" style="margin-left:8px;background:#555" onclick="closePractice()">關閉</button>
+  </div>`;
+  const sum=document.getElementById('pracSummary');
+  sum.innerHTML=html;
+  sum.style.display='block';
+}
+
+function restartPractice(){
+  ps.origIdxArr=shuffle([...ps.origIdxArr]);
+  ps.idx=0;ps.done=0;ps.correct=0;ps.wrong=[];ps.curItem=null;
+  document.getElementById('pracSummary').style.display='none';
+  document.getElementById('pracQuiz').style.display='block';
+  renderPracQ();
+}
+
+function closePractice(){
+  document.getElementById('practiceOverlay').style.display='none';
+  document.body.style.overflow='';
+  ps=null;
+}
+
+function closePracticeOutside(e){
+  if(e.target===document.getElementById('practiceOverlay'))closePractice();
 }
 
 init();
