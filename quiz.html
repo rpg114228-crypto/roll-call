@@ -95,6 +95,7 @@ header p{font-size:.85rem;opacity:.85}
 <div class="tabs">
   <div class="tab active" onclick="switchTab(0)">第十五週（HW4）86題</div>
   <div class="tab" onclick="switchTab(1)">第十四週（HW5）87題</div>
+  <div class="tab" onclick="switchTab(2)">複選題（兩週合併）12題</div>
 </div>
 <div class="scorebar">
   <span>第 <strong id="qcounter">1</strong> / <strong id="qtotal">0</strong> 題</span>
@@ -112,6 +113,10 @@ header p{font-size:.85rem;opacity:.85}
 <div id="sec1" class="section">
   <div class="quiz-area" id="quiz1"></div>
   <div class="summary-area" id="summary1" style="display:none"></div>
+</div>
+<div id="sec2" class="section">
+  <div class="quiz-area" id="quiz2"></div>
+  <div class="summary-area" id="summary2" style="display:none"></div>
 </div>
 
 <div class="review-overlay" id="reviewOverlay" onclick="closeReviewOutside(event)">
@@ -315,6 +320,10 @@ const hw5=[
 {q:"在 Linux 系統中，下列何檔案存放了「使用者的登入歷史紀錄」？",o:{A:"/var/log/wtmp",B:"/var/log/messages",C:"/etc/login.defs",D:"/var/log/dmesg"},a:["A"]}
 ];
 
+const hwMulti=[...hw4,...hw5].filter(q=>q.multi);
+
+function getQs(si){return si===0?hw4:si===1?hw5:hwMulti;}
+
 function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 
 const labels=['A','B','C','D'];
@@ -327,11 +336,12 @@ function newSectionState(qs){
   return{order:shuffle([...Array(qs.length).keys()]),idx:0,done:0,correct:0,wrong:[],flagged:[],curItem:null};
 }
 
-let state={cur:0,sections:[newSectionState(hw4),newSectionState(hw5)]};
+let state={cur:0,sections:[newSectionState(hw4),newSectionState(hw5),newSectionState(hwMulti)]};
 
 function init(){
   renderQuestion(0);
   renderQuestion(1);
+  renderQuestion(2);
   updateScore(0);
 }
 
@@ -343,7 +353,7 @@ function buildItem(q){
 }
 
 function renderQuestion(si){
-  const qs=si===0?hw4:hw5;
+  const qs=getQs(si);
   const st=state.sections[si];
   const origIdx=st.order[st.idx];
   const q=qs[origIdx];
@@ -404,7 +414,7 @@ function checkSingle(si,chosenDk){
   const item=state.sections[si].curItem;
   if(item.answered) return;
   item.answered=true;
-  const qs=si===0?hw4:hw5;
+  const qs=getQs(si);
   const q=qs[item.origIdx];
   const correct=q.a[0]===item.optMap[chosenDk];
   const correctDk=getCorrectDks(item,q.a)[0];
@@ -433,7 +443,7 @@ function checkMulti(si){
   const chosenDks=dks.filter(dk=>document.getElementById(`opt_${si}_${dk}`).checked).sort();
   if(chosenDks.length===0) return;
   item.answered=true;
-  const qs=si===0?hw4:hw5;
+  const qs=getQs(si);
   const q=qs[item.origIdx];
   const correctDks=getCorrectDks(item,q.a);
   const chosenOks=chosenDks.map(dk=>item.optMap[dk]).sort();
@@ -502,7 +512,7 @@ function showSummary(si){
 }
 
 function resetSection(si){
-  const qs=si===0?hw4:hw5;
+  const qs=getQs(si);
   state.sections[si]=newSectionState(qs);
   document.getElementById(`quiz${si}`).style.display='block';
   const sum=document.getElementById(`summary${si}`);
@@ -550,7 +560,7 @@ function toggleFlag(si){
   const st=state.sections[si];
   const item=st.curItem;
   if(!item||!item.answered) return;
-  const qs=si===0?hw4:hw5;
+  const qs=getQs(si);
   const q=qs[item.origIdx];
   const correctDks=getCorrectDks(item,q.a);
   const key=`${si}_${item.origIdx}`;
@@ -639,7 +649,7 @@ function startPractice(){
 }
 
 function renderPracQ(){
-  const qs=ps.si===0?hw4:hw5;
+  const qs=getQs(ps.si);
   const origIdx=ps.origIdxArr[ps.idx];
   const q=qs[origIdx];
   const item=buildItem(q);
@@ -674,7 +684,7 @@ function checkPracSingle(chosenDk){
   const item=ps.curItem;
   if(item.answered)return;
   item.answered=true;
-  const qs=ps.si===0?hw4:hw5;
+  const qs=getQs(ps.si);
   const q=qs[item.origIdx];
   const correct=q.a[0]===item.optMap[chosenDk];
   const correctDk=getCorrectDks(item,q.a)[0];
@@ -707,7 +717,7 @@ function checkPracMulti(){
   const chosenDks=dks.filter(dk=>document.getElementById(`popt_${dk}`).checked).sort();
   if(chosenDks.length===0)return;
   item.answered=true;
-  const qs=ps.si===0?hw4:hw5;
+  const qs=getQs(ps.si);
   const q=qs[item.origIdx];
   const correctDks=getCorrectDks(item,q.a);
   const chosenOks=chosenDks.map(dk=>item.optMap[dk]).sort();
