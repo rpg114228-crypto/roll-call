@@ -586,7 +586,6 @@ const FIXED_DUTIES = {
 };
 const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','1850':'1850 點名','研習假':'研習假點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
 const VACATION_SLOTS = new Set(['研習假','研習1700','研習1800']);
-const VACATION_SLOT = '研習1700'; // 向下相容
 
 // 放假點名額外人員（大隊部＋外派）
 const VACATION_EXTRAS = [
@@ -1072,8 +1071,7 @@ function parseText() {
     let groupApplied = false;
     let groupUsedName = null;
     if (matched.length === 0) {
-      const inlineGroup = detectGroupFromLine(line);
-      groupUsedName = inlineGroup; // 只用同行明確標示的組別，避免誤套跨行組別
+      groupUsedName = detected; // 沿用本行開頭偵測到的組別，避免誤套跨行組別
       if (groupUsedName && GROUPS[groupUsedName]) {
         GROUPS[groupUsedName].forEach(n => matched.push(n));
         groupApplied = true;
@@ -1132,8 +1130,8 @@ function parseText() {
 
 /* ===== 產生回報 ===== */
 function getReportData() {
-  const dateVal = dateInput.value;
-  const d = new Date(dateVal + 'T00:00:00');
+  let d = new Date(dateInput.value + 'T00:00:00');
+  if (isNaN(d)) d = new Date(); // 日期空值防呆，避免 NaN月NaN日
   const month = d.getMonth() + 1;
   const day = d.getDate();
   const rollLabel = SLOT_LABELS[currentSlot] || currentSlot;
@@ -1242,13 +1240,13 @@ function renderHistory() {
     <div class="history-entry">
       <div class="h-meta">${h.time}・${h.slot}</div>
       <div class="h-text">${h.text}</div>
-      <button class="h-copy" onclick="copyHistoryEntry(${i})">複製</button>
+      <button class="h-copy" onclick="copyHistoryEntry(event, ${i})">複製</button>
     </div>`).join('');
 }
 
-function copyHistoryEntry(i) {
+function copyHistoryEntry(e, i) {
   const text = historyList[i].text;
-  const btn = event.target;
+  const btn = e.currentTarget;
   navigator.clipboard.writeText(text).then(() => { btn.textContent = '✓ 已複製'; setTimeout(() => btn.textContent = '複製', 1500); }).catch(() => {
     const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
     btn.textContent = '✓ 已複製'; setTimeout(() => btn.textContent = '複製', 1500);
