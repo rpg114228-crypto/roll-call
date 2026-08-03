@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#2c3e50">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="點名助手">
 <title>一中隊點名助手</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -119,6 +125,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-公差  { background: #039be5; color: white; border-color: #0277bd; }
 .member-btn.duty-燒委  { background: #d84315; color: white; border-color: #bf360c; }
 .member-btn.duty-花魚委 { background: #26c6da; color: white; border-color: #0097a7; }
+.member-btn.duty-伙委  { background: #827717; color: white; border-color: #33691e; }
 .member-btn.duty-巡水電 { background: #0277bd; color: white; border-color: #01579b; }
 .member-btn.duty-內務檢查 { background: #455a64; color: white; border-color: #37474f; }
 .member-btn.duty-內務陪檢 { background: #388e3c; color: white; border-color: #2e7d32; }
@@ -189,6 +196,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-公差  { background: #039be522; color: #0277bd; border-color: #039be566; font-weight: bold; }
 .duty-option.opt-燒委  { background: #d8431522; color: #bf360c; border-color: #d8431566; font-weight: bold; }
 .duty-option.opt-花魚委 { background: #26c6da22; color: #0097a7; border-color: #26c6da66; font-weight: bold; }
+.duty-option.opt-伙委  { background: #82771722; color: #827717; border-color: #82771766; font-weight: bold; }
 .duty-option.opt-巡水電 { background: #0277bd22; color: #01579b; border-color: #0277bd66; font-weight: bold; }
 .duty-option.opt-內務檢查 { background: #455a6422; color: #37474f; border-color: #455a6466; font-weight: bold; }
 .duty-option.opt-內務陪檢 { background: #388e3c22; color: #2e7d32; border-color: #388e3c66; font-weight: bold; }
@@ -284,6 +292,64 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 
 .overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 999; display: none; }
 .overlay.show { display: block; }
+
+/* === 今天鈕 === */
+.today-btn { padding: 6px 12px; border: 1px solid #ccc; border-radius: 6px; background: #f8f9fa; color: #555; font-size: 0.85em; font-family: inherit; cursor: pointer; }
+.today-btn:hover { background: #e9ecef; }
+
+/* === 凡例收合 === */
+.legend-toggle { width: 100%; padding: 6px 16px; background: white; border: none; border-bottom: 1px solid #eee; text-align: left; font-size: 0.8em; color: #888; cursor: pointer; font-family: inherit; }
+.legend.collapsed { display: none; }
+
+/* === 差勤選單搜尋 + 最近使用 === */
+.duty-search { margin: 0 12px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 20px; font-size: 0.9em; font-family: inherit; outline: none; width: calc(100% - 24px); }
+.duty-search:focus { border-color: #2c3e50; }
+.duty-recent { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 0; }
+.duty-recent:empty { display: none; }
+.duty-recent .r-chip { padding: 5px 12px; border-radius: 16px; border: 1.5px solid #ddd; background: #f0f3f6; font-size: 0.82em; cursor: pointer; }
+.duty-option.hide { display: none; }
+
+/* === 復原鈕 === */
+.undo-btn { padding: 9px 12px; background: #7f8c8d; color: white; border: none; border-radius: 8px; font-size: 0.85em; font-family: inherit; cursor: pointer; }
+.undo-btn:hover { background: #6c7a7d; }
+.undo-btn:disabled { background: #ced4da; cursor: default; }
+
+/* === 頁尾版本 === */
+.app-footer { text-align: center; font-size: 0.72em; color: #aaa; padding: 14px 16px 4px; }
+.app-footer a { color: #3498db; cursor: pointer; text-decoration: underline; }
+
+/* === 更新提示 toast === */
+.update-toast { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); background: #2c3e50; color: white; padding: 10px 16px; border-radius: 24px; font-size: 0.85em; z-index: 4000; box-shadow: 0 3px 14px rgba(0,0,0,0.3); cursor: pointer; display: none; }
+.update-toast.show { display: block; }
+
+/* === 深色模式 === */
+body.dark { background: #16191d; color: #d4d7dc; }
+body.dark .controls, body.dark .search-bar, body.dark .legend, body.dark .legend-toggle,
+body.dark .mode-tab.active, body.dark .slot-tabs, body.dark .squad-card, body.dark .stats-table,
+body.dark .stats-toggle, body.dark .output-box, body.dark .duty-menu, body.dark .duty-menu-header,
+body.dark .confirm-box, body.dark .history-panel, body.dark .history-entries { background: #1f242b; color: #d4d7dc; }
+body.dark .mode-tabs { background: #16191d; border-color: #333; }
+body.dark .mode-tab { color: #888; }
+body.dark .slot-tabs { border-bottom-color: #333; }
+body.dark .slot-tab.active { color: #eaecef; border-bottom-color: #6ea8fe; }
+body.dark .controls, body.dark .search-bar, body.dark .legend, body.dark .legend-toggle,
+body.dark .slot-tabs, body.dark .stats-table, body.dark .stats-toggle { border-color: #333; }
+body.dark .controls label, body.dark .controls, body.dark .stats-toggle { color: #b0b4bb; }
+body.dark input, body.dark textarea, body.dark .search-bar input, body.dark .duty-search { background: #2a2f37; color: #eaecef; border-color: #444; }
+body.dark .member-btn { background: #2a2f37; color: #d4d7dc; border-color: #444; }
+body.dark .member-btn:hover { border-color: #666; }
+body.dark .class-header { background: #262b32; color: #c5c9d0; }
+body.dark .class-header:hover { background: #2e343c; }
+body.dark .class-group { border-color: #2a2f37; }
+body.dark .duty-option { border-color: #3a3f47; }
+body.dark .duty-option.opt-在勤 { background: #2a2f37 !important; color: #ccc !important; }
+body.dark .summary-bar { background: #262b32; color: #c5c9d0; }
+body.dark .duty-recent .r-chip { background: #2a2f37; border-color: #444; color: #d4d7dc; }
+body.dark .today-btn { background: #2a2f37; color: #ccc; border-color: #444; }
+body.dark .stats-row { border-color: #2a2f37; }
+body.dark .stats-row.header, body.dark .stats-row[style*="f8f9fa"] { background: #262b32 !important; color: #9aa0a8; }
+body.dark .parse-result .parse-item { background: #22303a; color: #cdd; }
+body.dark .output-box { border-color: #444; }
 </style>
 </head>
 <body>
@@ -291,6 +357,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 <div class="header">
   <h1>一中隊點名助手</h1>
   <div class="header-btns">
+    <button class="hdr-btn" id="themeBtn" onclick="toggleTheme()">🌙</button>
     <button class="hdr-btn" onclick="toggleHistory()">歷史</button>
     <button class="hdr-btn" id="logBtn" onclick="toggleLog()">記錄</button>
   </div>
@@ -299,6 +366,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 <div class="controls">
   <label>日期</label>
   <input type="date" id="dateInput">
+  <button class="today-btn" onclick="setToday()">今天</button>
 </div>
 
 <!-- 時段分頁 -->
@@ -313,10 +381,11 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 <!-- 勾選模式 -->
 <div class="tab-content active" id="tab-check">
   <div class="search-bar">
-    <input type="search" id="searchInput" placeholder="搜尋人名…" oninput="doSearch(this.value)">
+    <input type="search" id="searchInput" placeholder="搜尋人名…" oninput="doSearch(this.value)" onkeydown="searchKey(event)">
     <button class="search-clear" onclick="clearSearch()">✕</button>
   </div>
-  <div class="legend">
+  <button class="legend-toggle" id="legendToggle" onclick="toggleLegend()">顏色說明 ▾</button>
+  <div class="legend collapsed" id="legendBox">
     <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0;border:1px solid #ccc"></div>在勤</div>
     <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>公假</div>
     <div class="legend-item"><div class="legend-dot" style="background:#33691e"></div>事假</div>
@@ -355,6 +424,14 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="legend-item"><div class="legend-dot" style="background:#f9a825"></div>有意願</div>
     <div class="legend-item"><div class="legend-dot" style="background:#e53935"></div>無意願</div>
     <div class="legend-item"><div class="legend-dot" style="background:#757575"></div>無資格</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#039be5"></div>公差</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#7b1fa2"></div>大美</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#43a047"></div>導生活動</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#26c6da"></div>花魚委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#827717"></div>伙委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#455a64"></div>內務檢查</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#388e3c"></div>內務陪檢</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#d32f2f"></div>內務複檢</div>
     <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
   </div>
   <div class="squads" id="squadsContainer"></div>
@@ -384,9 +461,10 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 
 <!-- 底部 -->
 <div class="bottom-bar">
-  <div class="summary-bar" id="summaryBar">差事：0 員 ／ 實到：97 員</div>
+  <div class="summary-bar" id="summaryBar">差事：0 員 ／ 實到：62 員</div>
   <button class="prefill-btn" id="prefillBtn" onclick="applyFixedDuties()">預填公差</button>
   <div class="action-row">
+    <button class="undo-btn" id="undoBtn" onclick="undo()" disabled>↩ 復原</button>
     <button class="reset-btn" onclick="askReset()">清除</button>
     <button class="generate-btn" onclick="generateReport()">標準回報</button>
     <button class="generate-btn" style="background:#1a5276" onclick="generateDetailReport()">含班別回報</button>
@@ -430,12 +508,17 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
   <div class="log-entries" id="logEntries"></div>
 </div>
 
+<div class="update-toast" id="updateToast" onclick="location.reload()">🔄 有新版本，點此更新</div>
+<div class="app-footer" id="appFooter"></div>
+
 <div class="overlay" id="overlay" onclick="closeMenu()"></div>
 <div class="duty-menu" id="dutyMenu">
   <div class="duty-menu-header">
     <span class="duty-menu-label" id="dutyMenuLabel">選擇差勤</span>
     <button class="duty-menu-close" onclick="closeMenu()">✕</button>
   </div>
+  <input class="duty-search" id="dutySearch" placeholder="搜尋差勤…" oninput="filterDuty(this.value)">
+  <div class="duty-recent" id="dutyRecent"></div>
   <div class="duty-options-grid">
     <div class="duty-option opt-在勤"   onclick="setDuty('在勤')" style="grid-column:span 3;background:#f8f9fa;color:#555">在勤（清除）</div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 假別 ──</div>
@@ -468,7 +551,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
     <div class="duty-option opt-收委"   onclick="setDuty('收委')">收委</div>
     <div class="duty-option opt-燒委"   onclick="setDuty('燒委')">燒委</div>
     <div class="duty-option opt-花魚委" onclick="setDuty('花魚委')">花魚委</div>
-    <div style="grid-column:span 1"></div>
+    <div class="duty-option opt-伙委"   onclick="setDuty('伙委')">伙委</div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 活動 ──</div>
     <div class="duty-option opt-社團"   onclick="setDuty('社團')">社團</div>
     <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
@@ -498,50 +581,46 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 
 <script>
 /* ===== 資料 ===== */
+// 依 115-1 建置班表（2026/06/27）重編
 const ROSTER = [
   { squad: '中隊部', classes: [
-    { name: '中隊部幹部', members: ['林琬雯','花洺葟','潘琦','蔡琇淳','許怡婷','鍾迪軒','陳昱熙','林瑞堂','郭庭佑'] }
+    { name: '中隊部幹部', members: ['林琬雯','花洺葟','潘琦','蔡琇淳','許怡婷','鍾迪軒','陳昱熙','吳宗祐','郭庭佑'] }
   ]},
   { squad: '一區隊（曾維德）', classes: [
     { name: '區隊長', members: ['曾維德'] },
-    { name: '建制1班（程振彥）', members: ['程振彥','謝文杰','江驊庭'] },
-    { name: '建制2班（黃唯蓁）', members: ['黃唯蓁','詹世譁','嚴天鴻'] },
-    { name: '建制3班（温梧淮）', members: ['温梧淮','許一晨','徐敏宗'] },
-    { name: '建制4班（邱珮淇）', members: ['邱珮淇','潘謙平','洪昱榮','陳采瑜'] },
-    { name: '建制5班（曹瑞瑜）', members: ['曹瑞瑜','黎力嘉','廖予嫣'] },
-    { name: '建制6班（陳勝利）', members: ['陳勝利','李宗諭','施宇倫','陳昀暄'] },
+    { name: '建制1班（蔡峻輔）', members: ['蔡峻輔','陽雲皓','梁天馨'] },
+    { name: '建制2班（李沛萱）', members: ['李沛萱','陳昀澤','李臆立'] },
+    { name: '建制3班（葉峻瑜）', members: ['葉峻瑜','歐智賢','賴昱嘉'] },
+    { name: '建制4班（林瑞堂）', members: ['林瑞堂','江驊庭','林昆憲','謝文杰'] },
+    { name: '建制5班（黃聖雅）', members: ['黃聖雅','楊仲凱','吳倫威','黃亭儀'] },
   ]},
-  { squad: '二區隊（陳明秀）', classes: [
-    { name: '區隊長', members: ['陳明秀'] },
-    { name: '建制7班（楊仲凱）',  members: ['楊仲凱','陽雲皓','蘇柔云'] },
-    { name: '建制8班（黃昭融）',  members: ['黃昭融','蘇俊嘉','李臆立'] },
-    { name: '建制9班（潘得銘）',  members: ['潘得銘','許傑程','賴昱嘉'] },
-    { name: '建制10班（梁天馨）', members: ['梁天馨','蔡峻輔','陳玉萍'] },
-    { name: '建制11班（吳宗祐）', members: ['吳宗祐','蔣豐懋','歐智賢','葉峻瑜'] },
-    { name: '建制12班（許惠琳）', members: ['許惠琳','蔣立人','黃聖雅','黃亭儀'] },
+  { squad: '二區隊（邱佩淇）', classes: [
+    { name: '區隊長', members: ['邱佩淇'] },
+    { name: '建制6班（施宇倫）',  members: ['施宇倫','許傑程','廖予嫣'] },
+    { name: '建制7班（洪昱榮）',  members: ['洪昱榮','徐敏宗','潘謙平'] },
+    { name: '建制8班（温梧淮）',  members: ['温梧淮','潘得銘','許惠琳','蔣豐懋'] },
+    { name: '建制9班（陳明秀）',  members: ['陳明秀','詹世譁','黃唯蓁'] },
+    { name: '建制10班（蘇柔云）', members: ['蘇柔云','邱硯杰','郭韋志','許瑜容'] },
   ]},
-  { squad: '三區隊（邱硯杰）', classes: [
-    { name: '區隊長', members: ['邱硯杰'] },
-    { name: '建制13班（林柏宇）', members: ['林柏宇','陳昀澤','黃逸軒'] },
-    { name: '建制14班（許瑜容）', members: ['許瑜容','吳倫威','郭韋志','彭毓婷'] },
-    { name: '建制15班（陳裕詳）', members: ['陳裕詳','孫奕翔','林昆憲'] },
-    { name: '建制16班（廖佩琦）', members: ['廖佩琦','康証皓','林勛偉','王子杰','尤柏仁','顏家科','徐斈僎','林易論','劉育修','姚家興','劉淑婷','陳慕明','張淑慧','張佳容','王晨芯','徐雅億','蕭梓嫣'] },
-    { name: '建制17班（洪翊耀）', members: ['洪翊耀','何威德','邱湧庭','洪塘訓','蔡曜鴻','簡品則','何景藝','李旭峰','楊于賢','李定澂','陳哲浩','李姿縈','孫意惠','吳宣葶','黃怡文','盛子齡','陳靖棻','巫昀柔'] },
+  { squad: '三區隊（林柏宇）', classes: [
+    { name: '區隊長', members: ['林柏宇'] },
+    { name: '建制11班（藍沉芹）', members: ['藍沉芹','李宗諭','彭毓婷'] },
+    { name: '建制12班（陳勝利）', members: ['陳勝利','黃逸軒','陳昀暄'] },
+    { name: '建制13班（李臆全）', members: ['李臆全','陳裕詳','程振彥'] },
+    { name: '建制14班（許一晨）', members: ['許一晨','嚴天鴻','黃昭融'] },
+    { name: '建制15班（蘇俊嘉）', members: ['蘇俊嘉','黎力嘉','曹瑞瑜','陳玉萍'] },
   ]}
 ];
 
 const GROUPS = {
   '雷達組':       ['蔣豐懋','賴昱嘉','吳宗祐','葉峻瑜','歐智賢'],
   '通訊組':       ['詹世譁','許一晨','潘得銘','花洺葟','黃昭融','温梧淮','嚴天鴻','潘謙平','陳明秀','許惠琳','徐敏宗','黃唯蓁'],
-  '航電組':       ['陳昱熙','陳裕詳','林瑞堂','謝文杰','程振彥','江驊庭','孫奕翔','林昆憲'],
-  '氣象組':       ['邱珮淇','陳昀暄','李臆立','陳昀澤','陳勝利','林柏宇','黃逸軒'],
+  '航電組':       ['陳昱熙','陳裕詳','林瑞堂','謝文杰','程振彥','江驊庭','林昆憲'],
+  '氣象組':       ['邱佩淇','陳昀暄','李臆立','陳昀澤','陳勝利','林柏宇','黃逸軒'],
   '人事組':       ['邱硯杰','許怡婷','黃聖雅','彭毓婷','曾維德','吳倫威','楊仲凱','黃亭儀','許瑜容','郭韋志','蘇柔云'],
-  '資管組':       ['蔡峻輔','郭庭佑','陳玉萍','林琬雯','鍾迪軒','梁天馨','洪昱榮','蔣立人','李宗諭','陽雲皓'],
-  '後管組':       ['施宇倫','蘇俊嘉','許傑程','廖予嫣','潘琦','蔡琇淳','曹瑞瑜','黎力嘉','陳采瑜'],
-  '專軍測量組':   ['姚家興','林易論'],
-  '專軍攔管組':   ['巫昀柔','劉育修','廖佩琦','楊于賢','李定澂','蔡曜鴻','劉淑婷','何威德'],
-  '專軍通資電組': ['孫意惠','盛子齡','張佳容','吳宣葶','王子杰','徐雅億','張淑慧','黃怡文','簡品則','洪翊耀','陳慕明','尤柏仁','顏家科','王晨芯','李旭峰','林勛偉','康証皓'],
-  '專軍氣象組':   ['邱湧庭','洪塘訓','李姿縈','蕭梓嫣','徐斈僎','陳哲浩','何景藝','陳靖棻'],
+  '資管組':       ['蔡峻輔','郭庭佑','陳玉萍','林琬雯','鍾迪軒','梁天馨','洪昱榮','李宗諭','陽雲皓'],
+  '後管組':       ['施宇倫','蘇俊嘉','許傑程','廖予嫣','潘琦','蔡琇淳','曹瑞瑜','黎力嘉'],
+  // TODO：李臆全、藍沉芹、李沛萱（新表由外派歸建）組別待確認後補入
 };
 
 const DUTY_TYPES = [
@@ -553,7 +632,7 @@ const DUTY_TYPES = [
   // 訓練課程
   '正課','龍隊','研習','數學輔導(正課)','英文輔導(正課)',
   // 委員活動
-  '消委','修委','社團','校旗隊','美工','大美','導生活動','BMI','花魚委',
+  '消委','修委','社團','校旗隊','美工','大美','導生活動','BMI','花魚委','伙委',
   // 其他
   '校隊','服檢','安檢','寢休','收委','榮團會','自行帶回',
   // 內務
@@ -567,21 +646,21 @@ const SLOTS = ['早點名','0740','1200','1330','1700','1850','晚點名','軍�
 // 固定公差出任時段（可依實際名單修正）
 const FIXED_DUTIES = {
   '0740': {
-    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+    '消委': ['黃昭融','嚴天鴻','歐智賢','賴昱嘉'],
   },
   '1200': {
-    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
+    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐'],
   },
   '1330': {
-    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
+    '消委': ['黃昭融','嚴天鴻','歐智賢','賴昱嘉'],
   },
   '1850': {
-    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
-    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
+    '消委': ['黃昭融','嚴天鴻','歐智賢','賴昱嘉'],
+    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐'],
   },
   '晚點名': {
-    '消委': ['黃昭融','嚴天鴻','劉淑婷','歐智賢','賴昱嘉','李定澂'],
-    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐','劉育修','洪塘訓','張淑慧','徐雅億'],
+    '消委': ['黃昭融','嚴天鴻','歐智賢','賴昱嘉'],
+    '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐'],
   },
 };
 const SLOT_LABELS = { '0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','1850':'1850 點名','研習假':'研習假點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
@@ -593,11 +672,11 @@ const VACATION_EXTRAS = [
     { name: '大隊部', members: ['趙百睿','陳文正','蔡宜玹','王彥','黃士朋','黃喬偉','戴佾訓','楊人龍','蘇鈺茗'] }
   ]},
   { squad: '外派人員（15人）', classes: [
-    { name: '外派', members: ['梁浩瑋','陳詠琪','羅欽瑋','彭于宸','韋秉言','湯淞棋','林慧貞','陳冠緯','黃馨','蔡雨容','葉政庭','陳芯媛','李臆全','藍沉芹','李沛萱'] }
+    { name: '外派', members: ['梁浩瑋','陳詠琪','羅欽瑋','彭于宸','韋秉言','湯淞棋','林慧貞','陳冠緯','黃馨','蔡雨容','葉政庭','陳芯媛','孫奕翔','蔣立人','陳采瑜'] }
   ]}
 ];
-const VACATION_TOTAL = 121;
-const NORMAL_TOTAL = 97;
+const VACATION_TOTAL = 86;   // 62 + 大隊部 9 + 外派 15
+const NORMAL_TOTAL = 62;     // 中隊部 9 + 一區隊 18 + 二區隊 18 + 三區隊 17
 
 function isVacationSlot(slot) { return VACATION_SLOTS.has(slot || currentSlot); }
 
@@ -684,6 +763,7 @@ function switchSlot(slot) {
   document.querySelectorAll('.slot-tab').forEach(t => t.classList.toggle('active', t.dataset.slot === slot));
   // 載入新時段
   loadSlotIntoDutyMap();
+  undoStack = []; updateUndoBtn(); // 換時段清空復原堆疊
   updateSummary();
   updateStats();
   updatePrefillBtn();
@@ -779,7 +859,7 @@ function buildRoster() {
 
 /* ===== 差勤選單 ===== */
 function openMenu(e, name) {
-  e.stopPropagation();
+  if (e) e.stopPropagation();
   currentMember = name;
   currentClassMembers = null;
   document.getElementById('dutyMenuLabel').textContent = name;
@@ -795,6 +875,9 @@ function openClassMenu(e, members, className) {
 }
 
 function showDutyMenu() {
+  document.getElementById('dutySearch').value = '';
+  filterDuty('');
+  renderRecent();
   document.getElementById('dutyMenu').classList.add('show');
   document.getElementById('overlay').classList.add('show');
 }
@@ -807,12 +890,14 @@ function closeMenu() {
 }
 
 function setDuty(duty) {
+  snapshot();
   const departed = currentSlot === '研習1800' ? get1700Departed() : new Set();
   if (currentMember) {
     if (!departed.has(currentMember)) applyDuty(currentMember, duty);
   } else if (currentClassMembers) {
     currentClassMembers.forEach(name => { if (!departed.has(name)) applyDuty(name, duty); });
   }
+  if (duty !== '在勤') addRecent(duty);
   closeMenu();
   updateSummary();
   updateSlotDots();
@@ -910,6 +995,7 @@ function askReset() {
 function closeConfirm() { document.getElementById('confirmBackdrop').classList.remove('show'); }
 function doReset() {
   closeConfirm();
+  snapshot();
   slotStates[currentSlot] = {};
   loadSlotIntoDutyMap(); // 重置並重新套用 departed 樣式
   document.getElementById('outputBox').style.display = 'none';
@@ -950,7 +1036,6 @@ function loadState() {
 
 /* ===== 組別別名對照（縮寫 → GROUPS 鍵名） ===== */
 const GROUP_ALIASES = [
-  ['專軍通資電','專軍通資電組'],['專軍攔管','專軍攔管組'],['專軍測量','專軍測量組'],['專軍氣象','專軍氣象組'],
   ['航電','航電組'],['雷達','雷達組'],['通訊','通訊組'],['氣象','氣象組'],
   ['人事','人事組'],['資管','資管組'],['後管','後管組'],
 ];
@@ -990,6 +1075,7 @@ function parseText() {
   const text = document.getElementById('textInput').value;
   if (!text.trim()) return;
 
+  snapshot();
   Object.keys(dutyMap).forEach(name => applyDuty(name, '在勤'));
 
   const resultDiv = document.getElementById('parseResult');
@@ -1020,6 +1106,7 @@ function parseText() {
     '值星':'值星',
     '差勤公差':'差勤','差勤':'差勤','公差':'公差',
     '燒委':'燒委',
+    '伙食委員':'伙委','伙委':'伙委',
     '巡水電':'巡水電',
     '不符合資格':'無資格','不符合':'無資格','符合資格':'有意願','無資格':'無資格','有意願':'有意願','無意願':'無意願',
     '數學輔導課':'數學輔導(正課)','數學輔導':'數學輔導(正課)',
@@ -1141,7 +1228,10 @@ function getReportData() {
   DUTY_TYPES.slice(1).forEach(t => groups[t] = []);
   // departed 的人不列入 1800 的差勤計算
   Object.entries(dutyMap).forEach(([name, duty]) => {
-    if (duty !== '在勤' && !departed.has(name)) groups[duty].push(name);
+    if (duty !== '在勤' && !departed.has(name)) {
+      if (!groups[duty]) groups[duty] = []; // 防呆：舊版殘留的差勤名
+      groups[duty].push(name);
+    }
   });
   const vacExclude = new Set(['有意願', '無資格']);
   const totalAbsent = isVacationSlot()
@@ -1207,6 +1297,13 @@ function showReport(text) {
   btn.style.display = 'block';
   box.scrollIntoView({ behavior: 'smooth' });
   saveHistory(text);
+  // 產生即自動複製（回報按鈕點擊為使用者手勢，clipboard 可用）
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ 已自動複製！';
+      setTimeout(() => btn.textContent = '複製回報內容', 1800);
+    }).catch(() => {});
+  }
 }
 
 function copyReport() {
@@ -1276,6 +1373,7 @@ function applyFixedDuties() {
     return;
   }
 
+  snapshot();
   const departed = get1700Departed();
   let count = 0;
   Object.entries(duties).forEach(([duty, members]) => {
@@ -1320,18 +1418,150 @@ function updateSummary() {
   document.getElementById('summaryBar').textContent = `${currentSlot}  ─  應到 ${total} 員  差事：${absent} 員 ／ 實到：${total - absent} 員`;
 }
 
+/* ===== 復原（Undo） ===== */
+let undoStack = [];
+function snapshot() {
+  undoStack.push(JSON.stringify(dutyMap));
+  if (undoStack.length > 25) undoStack.shift();
+  updateUndoBtn();
+}
+function undo() {
+  if (!undoStack.length) return;
+  const prev = JSON.parse(undoStack.pop());
+  Object.keys(dutyMap).forEach(n => applyDuty(n, prev[n] || '在勤'));
+  if (currentSlot === '研習1800') {
+    get1700Departed().forEach(name => {
+      const b = document.getElementById('btn-' + name);
+      if (b) b.className = 'member-btn departed';
+    });
+  }
+  updateSummary(); updateSlotDots(); updateStats(); saveState(); updateUndoBtn();
+}
+function updateUndoBtn() {
+  const b = document.getElementById('undoBtn');
+  if (b) b.disabled = undoStack.length === 0;
+}
+
+/* ===== 深色模式 ===== */
+function applyTheme(t) {
+  document.body.classList.toggle('dark', t === 'dark');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = t === 'dark' ? '☀️' : '🌙';
+  const meta = document.querySelector('meta[name=theme-color]');
+  if (meta) meta.setAttribute('content', t === 'dark' ? '#16191d' : '#2c3e50');
+}
+function initTheme() {
+  let t = localStorage.getItem('rollcall_theme');
+  if (!t) t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  applyTheme(t);
+}
+function toggleTheme() {
+  const t = document.body.classList.contains('dark') ? 'light' : 'dark';
+  localStorage.setItem('rollcall_theme', t);
+  applyTheme(t);
+}
+
+/* ===== 今天鈕 ===== */
+function setToday() {
+  const d = new Date();
+  dateInput.value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  saveState();
+}
+
+/* ===== 凡例收合 ===== */
+function toggleLegend() {
+  const box = document.getElementById('legendBox');
+  const open = !box.classList.toggle('collapsed');
+  document.getElementById('legendToggle').textContent = open ? '顏色說明 ▴' : '顏色說明 ▾';
+  localStorage.setItem('rollcall_legend', open ? 'open' : 'closed');
+}
+function initLegend() {
+  if (localStorage.getItem('rollcall_legend') === 'open') {
+    document.getElementById('legendBox').classList.remove('collapsed');
+    document.getElementById('legendToggle').textContent = '顏色說明 ▴';
+  }
+}
+
+/* ===== 差勤選單搜尋 + 最近使用 ===== */
+function filterDuty(q) {
+  q = (q || '').trim();
+  document.querySelectorAll('.duty-options-grid > div').forEach(el => {
+    if (el.classList.contains('duty-option')) {
+      el.style.display = (q && !el.textContent.includes(q)) ? 'none' : '';
+    } else {
+      el.style.display = q ? 'none' : ''; // 搜尋時隱藏分隔線與空格
+    }
+  });
+}
+let recentDuties = [];
+try { recentDuties = JSON.parse(localStorage.getItem('rollcall_recent') || '[]'); } catch(e) {}
+function addRecent(duty) {
+  recentDuties = recentDuties.filter(d => d !== duty);
+  recentDuties.unshift(duty);
+  if (recentDuties.length > 6) recentDuties = recentDuties.slice(0, 6);
+  try { localStorage.setItem('rollcall_recent', JSON.stringify(recentDuties)); } catch(e) {}
+}
+function renderRecent() {
+  const el = document.getElementById('dutyRecent');
+  el.innerHTML = recentDuties.map(d => `<span class="r-chip" onclick="setDuty('${d}')">${d}</span>`).join('');
+}
+
+/* ===== 搜尋 Enter 直接開選單 ===== */
+function searchKey(e) {
+  if (e.key === 'Enter') {
+    const first = document.querySelector('.member-btn.highlighted:not(.departed)');
+    if (first) { e.preventDefault(); openMenu(null, first.dataset.name); }
+  }
+}
+
+/* ===== 名冊一致性自檢 ===== */
+function checkRosterConsistency() {
+  const missing = [];
+  ROSTER.forEach(s => s.classes.forEach(c => c.members.forEach(m => { if (!nameToGroup[m]) missing.push(m); })));
+  if (missing.length) logEvent('warn', `名冊自檢：${missing.length} 人未編組（${missing.join('、')}）`);
+  const ghost = [];
+  Object.values(GROUPS).forEach(ms => ms.forEach(m => { if (!allNames.has(m)) ghost.push(m); }));
+  if (ghost.length) logEvent('warn', `名冊自檢：組別含名冊外人員（${[...new Set(ghost)].join('、')}）`);
+}
+
+/* ===== PWA：版本 + Service Worker ===== */
+const APP_VERSION = '2026.08.03';
+function renderFooter() {
+  const el = document.getElementById('appFooter');
+  if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
+}
+function registerSW() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing;
+      if (nw) nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+          document.getElementById('updateToast').classList.add('show');
+        }
+      });
+    });
+  }).catch(() => {});
+}
+
 /* ===== 初始化 ===== */
 const dateInput = document.getElementById('dateInput');
 const today = new Date();
 dateInput.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
 dateInput.addEventListener('change', saveState);
 
+initTheme();
+initLegend();
 buildSlotTabs();
 buildRoster();
 loadState();
+checkRosterConsistency();
 updateSummary();
 updateStats();
 updatePrefillBtn();
+updateUndoBtn();
+renderFooter();
+registerSW();
 </script>
 </body>
 </html>
