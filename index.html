@@ -130,6 +130,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-內務檢查 { background: #455a64; color: white; border-color: #37474f; }
 .member-btn.duty-內務陪檢 { background: #388e3c; color: white; border-color: #2e7d32; }
 .member-btn.duty-內務複檢 { background: #d32f2f; color: white; border-color: #c62828; }
+.member-btn.duty-專題  { background: #8e24aa; color: white; border-color: #6a1b9a; }
 .member-btn.duty-數學輔導\(正課\) { background: #6a1b9a; color: white; border-color: #4a148c; }
 .member-btn.duty-英文輔導\(正課\) { background: #283593; color: white; border-color: #1a237e; }
 .member-btn.duty-有意願 { background: #f9a825; color: #333;  border-color: #f57f17; }
@@ -201,6 +202,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-內務檢查 { background: #455a6422; color: #37474f; border-color: #455a6466; font-weight: bold; }
 .duty-option.opt-內務陪檢 { background: #388e3c22; color: #2e7d32; border-color: #388e3c66; font-weight: bold; }
 .duty-option.opt-內務複檢 { background: #d32f2f22; color: #c62828; border-color: #d32f2f66; font-weight: bold; }
+.duty-option.opt-專題  { background: #8e24aa22; color: #6a1b9a; border-color: #8e24aa66; font-weight: bold; }
 .duty-option.opt-數學輔導 { background: #6a1b9a22; color: #4a148c; border-color: #6a1b9a66; font-weight: bold; }
 .duty-option.opt-英文輔導 { background: #28359322; color: #1a237e; border-color: #28359366; font-weight: bold; }
 .duty-option.opt-有意願 { background: #f9a82522; color: #e65100; border-color: #f9a82566; font-weight: bold; }
@@ -419,6 +421,7 @@ body.dark .output-box { border-color: #444; }
     <div class="legend-item"><div class="legend-dot" style="background:#ff6f00"></div>差勤</div>
     <div class="legend-item"><div class="legend-dot" style="background:#d84315"></div>燒委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#0277bd"></div>巡水電</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#8e24aa"></div>專題</div>
     <div class="legend-item"><div class="legend-dot" style="background:#6a1b9a"></div>數學輔導</div>
     <div class="legend-item"><div class="legend-dot" style="background:#283593"></div>英文輔導</div>
     <div class="legend-item"><div class="legend-dot" style="background:#f9a825"></div>有意願</div>
@@ -543,6 +546,7 @@ body.dark .output-box { border-color: #444; }
     <div class="duty-option opt-正課"   onclick="setDuty('正課')">正課</div>
     <div class="duty-option opt-龍隊"   onclick="setDuty('龍隊')">龍隊</div>
     <div class="duty-option opt-研習"   onclick="setDuty('研習')">研習</div>
+    <div class="duty-option opt-專題"   onclick="setDuty('專題')">專題</div>
     <div class="duty-option opt-數學輔導" onclick="setDuty('數學輔導(正課)')">數學輔導(正課)</div>
     <div class="duty-option opt-英文輔導" onclick="setDuty('英文輔導(正課)')">英文輔導(正課)</div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 委員 ──</div>
@@ -630,7 +634,7 @@ const DUTY_TYPES = [
   // 勤務
   '站哨','下夜','餐勤','班消','外派','罰勤','值星','差勤','公差','燒委','巡水電',
   // 訓練課程
-  '正課','龍隊','研習','數學輔導(正課)','英文輔導(正課)',
+  '正課','龍隊','研習','專題','數學輔導(正課)','英文輔導(正課)',
   // 委員活動
   '消委','修委','社團','校旗隊','美工','大美','導生活動','BMI','花魚委','伙委',
   // 其他
@@ -1091,7 +1095,8 @@ function parseText() {
     '公假':'公假','補休':'補休','衛哨':'站哨','站哨':'站哨','下夜':'下夜','外派':'外派',
     '正課人員':'正課','正課':'正課',
     '龍隊人員':'龍隊','龍社':'龍隊','練龍':'龍隊','龍隊':'龍隊',
-    '熱舞社':'社團','社團練習':'社團','社團':'社團',
+    '熱舞社':'社團','社團練習':'社團','社團':'社團','動漫社':'社團','愛心社':'社團',
+    '專題研究':'專題','專題報告':'專題','專題':'專題',
     '研習假人員':'研習','研習假':'研習','研習':'研習',
     '喪假':'喪假','病假':'病假','事假':'事假',
     '正常假':'正常假',
@@ -1115,8 +1120,8 @@ function parseText() {
     '數學輔導課':'數學輔導(正課)','數學輔導':'數學輔導(正課)',
     '英文輔導課':'英文輔導(正課)','英文輔導':'英文輔導(正課)',
     '氣象館上課':'正課','上課':'正課',
-    '內務複檢':'內務複檢',
-    '內務陪檢':'內務陪檢',
+    '內務複檢':'內務複檢','複檢':'內務複檢',
+    '內務陪檢':'內務陪檢','陪檢':'內務陪檢',
     '內務檢查':'內務檢查','打內務':'內務檢查',
   };
 
@@ -1128,15 +1133,33 @@ function parseText() {
     const detected = detectGroupFromLine(line);
     if (detected) currentContext = detected;
 
-    // 「實到」「應到」行：只更新組別，不做差勤解析、不當續行
-    if (/^實到|^應到/.test(line)) { lastMatchedDuty = null; return; }
+    // 「實到」「應到」行（含簡寫「應3」「實2」）：只更新組別，不做差勤解析、不當續行
+    if (/^[實應][到]?\s*\d/.test(line)) { lastMatchedDuty = null; return; }
 
     let matchedDuty = null, matchedKw = null;
     const ll = line.toLowerCase();
     for (const [kw, duty] of Object.entries(dutyKeywords)) {
       if (ll.includes(kw.toLowerCase())) { matchedDuty = duty; matchedKw = kw; break; }
     }
+    // 關鍵字沒中：任何「◯◯社」都歸社團（動漫社、愛心社、吉他社…）
     if (!matchedDuty) {
+      const club = line.match(/[一-鿿]{1,4}社(?![團會區])/);
+      if (club) { matchedDuty = '社團'; matchedKw = club[0]; }
+    }
+
+    if (!matchedDuty) {
+      // 「N員XX」是新的差勤宣告，即使認不出類別也不能沿用上一個差勤
+      if (/\d+\s*[員名]/.test(line)) {
+        const orphan = greedyExtractNames(line);
+        const who = orphan.length ? `（${orphan.join('、')}）` : '';
+        logEvent('warn', `解析：認不出差勤類別「${line}」${who}，請手動指定`);
+        const item = document.createElement('div');
+        item.className = 'parse-item unknown';
+        item.innerHTML = `⚠ 認不出差勤：${line}${who ? ' → 請手動點選' : ''}`;
+        resultDiv.appendChild(item);
+        lastMatchedDuty = null;
+        return;
+      }
       // 無關鍵字：嘗試當作上一差勤的續行
       if (lastMatchedDuty) {
         const continued = greedyExtractNames(line);
@@ -1528,7 +1551,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.05';
+const APP_VERSION = '2026.08.05b';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
