@@ -1125,7 +1125,15 @@ function parseText() {
     '內務檢查':'內務檢查','打內務':'內務檢查',
   };
 
-  text.split(/[\n；;]/).forEach(line => {
+  // 多筆差勤擠在同一行時（整段沒換行／一行塞好幾筆），在「N員」前自動補斷行。
+  // 「應到5員」「實到2員」這種統計數字前面有「到／共／計」，不切。
+  const nonEmptyLines = text.split(/\n/).filter(s => s.trim()).length;
+  const dutyDecls = (text.match(/\d+\s*[員名]/g) || []).length;
+  const normalized = dutyDecls > nonEmptyLines
+    ? text.replace(/([到共計])?(\d+\s*[員名])/g, (m, pre, body) => pre ? m : '\n' + body)
+    : text;
+
+  normalized.split(/[\n；;]/).forEach(line => {
     line = line.trim();
     if (!line) return;
 
@@ -1151,11 +1159,13 @@ function parseText() {
       // 「N員XX」是新的差勤宣告，即使認不出類別也不能沿用上一個差勤
       if (/\d+\s*[員名]/.test(line)) {
         const orphan = greedyExtractNames(line);
-        const who = orphan.length ? `（${orphan.join('、')}）` : '';
+        // 沒帶到名冊內姓名 → 多半是「應到5員」之類的統計行，靜默略過
+        if (orphan.length === 0) { lastMatchedDuty = null; return; }
+        const who = `（${orphan.join('、')}）`;
         logEvent('warn', `解析：認不出差勤類別「${line}」${who}，請手動指定`);
         const item = document.createElement('div');
         item.className = 'parse-item unknown';
-        item.innerHTML = `⚠ 認不出差勤：${line}${who ? ' → 請手動點選' : ''}`;
+        item.innerHTML = `⚠ 認不出差勤：${line} → 請手動點選`;
         resultDiv.appendChild(item);
         lastMatchedDuty = null;
         return;
@@ -1212,9 +1222,10 @@ function parseText() {
       resultDiv.appendChild(item);
     }
 
-    // 找未知姓名：純中文片段但不在名冊內
+    // 找未知姓名：純中文片段但不在名冊內（先剝掉統計／標題用語，避免誤報）
     const unknown = [];
-    afterKw.split(/[、，,\s\/(（)）：:＋+\d員\-—]+/).map(s => s.trim())
+    const NON_NAME = /應到|實到|合計|差事|點名|建置|建制|中隊|區隊|大隊|人數|以上|報告|核示|謝謝|班長/g;
+    afterKw.replace(NON_NAME, ' ').split(/[、，,\s\/(（)）：:＋+\d員\-—]+/).map(s => s.trim())
       .filter(s => s.length >= 2 && /^[一-鿿]+$/.test(s))
       .forEach(seg => {
         if (greedyExtractNames(seg).length === 0) {
@@ -1551,7 +1562,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.05b';
+const APP_VERSION = '2026.08.05c';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
