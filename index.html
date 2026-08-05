@@ -467,7 +467,7 @@ body.dark .output-box { border-color: #444; }
 
 <!-- 底部 -->
 <div class="bottom-bar">
-  <div class="summary-bar" id="summaryBar">差事：0 員 ／ 實到：62 員</div>
+  <div class="summary-bar" id="summaryBar">差事：0 員 ／ 實到：63 員</div>
   <button class="prefill-btn" id="prefillBtn" onclick="applyFixedDuties()">預填公差</button>
   <div class="action-row">
     <button class="undo-btn" id="undoBtn" onclick="undo()" disabled>↩ 復原</button>
@@ -616,7 +616,7 @@ const ROSTER = [
     { name: '建制12班（陳勝利）', members: ['陳勝利','黃逸軒','陳昀暄'] },
     { name: '建制13班（李臆全）', members: ['李臆全','陳裕詳','程振彥'] },
     { name: '建制14班（許一晨）', members: ['許一晨','嚴天鴻','黃昭融'] },
-    { name: '建制15班（蘇俊嘉）', members: ['蘇俊嘉','黎力嘉','曹瑞瑜','陳玉萍'] },
+    { name: '建制15班（蘇俊嘉）', members: ['蘇俊嘉','黎力嘉','曹瑞瑜','陳玉萍','張天成'] },
   ]}
 ];
 
@@ -628,6 +628,8 @@ const GROUPS = {
   '人事組':       ['邱硯杰','許怡婷','黃聖雅','彭毓婷','曾維德','吳倫威','楊仲凱','黃亭儀','許瑜容','郭韋志','蘇柔云'],
   '資管組':       ['蔡峻輔','郭庭佑','陳玉萍','林琬雯','鍾迪軒','梁天馨','洪昱榮','李宗諭','陽雲皓'],
   '後管組':       ['施宇倫','蘇俊嘉','許傑程','廖予嫣','潘琦','蔡琇淳','曹瑞瑜','黎力嘉'],
+  // 117 年班（與上面 116 年班各組分開，勿併入）
+  '117年班航電組': ['張天成'],
   // TODO：李臆全、藍沉芹、李沛萱（新表由外派歸建）組別待確認後補入
 };
 
@@ -686,8 +688,8 @@ const VACATION_EXTRAS = [
     { name: '外派', members: ['梁浩瑋','陳詠琪','羅欽瑋','彭于宸','韋秉言','湯淞棋','林慧貞','陳冠緯','黃馨','蔡雨容','葉政庭','陳芯媛','孫奕翔','蔣立人','陳采瑜'] }
   ]}
 ];
-const VACATION_TOTAL = 86;   // 62 + 大隊部 9 + 外派 15
-const NORMAL_TOTAL = 62;     // 中隊部 9 + 一區隊 18 + 二區隊 18 + 三區隊 17
+const VACATION_TOTAL = 87;   // 63 + 大隊部 9 + 外派 15
+const NORMAL_TOTAL = 63;     // 中隊部 9 + 一區隊 18 + 二區隊 18 + 三區隊 18
 
 function isVacationSlot(slot) { return VACATION_SLOTS.has(slot || currentSlot); }
 
@@ -1567,7 +1569,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.05d';
+const APP_VERSION = '2026.08.05e';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
