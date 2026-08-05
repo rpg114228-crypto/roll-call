@@ -1,0 +1,3 @@
+# 本地斷點紀錄（跨對話用），不推上公開 repo
+.project/
+.playwright-mcp/
