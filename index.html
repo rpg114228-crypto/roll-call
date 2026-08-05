@@ -117,6 +117,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-服檢  { background: #1565c0; color: white; border-color: #0d47a1; }
 .member-btn.duty-安檢  { background: #bf360c; color: white; border-color: #870000; }
 .member-btn.duty-寢休  { background: #4527a0; color: white; border-color: #311b92; }
+.member-btn.duty-隔離  { background: #b71c1c; color: white; border-color: #7f0000; }
 .member-btn.duty-收委  { background: #558b2f; color: white; border-color: #33691e; }
 .member-btn.duty-榮團會  { background: #ad1457; color: white; border-color: #880e4f; }
 .member-btn.duty-自行帶回 { background: #78909c; color: white; border-color: #546e7a; }
@@ -190,6 +191,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-服檢  { background: #1565c022; color: #0d47a1; border-color: #1565c066; font-weight: bold; }
 .duty-option.opt-安檢  { background: #bf360c22; color: #870000; border-color: #bf360c66; font-weight: bold; }
 .duty-option.opt-寢休  { background: #4527a022; color: #311b92; border-color: #4527a066; font-weight: bold; }
+.duty-option.opt-隔離  { background: #b71c1c22; color: #b71c1c; border-color: #b71c1c66; font-weight: bold; }
 .duty-option.opt-收委  { background: #558b2f22; color: #33691e; border-color: #558b2f66; font-weight: bold; }
 .duty-option.opt-榮團會  { background: #ad145722; color: #880e4f; border-color: #ad145766; font-weight: bold; }
 .duty-option.opt-自行帶回 { background: #78909c22; color: #546e7a; border-color: #78909c66; font-weight: bold; }
@@ -416,6 +418,7 @@ body.dark .output-box { border-color: #444; }
     <div class="legend-item"><div class="legend-dot" style="background:#1565c0"></div>服檢</div>
     <div class="legend-item"><div class="legend-dot" style="background:#bf360c"></div>安檢</div>
     <div class="legend-item"><div class="legend-dot" style="background:#4527a0"></div>寢休</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#b71c1c"></div>隔離</div>
     <div class="legend-item"><div class="legend-dot" style="background:#558b2f"></div>收委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#ad1457"></div>榮團會</div>
     <div class="legend-item"><div class="legend-dot" style="background:#78909c"></div>自行帶回</div>
@@ -574,6 +577,7 @@ body.dark .output-box { border-color: #444; }
     <div class="duty-option opt-服檢"   onclick="setDuty('服檢')">服檢</div>
     <div class="duty-option opt-安檢"   onclick="setDuty('安檢')">安檢</div>
     <div class="duty-option opt-寢休"   onclick="setDuty('寢休')">寢休</div>
+    <div class="duty-option opt-隔離"   onclick="setDuty('隔離')">隔離</div>
     <div class="duty-option opt-榮團會"  onclick="setDuty('榮團會')">榮團會</div>
     <div class="duty-option opt-自行帶回" onclick="setDuty('自行帶回')">自行帶回</div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 內務 ──</div>
@@ -643,7 +647,7 @@ const DUTY_TYPES = [
   // 委員活動
   '消委','修委','社團','校旗隊','美工','大美','導生活動','BMI','花魚委','伙委',
   // 其他
-  '校隊','服檢','安檢','寢休','收委','榮團會','自行帶回',
+  '校隊','服檢','安檢','寢休','隔離','收委','榮團會','自行帶回',
   // 內務
   '內務檢查','內務陪檢','內務複檢',
   // 研習假
@@ -1112,6 +1116,7 @@ function parseText() {
     '大隊服儀檢查':'服檢','大隊服檢':'服檢','服儀檢查':'服檢','服檢':'服檢',
     '收假安檢':'安檢','安檢':'安檢',
     '寢休':'寢休',
+    '隔離':'隔離','居隔':'隔離',
     '收委班長':'收委','收委':'收委',
     '收尾班長':'收委','收尾':'收委',
     '榮團會公差':'榮團會','榮團會':'榮團會',
@@ -1568,7 +1573,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.05f';
+const APP_VERSION = '2026.08.06';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
