@@ -727,7 +727,7 @@ const dutyKeywords = {
   '內務檢查':'內務檢查','打內務':'內務檢查',
 };
 
-const SLOTS = ['早點名','早餐','0740','1200','1330','1700','1850','晚點名','軍訓課','研習假','研習1700','研習1800'];
+const SLOTS = ['早點名','早餐','0740','1200','1330','1700','1850','晚點名','軍訓課','休假','研習假','研習1700','研習1800'];
 
 // 固定公差出任時段（可依實際名單修正）
 const FIXED_DUTIES = {
@@ -752,8 +752,11 @@ const FIXED_DUTIES = {
     '餐勤': ['李宗諭','黎力嘉','蘇俊嘉','葉峻瑜','吳宗祐'],
   },
 };
-const SLOT_LABELS = { '早餐':'早餐點名','0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','1850':'1850 點名','研習假':'研習假點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
+const SLOT_LABELS = { '早餐':'早餐點名','0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','1850':'1850 點名','休假':'正常假放假','研習假':'研習假點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
 const VACATION_SLOTS = new Set(['研習假','研習1700','研習1800']);
+// 休假點名：專屬回報格式（正常假名單＋差事），外派不需要到，應到即隊上 63 人
+const LEAVE_SLOT = '休假';
+function isLeaveSlot(slot) { return (slot || currentSlot) === LEAVE_SLOT; }
 // 非研習假、但外派＋大隊部要一起回來點名的時段（應到 87）
 const FULL_ROSTER_SLOTS = new Set(['1700']);
 
@@ -1377,7 +1380,48 @@ function getReportData() {
   return { month, day, rollLabel, total, groups, totalAbsent, present: total - totalAbsent, departed };
 }
 
+/* 休假點名專屬格式：主體是「正常假N員(名單)」，外派不列入 */
+function generateLeaveReport() {
+  let d = new Date(dateInput.value + 'T00:00:00');
+  if (isNaN(d)) d = new Date();
+  const month = d.getMonth() + 1, day = d.getDate();
+  const weekday = '日一二三四五六'[d.getDay()];
+  // 外派不需要到，一律只看隊上 63 人
+  const roster = ROSTER.flatMap(s => s.classes.flatMap(c => c.members));
+  const total = roster.length;
+  const onLeave = roster.filter(n => dutyMap[n] === '在勤');
+  const groups = {};
+  roster.forEach(n => {
+    const duty = dutyMap[n];
+    if (duty && duty !== '在勤') (groups[duty] = groups[duty] || []).push(n);
+  });
+  const totalAbsent = Object.values(groups).reduce((s, a) => s + a.length, 0);
+  const present = total - totalAbsent;
+  const lines = [
+    `報告區隊長，以下為${month}/${day}（${weekday}）`,
+    `一中隊正常假放假人數`,
+    `應到${total}員`,
+    '',
+    `正常假${onLeave.length}員(${onLeave.join('、')})`,
+    '',
+    '除',
+  ];
+  let hasAbsent = false;
+  DUTY_TYPES.slice(1).filter(t => groups[t]?.length)
+    .sort((a, b) => groups[b].length - groups[a].length)
+    .forEach(duty => {
+      hasAbsent = true;
+      lines.push(`${groups[duty].length}員${duty}（${groups[duty].join('、')}）`);
+    });
+  if (!hasAbsent) lines.push('0員差事');
+  lines.push(`合計差事：${totalAbsent}員`);
+  lines.push(`實到：${present}員`);
+  lines.push('請區隊長核示，謝謝區隊長。');
+  showReport(lines.join('\n'));
+}
+
 function generateReport() {
+  if (isLeaveSlot()) return generateLeaveReport();
   const { month, day, rollLabel, total, groups, totalAbsent, present, departed } = getReportData();
   const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, ''];
   if (departed.size > 0) lines.push(`（1700 已出發 ${departed.size} 員，不列入本次點名）`);
@@ -1680,7 +1724,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.06h';
+const APP_VERSION = '2026.08.06i';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
