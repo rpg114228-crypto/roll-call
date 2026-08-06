@@ -134,6 +134,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-燒委  { background: #d84315; color: white; border-color: #bf360c; }
 .member-btn.duty-花魚委 { background: #26c6da; color: white; border-color: #0097a7; }
 .member-btn.duty-伙委  { background: #827717; color: white; border-color: #33691e; }
+.member-btn.duty-響委  { background: #3f51b5; color: white; border-color: #303f9f; }
 .member-btn.duty-巡水電 { background: #0277bd; color: white; border-color: #01579b; }
 .member-btn.duty-看護  { background: #673ab7; color: white; border-color: #512da8; }
 .member-btn.duty-內務檢查 { background: #455a64; color: white; border-color: #37474f; }
@@ -208,6 +209,7 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-燒委  { background: #d8431522; color: #bf360c; border-color: #d8431566; font-weight: bold; }
 .duty-option.opt-花魚委 { background: #26c6da22; color: #0097a7; border-color: #26c6da66; font-weight: bold; }
 .duty-option.opt-伙委  { background: #82771722; color: #827717; border-color: #82771766; font-weight: bold; }
+.duty-option.opt-響委  { background: #3f51b522; color: #303f9f; border-color: #3f51b566; font-weight: bold; }
 .duty-option.opt-巡水電 { background: #0277bd22; color: #01579b; border-color: #0277bd66; font-weight: bold; }
 .duty-option.opt-看護  { background: #673ab722; color: #512da8; border-color: #673ab766; font-weight: bold; }
 .duty-option.opt-內務檢查 { background: #455a6422; color: #37474f; border-color: #455a6466; font-weight: bold; }
@@ -447,6 +449,7 @@ body.dark .output-box { border-color: #444; }
     <div class="legend-item"><div class="legend-dot" style="background:#43a047"></div>導生活動</div>
     <div class="legend-item"><div class="legend-dot" style="background:#26c6da"></div>花魚委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#827717"></div>伙委</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3f51b5"></div>響委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#455a64"></div>內務檢查</div>
     <div class="legend-item"><div class="legend-dot" style="background:#388e3c"></div>內務陪檢</div>
     <div class="legend-item"><div class="legend-dot" style="background:#d32f2f"></div>內務複檢</div>
@@ -579,6 +582,7 @@ body.dark .output-box { border-color: #444; }
     <div class="duty-option opt-燒委"   onclick="setDuty('燒委')">燒委</div>
     <div class="duty-option opt-花魚委" onclick="setDuty('花魚委')">花魚委</div>
     <div class="duty-option opt-伙委"   onclick="setDuty('伙委')">伙委</div>
+    <div class="duty-option opt-響委"   onclick="setDuty('響委')">響委</div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 活動 ──</div>
     <div class="duty-option opt-社團"   onclick="setDuty('社團')">社團</div>
     <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
@@ -669,7 +673,7 @@ const DUTY_TYPES = [
   // 訓練課程
   '正課','龍隊','研習','專題','數學輔導(正課)','英文輔導(正課)',
   // 委員活動
-  '消委','修委','社團','校旗隊','美工','大美','導生活動','BMI','花魚委','伙委',
+  '消委','修委','社團','校旗隊','美工','大美','導生活動','BMI','花魚委','伙委','響委',
   // 其他
   '校隊','服檢','安檢','寢休','隔離','收委','榮團會','自行帶回',
   // 內務
@@ -1200,6 +1204,7 @@ function parseText() {
     '差勤公差':'差勤','差勤':'差勤','公差':'公差',
     '燒委':'燒委',
     '伙食委員':'伙委','伙委':'伙委',
+    '響應委員':'響委','響委':'響委',
     '巡水電':'巡水電',
     '看護':'看護','陪病':'看護','照顧病患':'看護',
     '不符合資格':'無資格','不符合':'無資格','符合資格':'有意願','無資格':'無資格','有意願':'有意願','無意願':'無意願',
@@ -1663,7 +1668,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.06f';
+const APP_VERSION = '2026.08.06g';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
