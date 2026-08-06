@@ -476,7 +476,10 @@ body.dark .output-box { border-color: #444; }
     <button class="undo-btn" id="undoBtn" onclick="undo()" disabled>↩ 復原</button>
     <button class="reset-btn" onclick="askReset()">清除</button>
     <button class="generate-btn" onclick="generateReport()">標準回報</button>
-    <button class="generate-btn" style="background:#1a5276" onclick="generateDetailReport()">含班別回報</button>
+  </div>
+  <div class="action-row">
+    <button class="generate-btn" style="background:#1a5276" onclick="generateClassReport()">建置回報</button>
+    <button class="generate-btn" style="background:#6a1b9a" onclick="generateGroupReport()">組別回報</button>
   </div>
   <div class="output-box" id="outputBox"></div>
   <button class="copy-btn" id="copyBtn" onclick="copyReport()">複製回報內容</button>
@@ -1310,32 +1313,46 @@ function generateReport() {
   showReport(lines.join('\n'));
 }
 
-function generateDetailReport() {
+/* ===== 分項回報（建置班／組別各自獨立）=====
+   建置班順序照 ROSTER；組別順序照 GROUPS 定義（雷達→通訊→航電→氣象→人事→資管→後管→117年班航電組） */
+const CLASS_ORDER = [];
+ROSTER.concat(VACATION_EXTRAS).forEach(sq => sq.classes.forEach(c => {
+  const simple = c.name.replace(/（.*）/, '').trim();
+  if (!CLASS_ORDER.includes(simple)) CLASS_ORDER.push(simple);
+}));
+const GROUP_ORDER = Object.keys(GROUPS);
+
+function buildBreakdownReport(keyOf, order, fallback) {
   const { month, day, rollLabel, total, groups, totalAbsent, present, departed } = getReportData();
   const lines = [`報告區隊長，以下為`, `${month}月${day}日 一中隊 ${rollLabel} 人數`, ''];
   if (departed.size > 0) lines.push(`（1700 已出發 ${departed.size} 員，不列入本次點名）`);
   lines.push(`應到 ${total} 員`, '除');
   let hasAbsent = false;
-  const sortedDutiesDetail = DUTY_TYPES.slice(1).filter(d => groups[d]?.length).sort((a, b) => groups[b].length - groups[a].length);
-  sortedDutiesDetail.forEach(duty => {
+  const rank = k => { const i = order.indexOf(k); return i < 0 ? Number.MAX_SAFE_INTEGER : i; };
+  const sortedDuties = DUTY_TYPES.slice(1).filter(d => groups[d]?.length).sort((a, b) => groups[b].length - groups[a].length);
+  sortedDuties.forEach(duty => {
     if (isVacationSlot() && duty === '無資格') return;
     hasAbsent = true;
     lines.push(`${groups[duty].length} 員 ${duty}`);
-    const byClass = {};
+    const bucket = {};
     groups[duty].forEach(name => {
-      const label = nameToGroup[name] ? `${nameToClass[name] || '中隊部'}／${nameToGroup[name]}` : (nameToClass[name] || '中隊部');
-      if (!byClass[label]) byClass[label] = [];
-      byClass[label].push(name);
+      const k = keyOf(name) || fallback;
+      if (!bucket[k]) bucket[k] = [];
+      bucket[k].push(name);
     });
-    Object.entries(byClass).forEach(([label, ms]) => lines.push(`  ${label}：${ms.join('、')}`));
+    Object.keys(bucket).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b))
+      .forEach(k => lines.push(`  ${k}：${bucket[k].join('、')}`));
   });
   if (!hasAbsent) lines.push('0 員差事');
   lines.push(`合計差事：${totalAbsent} 員`);
-  const presentNamesDetail = isVacationSlot() && groups['有意願']?.length ? `（${groups['有意願'].join('、')}）` : '';
-  lines.push(`實到：${present} 員${presentNamesDetail}`);
+  const presentNames = isVacationSlot() && groups['有意願']?.length ? `（${groups['有意願'].join('、')}）` : '';
+  lines.push(`實到：${present} 員${presentNames}`);
   lines.push('請區隊長核示，謝謝區隊長。');
   showReport(lines.join('\n'));
 }
+
+function generateClassReport() { buildBreakdownReport(n => nameToClass[n], CLASS_ORDER, '中隊部'); }
+function generateGroupReport() { buildBreakdownReport(n => nameToGroup[n], GROUP_ORDER, '未編組'); }
 
 function showReport(text) {
   const box = document.getElementById('outputBox');
@@ -1573,7 +1590,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.06';
+const APP_VERSION = '2026.08.06b';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
