@@ -640,14 +640,22 @@ const ROSTER = [
   ]}
 ];
 
+// 每組後段（換行處之後）是大隊部與外派人員，只在全員時段（1700／研習假）納入計算。
 const GROUPS = {
-  '雷達組':       ['蔣豐懋','賴昱嘉','吳宗祐','葉峻瑜','歐智賢'],
-  '通訊組':       ['詹世譁','許一晨','潘得銘','花洺葟','黃昭融','温梧淮','嚴天鴻','潘謙平','陳明秀','許惠琳','徐敏宗','黃唯蓁'],
-  '航電組':       ['陳昱熙','陳裕詳','林瑞堂','謝文杰','程振彥','江驊庭','林昆憲','李臆全'],
-  '氣象組':       ['邱佩淇','陳昀暄','李臆立','陳昀澤','陳勝利','林柏宇','黃逸軒','李沛萱'],
-  '人事組':       ['邱硯杰','許怡婷','黃聖雅','彭毓婷','曾維德','吳倫威','楊仲凱','黃亭儀','許瑜容','郭韋志','蘇柔云'],
-  '資管組':       ['蔡峻輔','郭庭佑','陳玉萍','林琬雯','鍾迪軒','梁天馨','洪昱榮','李宗諭','陽雲皓'],
-  '後管組':       ['施宇倫','蘇俊嘉','許傑程','廖予嫣','潘琦','蔡琇淳','曹瑞瑜','黎力嘉','藍沉芹'],
+  '雷達組':       ['蔣豐懋','賴昱嘉','吳宗祐','葉峻瑜','歐智賢',
+                   '趙百睿'],
+  '通訊組':       ['詹世譁','許一晨','潘得銘','花洺葟','黃昭融','温梧淮','嚴天鴻','潘謙平','陳明秀','許惠琳','徐敏宗','黃唯蓁',
+                   '陳詠琪','羅欽瑋','葉政庭','陳冠緯','蔡雨容'],
+  '航電組':       ['陳昱熙','陳裕詳','林瑞堂','謝文杰','程振彥','江驊庭','林昆憲','李臆全',
+                   '楊人龍','梁浩瑋','孫奕翔','湯淞棋'],
+  '氣象組':       ['邱佩淇','陳昀暄','李臆立','陳昀澤','陳勝利','林柏宇','黃逸軒','李沛萱',
+                   '陳芯媛','黃馨'],
+  '人事組':       ['邱硯杰','許怡婷','黃聖雅','彭毓婷','曾維德','吳倫威','楊仲凱','黃亭儀','許瑜容','郭韋志','蘇柔云',
+                   '陳文正','蘇鈺茗','黃士朋','彭于宸','韋秉言','林慧貞'],
+  '資管組':       ['蔡峻輔','郭庭佑','陳玉萍','林琬雯','鍾迪軒','梁天馨','洪昱榮','李宗諭','陽雲皓',
+                   '蔡宜玹','王彥','戴佾訓','黃喬偉','蔣立人'],
+  '後管組':       ['施宇倫','蘇俊嘉','許傑程','廖予嫣','潘琦','蔡琇淳','曹瑞瑜','黎力嘉','藍沉芹',
+                   '陳采瑜'],
   // 117 年班（與上面 116 年班各組分開，勿併入）
   '117年班航電組': ['張天成'],
 };
@@ -719,6 +727,13 @@ function isVacationSlot(slot) { return VACATION_SLOTS.has(slot || currentSlot); 
 function isFullRoster(slot) {
   const s = slot || currentSlot;
   return VACATION_SLOTS.has(s) || FULL_ROSTER_SLOTS.has(s);
+}
+
+// 大隊部＋外派：已編入各組，但只有全員時段才在隊上
+const EXTRA_NAMES = new Set(VACATION_EXTRAS.flatMap(s => s.classes.flatMap(c => c.members)));
+// 取某組在該時段實際在隊的成員（非全員時段要濾掉大隊部與外派）
+function groupMembersInSlot(members, slot) {
+  return isFullRoster(slot) ? members : members.filter(n => !EXTRA_NAMES.has(n));
 }
 
 // 研習1700 已出發人員（有任何差勤的人）
@@ -803,6 +818,8 @@ function switchSlot(slot) {
   currentSlot = slot;
   // 更新 tab UI
   document.querySelectorAll('.slot-tab').forEach(t => t.classList.toggle('active', t.dataset.slot === slot));
+  // 組別檢視的成員數會隨時段增減（全員時段才含大隊部與外派），需重建後再上色
+  if (currentView === 'group') buildRoster();
   // 載入新時段
   loadSlotIntoDutyMap();
   undoStack = []; updateUndoBtn(); // 換時段清空復原堆疊
@@ -897,12 +914,14 @@ function buildSquadCards(roster, container) {
 let currentView = 'class';   // 'class' | 'group'
 
 // 依組別檢視的資料結構（沿用 buildSquadCards 的 squad/classes 形狀）
+// 大隊部與外派已編入各組，非全員時段要濾掉，否則 1200 的通訊組會變成 17 人
 function groupViewData() {
-  return [{ squad: '依組別', classes: Object.entries(GROUPS).map(([g, ms]) => ({ name: g, members: ms })) }];
-}
-// 大隊部與外派沒有編組，另立一張卡片（僅全員時段顯示）
-function ungroupedViewData() {
-  return [{ squad: '未編組（大隊部＋外派）', classes: VACATION_EXTRAS.flatMap(s => s.classes) }];
+  return [{
+    squad: '依組別',
+    classes: Object.entries(GROUPS)
+      .map(([g, ms]) => ({ name: g, members: groupMembersInSlot(ms, currentSlot) }))
+      .filter(c => c.members.length > 0)
+  }];
 }
 
 function buildRoster() {
@@ -911,8 +930,7 @@ function buildRoster() {
   sq.innerHTML = '';
   vc.innerHTML = '';
   if (currentView === 'group') {
-    buildSquadCards(groupViewData(), sq);
-    buildSquadCards(ungroupedViewData(), vc);
+    buildSquadCards(groupViewData(), sq);   // 組別檢視已含外派，不需要另一張卡
   } else {
     buildSquadCards(ROSTER, sq);
     buildSquadCards(VACATION_EXTRAS, vc);
@@ -1042,15 +1060,9 @@ function updateStats() {
     return { total: members.length, absent };
   };
   Object.entries(GROUPS).forEach(([grp, members]) => {
-    const { total, absent } = calcRow(members);
+    const { total, absent } = calcRow(groupMembersInSlot(members, currentSlot));
     html += `<div class="stats-row"><span>${grp}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${total - absent}</span></div>`;
   });
-  if (isFullRoster(currentSlot)) {
-    VACATION_EXTRAS.forEach(squad => squad.classes.forEach(cls => {
-      const { total, absent } = calcRow(cls.members);
-      html += `<div class="stats-row"><span>${cls.name}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${total - absent}</span></div>`;
-    }));
-  }
   const total = getTotal();
   const totalAbsent = vacation
     ? Object.values(dutyMap).filter(d => d !== '在勤' && !vacExclude.has(d)).length
@@ -1099,15 +1111,16 @@ function loadState() {
     if (state.slotStates) {
       SLOTS.forEach(s => { slotStates[s] = state.slotStates[s] || {}; });
     }
-    if (state.view === 'group' || state.view === 'class') {
-      currentView = state.view;
-      document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['class','group'][i] === currentView));
-      buildRoster();   // 必須在 loadSlotIntoDutyMap 之前重建，否則上色的按鈕會被丟掉
-    }
     if (state.currentSlot && SLOTS.includes(state.currentSlot)) {
       currentSlot = state.currentSlot;
       document.querySelectorAll('.slot-tab').forEach(t => t.classList.toggle('active', t.dataset.slot === currentSlot));
     }
+    if (state.view === 'group' || state.view === 'class') {
+      currentView = state.view;
+      document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['class','group'][i] === currentView));
+    }
+    // currentSlot 與 currentView 都定案後才重建，且必須在 loadSlotIntoDutyMap 之前
+    buildRoster();
     loadSlotIntoDutyMap();
   } catch(e) { logEvent('error', `載入狀態失敗：${e.message}`); }
 }
@@ -1269,7 +1282,8 @@ function parseText() {
     if (matched.length === 0) {
       groupUsedName = detected; // 沿用本行開頭偵測到的組別，避免誤套跨行組別
       if (groupUsedName && GROUPS[groupUsedName]) {
-        GROUPS[groupUsedName].forEach(n => matched.push(n));
+        // 非全員時段不把大隊部與外派套進去
+        groupMembersInSlot(GROUPS[groupUsedName], currentSlot).forEach(n => matched.push(n));
         groupApplied = true;
       }
     }
@@ -1641,7 +1655,7 @@ function searchKey(e) {
 /* ===== 名冊一致性自檢 ===== */
 function checkRosterConsistency() {
   const missing = [];
-  ROSTER.forEach(s => s.classes.forEach(c => c.members.forEach(m => { if (!nameToGroup[m]) missing.push(m); })));
+  ROSTER.concat(VACATION_EXTRAS).forEach(s => s.classes.forEach(c => c.members.forEach(m => { if (!nameToGroup[m]) missing.push(m); })));
   if (missing.length) logEvent('warn', `名冊自檢：${missing.length} 人未編組（${missing.join('、')}）`);
   const ghost = [];
   Object.values(GROUPS).forEach(ms => ms.forEach(m => { if (!allNames.has(m)) ghost.push(m); }));
@@ -1649,7 +1663,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.06e';
+const APP_VERSION = '2026.08.06f';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
