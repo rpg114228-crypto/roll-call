@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#2c3e50">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="點名助手">
@@ -716,8 +717,9 @@ function get1700Departed() {
 function getTotal() {
   if (!isVacationSlot()) return isFullRoster() ? FULL_TOTAL : NORMAL_TOTAL;
   // 研習假：有回報任何差勤的人才算有資格（應到），在勤（未回報）= 無資格，不算進應到
+  // 研習1800 不必再扣 get1700Departed()：loadSlotIntoDutyMap 只繼承無資格／無意願，
+  // 已出發者留在「在勤」本來就被 qualified 濾掉了，再扣一次會重複扣成負數。
   const qualified = Object.values(dutyMap).filter(d => d !== '在勤' && d !== '無資格').length;
-  if (currentSlot === '研習1800') return qualified - get1700Departed().size;
   return qualified;
 }
 
@@ -1598,7 +1600,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.06c';
+const APP_VERSION = '2026.08.06d';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
