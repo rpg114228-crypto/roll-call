@@ -135,7 +135,6 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .member-btn.duty-花魚委 { background: #26c6da; color: white; border-color: #0097a7; }
 .member-btn.duty-伙委  { background: #827717; color: white; border-color: #33691e; }
 .member-btn.duty-響委  { background: #3f51b5; color: white; border-color: #303f9f; }
-.member-btn.duty-環委  { background: #7cb342; color: white; border-color: #558b2f; }
 .member-btn.duty-巡水電 { background: #0277bd; color: white; border-color: #01579b; }
 .member-btn.duty-看護  { background: #673ab7; color: white; border-color: #512da8; }
 .member-btn.duty-內務檢查 { background: #455a64; color: white; border-color: #37474f; }
@@ -211,7 +210,6 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .duty-option.opt-花魚委 { background: #26c6da22; color: #0097a7; border-color: #26c6da66; font-weight: bold; }
 .duty-option.opt-伙委  { background: #82771722; color: #827717; border-color: #82771766; font-weight: bold; }
 .duty-option.opt-響委  { background: #3f51b522; color: #303f9f; border-color: #3f51b566; font-weight: bold; }
-.duty-option.opt-環委  { background: #7cb34222; color: #558b2f; border-color: #7cb34266; font-weight: bold; }
 .duty-option.opt-巡水電 { background: #0277bd22; color: #01579b; border-color: #0277bd66; font-weight: bold; }
 .duty-option.opt-看護  { background: #673ab722; color: #512da8; border-color: #673ab766; font-weight: bold; }
 .duty-option.opt-內務檢查 { background: #455a6422; color: #37474f; border-color: #455a6466; font-weight: bold; }
@@ -452,7 +450,6 @@ body.dark .output-box { border-color: #444; }
     <div class="legend-item"><div class="legend-dot" style="background:#26c6da"></div>花魚委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#827717"></div>伙委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#3f51b5"></div>響委</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#7cb342"></div>環委</div>
     <div class="legend-item"><div class="legend-dot" style="background:#455a64"></div>內務檢查</div>
     <div class="legend-item"><div class="legend-dot" style="background:#388e3c"></div>內務陪檢</div>
     <div class="legend-item"><div class="legend-dot" style="background:#d32f2f"></div>內務複檢</div>
@@ -586,7 +583,6 @@ body.dark .output-box { border-color: #444; }
     <div class="duty-option opt-花魚委" onclick="setDuty('花魚委')">花魚委</div>
     <div class="duty-option opt-伙委"   onclick="setDuty('伙委')">伙委</div>
     <div class="duty-option opt-響委"   onclick="setDuty('響委')">響委</div>
-    <div class="duty-option opt-環委"   onclick="setDuty('環委')">環委</div>
     <div style="grid-column:span 3;font-size:0.72em;color:#aaa;padding:2px 4px">── 活動 ──</div>
     <div class="duty-option opt-社團"   onclick="setDuty('社團')">社團</div>
     <div class="duty-option opt-校旗隊" onclick="setDuty('校旗隊')">校旗隊</div>
@@ -677,7 +673,7 @@ const DUTY_TYPES = [
   // 訓練課程
   '正課','龍隊','研習','專題','數學輔導(正課)','英文輔導(正課)',
   // 委員活動
-  '消委','修委','社團','校旗隊','美工','大美','導生活動','BMI','花魚委','伙委','響委','環委',
+  '消委','修委','社團','校旗隊','美工','大美','導生活動','BMI','花魚委','伙委','響委',
   // 其他
   '校隊','服檢','安檢','寢休','隔離','收委','榮團會','自行帶回',
   // 內務
@@ -685,47 +681,6 @@ const DUTY_TYPES = [
   // 研習假
   '無意願','有意願','無資格',
 ];
-
-/* ===== 解析關鍵字表 ===== */
-// 提到頂層：讓 checkRosterConsistency 能檢查「有差勤卻沒有解析關鍵字」
-const dutyKeywords = {
-  '公假':'公假','補休':'補休','衛哨':'站哨','站哨':'站哨','下夜':'下夜','外派':'外派',
-  '正課人員':'正課','正課':'正課',
-  '龍隊人員':'龍隊','龍社':'龍隊','練龍':'龍隊','龍隊':'龍隊',
-  '熱舞社':'社團','社團練習':'社團','社團':'社團','動漫社':'社團','愛心社':'社團',
-  '專題研究':'專題','專題報告':'專題','專題':'專題',
-  '研習假人員':'研習','研習假':'研習','研習':'研習',
-  '喪假':'喪假','病假':'病假','事假':'事假',
-  '正常假':'正常假',
-  '班消':'班消','bmi':'BMI','消委':'消委','餐勤':'餐勤','修委':'修委',
-  '校旗隊':'校旗隊','校旗':'校旗隊','大隊美工':'大美','大美':'大美','美工':'美工','導生活動':'導生活動','導生':'導生活動',
-  '校隊':'校隊','球隊':'校隊',
-  '罰勤':'罰勤',
-  '大隊服儀檢查':'服檢','大隊服檢':'服檢','服儀檢查':'服檢','服檢':'服檢',
-  '收假安檢':'安檢','安檢':'安檢',
-  '寢休':'寢休',
-  '隔離':'隔離','居隔':'隔離',
-  '收委班長':'收委','收委':'收委',
-  '收尾班長':'收委','收尾':'收委',
-  '榮團會公差':'榮團會','榮團會':'榮團會',
-  '自行帶回':'自行帶回',
-  '值星':'值星',
-  '差勤公差':'差勤','差勤':'差勤','公差':'公差',
-  '燒委':'燒委',
-  '伙食委員':'伙委','伙委':'伙委',
-  '響應委員':'響委','響委':'響委',
-  '環保委員':'環委','環委':'環委',
-  '花魚委員':'花魚委','花魚委':'花魚委','花魚':'花魚委',
-  '巡水電':'巡水電',
-  '看護':'看護','陪病':'看護','照顧病患':'看護',
-  '不符合資格':'無資格','不符合':'無資格','符合資格':'有意願','無資格':'無資格','有意願':'有意願','無意願':'無意願',
-  '數學輔導課':'數學輔導(正課)','數學輔導':'數學輔導(正課)',
-  '英文輔導課':'英文輔導(正課)','英文輔導':'英文輔導(正課)',
-  '氣象館上課':'正課','上課':'正課',
-  '內務複檢':'內務複檢','複檢':'內務複檢',
-  '內務陪檢':'內務陪檢','陪檢':'內務陪檢',
-  '內務檢查':'內務檢查','打內務':'內務檢查',
-};
 
 const SLOTS = ['早點名','早餐','0740','1200','1330','1700','1850','晚點名','軍訓課','研習假','研習1700','研習1800'];
 
@@ -1224,6 +1179,43 @@ function parseText() {
   let currentContext = null; // 當前組別上下文（跨行追蹤）
   let lastMatchedDuty = null; // 上一行的差勤，供續行使用
 
+  const dutyKeywords = {
+    '公假':'公假','補休':'補休','衛哨':'站哨','站哨':'站哨','下夜':'下夜','外派':'外派',
+    '正課人員':'正課','正課':'正課',
+    '龍隊人員':'龍隊','龍社':'龍隊','練龍':'龍隊','龍隊':'龍隊',
+    '熱舞社':'社團','社團練習':'社團','社團':'社團','動漫社':'社團','愛心社':'社團',
+    '專題研究':'專題','專題報告':'專題','專題':'專題',
+    '研習假人員':'研習','研習假':'研習','研習':'研習',
+    '喪假':'喪假','病假':'病假','事假':'事假',
+    '正常假':'正常假',
+    '班消':'班消','bmi':'BMI','消委':'消委','餐勤':'餐勤','修委':'修委',
+    '校旗隊':'校旗隊','校旗':'校旗隊','大隊美工':'大美','大美':'大美','美工':'美工','導生活動':'導生活動','導生':'導生活動',
+    '校隊':'校隊','球隊':'校隊',
+    '罰勤':'罰勤',
+    '大隊服儀檢查':'服檢','大隊服檢':'服檢','服儀檢查':'服檢','服檢':'服檢',
+    '收假安檢':'安檢','安檢':'安檢',
+    '寢休':'寢休',
+    '隔離':'隔離','居隔':'隔離',
+    '收委班長':'收委','收委':'收委',
+    '收尾班長':'收委','收尾':'收委',
+    '榮團會公差':'榮團會','榮團會':'榮團會',
+    '自行帶回':'自行帶回',
+    '值星':'值星',
+    '差勤公差':'差勤','差勤':'差勤','公差':'公差',
+    '燒委':'燒委',
+    '伙食委員':'伙委','伙委':'伙委',
+    '響應委員':'響委','響委':'響委',
+    '巡水電':'巡水電',
+    '看護':'看護','陪病':'看護','照顧病患':'看護',
+    '不符合資格':'無資格','不符合':'無資格','符合資格':'有意願','無資格':'無資格','有意願':'有意願','無意願':'無意願',
+    '數學輔導課':'數學輔導(正課)','數學輔導':'數學輔導(正課)',
+    '英文輔導課':'英文輔導(正課)','英文輔導':'英文輔導(正課)',
+    '氣象館上課':'正課','上課':'正課',
+    '內務複檢':'內務複檢','複檢':'內務複檢',
+    '內務陪檢':'內務陪檢','陪檢':'內務陪檢',
+    '內務檢查':'內務檢查','打內務':'內務檢查',
+  };
+
   // 多筆差勤擠在同一行時（整段沒換行／一行塞好幾筆），在「N員」前自動補斷行。
   // 「應到5員」「實到2員」這種統計數字前面有「到／共／計」，不切。
   const nonEmptyLines = text.split(/\n/).filter(s => s.trim()).length;
@@ -1673,14 +1665,10 @@ function checkRosterConsistency() {
   const ghost = [];
   Object.values(GROUPS).forEach(ms => ms.forEach(m => { if (!allNames.has(m)) ghost.push(m); }));
   if (ghost.length) logEvent('warn', `名冊自檢：組別含名冊外人員（${[...new Set(ghost)].join('、')}）`);
-  // 新增差勤卻忘了加解析關鍵字 → 文字解析會認不出來（花魚委就這樣漏了很久）
-  const kwTargets = new Set(Object.values(dutyKeywords));
-  const noKeyword = DUTY_TYPES.slice(1).filter(d => !kwTargets.has(d));
-  if (noKeyword.length) logEvent('warn', `差勤自檢：${noKeyword.length} 種差勤沒有解析關鍵字（${noKeyword.join('、')}）`);
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.06h';
+const APP_VERSION = '2026.08.06g';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
