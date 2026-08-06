@@ -684,6 +684,8 @@ const FIXED_DUTIES = {
 };
 const SLOT_LABELS = { '早餐':'早餐點名','0740':'0740 點名','1200':'1200 點名','1330':'1330 點名','1700':'1700 點名','1850':'1850 點名','研習假':'研習假點名','研習1700':'研習假 1700 集合','研習1800':'研習假 1800 集合' };
 const VACATION_SLOTS = new Set(['研習假','研習1700','研習1800']);
+// 非研習假、但外派＋大隊部要一起回來點名的時段（應到 87）
+const FULL_ROSTER_SLOTS = new Set(['1700']);
 
 // 放假點名額外人員（大隊部＋外派）
 const VACATION_EXTRAS = [
@@ -694,10 +696,17 @@ const VACATION_EXTRAS = [
     { name: '外派', members: ['梁浩瑋','陳詠琪','羅欽瑋','彭于宸','韋秉言','湯淞棋','林慧貞','陳冠緯','黃馨','蔡雨容','葉政庭','陳芯媛','孫奕翔','蔣立人','陳采瑜'] }
   ]}
 ];
-const VACATION_TOTAL = 87;   // 63 + 大隊部 9 + 外派 15
+const FULL_TOTAL = 87;       // 63 + 大隊部 9 + 外派 15
 const NORMAL_TOTAL = 63;     // 中隊部 9 + 一區隊 18 + 二區隊 18 + 三區隊 18
 
 function isVacationSlot(slot) { return VACATION_SLOTS.has(slot || currentSlot); }
+
+// 全員時段：外派與大隊部都要回來點名，應到 87。
+// 研習假時段本來就含這些人，所以一併算進來；差勤邏輯仍走各自分支。
+function isFullRoster(slot) {
+  const s = slot || currentSlot;
+  return VACATION_SLOTS.has(s) || FULL_ROSTER_SLOTS.has(s);
+}
 
 // 研習1700 已出發人員（有任何差勤的人）
 function get1700Departed() {
@@ -705,7 +714,7 @@ function get1700Departed() {
 }
 
 function getTotal() {
-  if (!isVacationSlot()) return NORMAL_TOTAL;
+  if (!isVacationSlot()) return isFullRoster() ? FULL_TOTAL : NORMAL_TOTAL;
   // 研習假：有回報任何差勤的人才算有資格（應到），在勤（未回報）= 無資格，不算進應到
   const qualified = Object.values(dutyMap).filter(d => d !== '在勤' && d !== '無資格').length;
   if (currentSlot === '研習1800') return qualified - get1700Departed().size;
@@ -792,8 +801,7 @@ function switchSlot(slot) {
 }
 
 function loadSlotIntoDutyMap() {
-  const vacation = isVacationSlot(currentSlot);
-  document.getElementById('vacationContainer').style.display = vacation ? 'block' : 'none';
+  document.getElementById('vacationContainer').style.display = isFullRoster(currentSlot) ? 'block' : 'none';
 
   // 重置所有人
   Object.keys(dutyMap).forEach(n => dutyMap[n] = '在勤');
@@ -991,7 +999,7 @@ function updateStats() {
     const { total, absent } = calcRow(members);
     html += `<div class="stats-row"><span>${grp}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${total - absent}</span></div>`;
   });
-  if (isVacationSlot(currentSlot)) {
+  if (isFullRoster(currentSlot)) {
     VACATION_EXTRAS.forEach(squad => squad.classes.forEach(cls => {
       const { total, absent } = calcRow(cls.members);
       html += `<div class="stats-row"><span>${cls.name}</span><span>${total}</span><span class="${absent > 0 ? 's-absent' : ''}">${absent}</span><span class="s-present">${total - absent}</span></div>`;
@@ -1590,7 +1598,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.06b';
+const APP_VERSION = '2026.08.06c';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
