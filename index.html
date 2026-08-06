@@ -49,6 +49,12 @@ body { font-family: 'Microsoft JhengHei', sans-serif; background: #f0f2f5; color
 .mode-tabs { display: flex; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; }
 .mode-tab { flex: 1; padding: 8px; text-align: center; cursor: pointer; font-size: 0.88em; color: #888; }
 .mode-tab.active { color: #2c3e50; font-weight: bold; background: white; }
+.view-tabs { display: flex; gap: 6px; margin: 0 12px 8px; }
+.view-tab {
+  flex: 1; padding: 6px; text-align: center; cursor: pointer; font-size: 0.82em;
+  color: #888; background: #f1f3f5; border: 1px solid #e0e0e0; border-radius: 7px;
+}
+.view-tab.active { color: white; background: #2c3e50; border-color: #2c3e50; font-weight: bold; }
 
 .tab-content { display: none; }
 .tab-content.active { display: block; }
@@ -337,6 +343,8 @@ body.dark .stats-toggle, body.dark .output-box, body.dark .duty-menu, body.dark 
 body.dark .confirm-box, body.dark .history-panel, body.dark .history-entries { background: #1f242b; color: #d4d7dc; }
 body.dark .mode-tabs { background: #16191d; border-color: #333; }
 body.dark .mode-tab { color: #888; }
+body.dark .view-tab { background: #1e2126; border-color: #333; color: #888; }
+body.dark .view-tab.active { background: #6ea8fe; border-color: #6ea8fe; color: #16191d; }
 body.dark .slot-tabs { border-bottom-color: #333; }
 body.dark .slot-tab.active { color: #eaecef; border-bottom-color: #6ea8fe; }
 body.dark .controls, body.dark .search-bar, body.dark .legend, body.dark .legend-toggle,
@@ -442,7 +450,11 @@ body.dark .output-box { border-color: #444; }
     <div class="legend-item"><div class="legend-dot" style="background:#455a64"></div>內務檢查</div>
     <div class="legend-item"><div class="legend-dot" style="background:#388e3c"></div>內務陪檢</div>
     <div class="legend-item"><div class="legend-dot" style="background:#d32f2f"></div>內務複檢</div>
-    <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名全班套用</span>
+    <span style="font-size:0.73em;color:#aaa;margin-left:auto">點人名選差勤｜點班名／組名整批套用</span>
+  </div>
+  <div class="view-tabs">
+    <div class="view-tab active" onclick="switchView('class')">依建置班</div>
+    <div class="view-tab" onclick="switchView('group')">依組別</div>
   </div>
   <div class="squads" id="squadsContainer"></div>
   <div class="squads" id="vacationContainer" style="display:none"></div>
@@ -881,9 +893,41 @@ function buildSquadCards(roster, container) {
   });
 }
 
+/* ===== 名冊檢視：依建置班 ／ 依組別 ===== */
+let currentView = 'class';   // 'class' | 'group'
+
+// 依組別檢視的資料結構（沿用 buildSquadCards 的 squad/classes 形狀）
+function groupViewData() {
+  return [{ squad: '依組別', classes: Object.entries(GROUPS).map(([g, ms]) => ({ name: g, members: ms })) }];
+}
+// 大隊部與外派沒有編組，另立一張卡片（僅全員時段顯示）
+function ungroupedViewData() {
+  return [{ squad: '未編組（大隊部＋外派）', classes: VACATION_EXTRAS.flatMap(s => s.classes) }];
+}
+
 function buildRoster() {
-  buildSquadCards(ROSTER, document.getElementById('squadsContainer'));
-  buildSquadCards(VACATION_EXTRAS, document.getElementById('vacationContainer'));
+  const sq = document.getElementById('squadsContainer');
+  const vc = document.getElementById('vacationContainer');
+  sq.innerHTML = '';
+  vc.innerHTML = '';
+  if (currentView === 'group') {
+    buildSquadCards(groupViewData(), sq);
+    buildSquadCards(ungroupedViewData(), vc);
+  } else {
+    buildSquadCards(ROSTER, sq);
+    buildSquadCards(VACATION_EXTRAS, vc);
+  }
+}
+
+function switchView(view) {
+  if (view === currentView) return;
+  saveState();               // buildSquadCards 會把 dutyMap 重設成在勤，先把現況存進 slotStates
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['class','group'][i] === view));
+  buildRoster();
+  loadSlotIntoDutyMap();     // 重新上色並還原本時段差勤
+  doSearch(document.getElementById('searchInput').value || '');
+  saveState();
 }
 
 /* ===== 差勤選單 ===== */
@@ -899,7 +943,7 @@ function openClassMenu(e, members, className) {
   e.stopPropagation();
   currentMember = null;
   currentClassMembers = members;
-  document.getElementById('dutyMenuLabel').textContent = className + '（全班）';
+  document.getElementById('dutyMenuLabel').textContent = className + (currentView === 'group' ? '（全組）' : '（全班）');
   showDutyMenu();
 }
 
@@ -1041,7 +1085,7 @@ function doReset() {
 function saveState() {
   try {
     slotStates[currentSlot] = Object.fromEntries(Object.entries(dutyMap).filter(([,d]) => d !== '在勤'));
-    const state = { date: dateInput.value, currentSlot, slotStates };
+    const state = { date: dateInput.value, currentSlot, slotStates, view: currentView };
     localStorage.setItem('rollcall_state', JSON.stringify(state));
   } catch(e) { logEvent('error', `儲存狀態失敗：${e.message}`); }
 }
@@ -1054,6 +1098,11 @@ function loadState() {
     if (state.date) dateInput.value = state.date;
     if (state.slotStates) {
       SLOTS.forEach(s => { slotStates[s] = state.slotStates[s] || {}; });
+    }
+    if (state.view === 'group' || state.view === 'class') {
+      currentView = state.view;
+      document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['class','group'][i] === currentView));
+      buildRoster();   // 必須在 loadSlotIntoDutyMap 之前重建，否則上色的按鈕會被丟掉
     }
     if (state.currentSlot && SLOTS.includes(state.currentSlot)) {
       currentSlot = state.currentSlot;
@@ -1600,7 +1649,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.08.06d';
+const APP_VERSION = '2026.08.06e';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
