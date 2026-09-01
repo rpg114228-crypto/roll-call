@@ -1,5 +1,5 @@
 /* 一中隊點名助手 Service Worker — network-first，離線可用 */
-const CACHE = 'rollcall-2026.08.07';
+const CACHE = 'rollcall-2026.09.01';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
