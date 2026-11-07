@@ -824,7 +824,7 @@ VACATION_EXTRAS.forEach(s => s.classes.forEach(cls => {
 Object.entries(GROUPS).forEach(([g, ms]) => ms.forEach(m => nameToGroup[m] = g));
 
 // 舊寫法別名：貼文若沿用舊字，解析時對應回名冊正式寫法（依 0928 建制班表）
-const NAME_ALIASES = { '温梧淮':'溫梧淮', '湯淞棋':'湯淞琪', '邱佩淇':'邱珮淇', '陳裕詳':'陳裕祥' };
+const NAME_ALIASES = { '温梧淮':'溫梧淮', '湯淞棋':'湯淞琪', '邱佩淇':'邱珮淇', '陳裕詳':'陳裕祥', '溫珮汝':'温珮汝' };
 
 /* ===== Error Log ===== */
 const MAX_LOG = 100;
@@ -1130,8 +1130,8 @@ function updateStats() {
   });
   const total = getTotal();
   const totalAbsent = vacation
-    ? Object.values(dutyMap).filter(d => d !== '在勤' && !vacExclude.has(d)).length
-    : Object.values(dutyMap).filter(d => d !== '在勤').length;
+    ? countedDuties().filter(d => d !== '在勤' && !vacExclude.has(d)).length
+    : countedDuties().filter(d => d !== '在勤').length;
   html += `<div class="stats-row" style="font-weight:bold;background:#f8f9fa"><span>全中隊</span><span>${total}</span><span class="${totalAbsent > 0 ? 's-absent' : ''}">${totalAbsent}</span><span class="s-present">${total - totalAbsent}</span></div>`;
   table.innerHTML = html;
   document.getElementById('statsLabel').textContent = `各組統計（差事 ${totalAbsent} 員）`;
@@ -1312,7 +1312,11 @@ function parseText() {
     // 若沒找到個人姓名，先看同行組別，再用跨行上下文
     let groupApplied = false;
     let groupUsedName = null;
-    if (matched.length === 0) {
+    // 行內有寫人名但名冊找不到（打錯字）→ 不能退回整組套用，否則一個人會變整組
+    const NON_NAME_RE = /應到|實到|合計|差事|點名|建置|建制|中隊|區隊|大隊|人數|以上|報告|核示|謝謝|班長|[一二三四五六七八九十\d]+班|海軍測量|測量|攔管|通資電|雷達|通訊|航電|氣象|人事|資管|後管|全組|全班|人員/g;
+    const unnamedSegs = afterKw.replace(NON_NAME_RE, ' ').split(/[、，,\s\/(（)）：:＋+\d員名\-—]+/)
+      .filter(seg => seg.length >= 2 && /^[一-鿿]+$/.test(seg) && greedyExtractNames(seg).length === 0);
+    if (matched.length === 0 && unnamedSegs.length === 0) {
       groupUsedName = detected; // 沿用本行開頭偵測到的組別，避免誤套跨行組別
       if (groupUsedName && GROUPS[groupUsedName]) {
         // 非全員時段不把大隊部與外派套進去
@@ -1344,7 +1348,7 @@ function parseText() {
 
     // 找未知姓名：純中文片段但不在名冊內（先剝掉統計／標題用語，避免誤報）
     const unknown = [];
-    const NON_NAME = /應到|實到|合計|差事|點名|建置|建制|中隊|區隊|大隊|人數|以上|報告|核示|謝謝|班長/g;
+    const NON_NAME = /應到|實到|合計|差事|點名|建置|建制|中隊|區隊|大隊|人數|以上|報告|核示|謝謝|班長|全組|全班|人員/g;
     afterKw.replace(NON_NAME, ' ').split(/[、，,\s\/(（)）：:＋+\d員\-—]+/).map(s => s.trim())
       .filter(s => s.length >= 2 && /^[一-鿿]+$/.test(s))
       .forEach(seg => {
@@ -1589,11 +1593,12 @@ function applyFixedDuties() {
 
   snapshot();
   const departed = get1700Departed();
+  const off = isFullRoster() ? new Set() : EXTRA_NAMES; // 外派／大隊部不在隊上，不預填
   let count = 0;
   Object.entries(duties).forEach(([duty, members]) => {
     members.forEach(name => {
       // 只填入目前在勤的人，不覆蓋已有差勤
-      if (dutyMap.hasOwnProperty(name) && dutyMap[name] === '在勤' && !departed.has(name)) {
+      if (dutyMap.hasOwnProperty(name) && dutyMap[name] === '在勤' && !departed.has(name) && !off.has(name)) {
         applyDuty(name, duty);
         count++;
       }
@@ -1624,11 +1629,17 @@ function updatePrefillBtn() {
 }
 
 /* ===== 摘要 ===== */
+// 非全員時段：大隊部與外派不在應到內，他們的差勤不能算進差事（與 getReportData 一致）
+function countedDuties() {
+  const off = isFullRoster() ? new Set() : EXTRA_NAMES;
+  return Object.entries(dutyMap).filter(([n]) => !off.has(n)).map(([, d]) => d);
+}
+
 function updateSummary() {
   const total = getTotal();
   const absent = isVacationSlot()
-    ? Object.values(dutyMap).filter(d => d !== '在勤' && d !== '有意願' && d !== '無資格').length
-    : Object.values(dutyMap).filter(d => d !== '在勤').length;
+    ? countedDuties().filter(d => d !== '在勤' && d !== '有意願' && d !== '無資格').length
+    : countedDuties().filter(d => d !== '在勤').length;
   document.getElementById('summaryBar').textContent = `${currentSlot}  ─  應到 ${total} 員  差事：${absent} 員 ／ 實到：${total - absent} 員`;
 }
 
@@ -1743,7 +1754,7 @@ function checkRosterConsistency() {
 }
 
 /* ===== PWA：版本 + Service Worker ===== */
-const APP_VERSION = '2026.09.23';
+const APP_VERSION = '2026.11.07';
 function renderFooter() {
   const el = document.getElementById('appFooter');
   if (el) el.textContent = `一中隊點名助手 · v${APP_VERSION}`;
